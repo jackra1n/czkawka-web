@@ -68,9 +68,9 @@
 				scanError = 'Scan not found';
 				clearInterval(intervalId);
 			}
-		} catch (err: any) {
+		} catch (err) {
 			scanState = 'error';
-			scanError = err.message ?? 'Failed to fetch status';
+			scanError = err instanceof Error ? err.message : 'Failed to fetch status';
 			clearInterval(intervalId);
 		}
 	}
@@ -99,9 +99,9 @@
 			scanId = res.id;
 			poll();
 			intervalId = setInterval(poll, 1000);
-		} catch (err: any) {
+		} catch (err) {
 			scanState = 'error';
-			scanError = err.message ?? 'Failed to start scan';
+			scanError = err instanceof Error ? err.message : 'Failed to start scan';
 		}
 	}
 

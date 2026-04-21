@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Search, ChevronDown, File } from 'lucide-svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults } from '$lib/api';
 	import { formatBytes, formatDuration } from '$lib/utils';
 
@@ -15,21 +16,20 @@
 		onSelectFile: (file: string, size: number) => void;
 	} = $props();
 
-	let expandedGroups = $state<Set<number>>(new Set());
+	let expandedGroups = $state<SvelteSet<number>>(new SvelteSet());
 
 	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		scanResults;
-		expandedGroups = new Set();
+		expandedGroups.clear();
 	});
 
 	function toggleGroup(index: number) {
-		const next = new Set(expandedGroups);
-		if (next.has(index)) {
-			next.delete(index);
+		if (expandedGroups.has(index)) {
+			expandedGroups.delete(index);
 		} else {
-			next.add(index);
+			expandedGroups.add(index);
 		}
-		expandedGroups = next;
 	}
 </script>
 
@@ -90,7 +90,7 @@
 
 						{#if expandedGroups.has(i)}
 							<div class="bg-surface/40">
-								{#each group.files as file}
+								{#each group.files as file (file)}
 									<button
 										class="flex w-full items-center gap-3 px-4 py-2 pl-8 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
 										onclick={() => onSelectFile(file, group.size)}

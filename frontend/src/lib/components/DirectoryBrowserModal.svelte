@@ -30,11 +30,11 @@
 	let error = $state<string | null>(null);
 	let showHidden = $state(false);
 
-	async function fetchDirs(path: string) {
+	async function fetchDirs(path: string, includeHidden: boolean) {
 		loading = true;
 		error = null;
 		try {
-			const res = await fetch(`/api/directories?path=${encodeURIComponent(path)}&hidden=${showHidden}`);
+			const res = await fetch(`/api/directories?path=${encodeURIComponent(path)}&hidden=${includeHidden}`);
 			if (res.ok) {
 				const data = await res.json();
 				directories = data.directories;
@@ -78,8 +78,7 @@
 
 	$effect(() => {
 		if (open && fetchPath) {
-			showHidden;
-			fetchDirs(fetchPath);
+			fetchDirs(fetchPath, showHidden);
 		}
 	});
 
@@ -94,7 +93,7 @@
 		role="presentation"
 	>
 		<div
-			class="flex h-[480px] w-[520px] flex-col rounded-xl border border-border bg-surface shadow-2xl"
+			class="flex h-120 w-130 flex-col rounded-xl border border-border bg-surface shadow-2xl"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="dialog"
@@ -109,7 +108,7 @@
 			</div>
 
 			<div class="flex items-center gap-1 border-b border-border px-5 py-2.5 text-xs text-text-muted">
-				{#each breadcrumbs as crumb, i}
+				{#each breadcrumbs as crumb, i (crumb.path)}
 					<button class="transition-colors hover:text-accent" onclick={() => { fetchPath = crumb.path; }}>
 						{crumb.name}
 					</button>
@@ -136,7 +135,7 @@
 							<span>..</span>
 						</button>
 					{/if}
-					{#each directories as folder}
+					{#each directories as folder (folder.path)}
 						<button
 							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-surface-raised"
 							onclick={() => { fetchPath = folder.path; }}

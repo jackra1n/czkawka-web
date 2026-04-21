@@ -37,7 +37,7 @@
 
 <aside class="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface">
 	<div class="flex flex-col gap-0.5 p-2">
-		{#each tools as tool}
+		{#each tools as tool (tool.id)}
 			<button
 				class="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors"
 				class:bg-surface-raised={tool.id === activeTool}

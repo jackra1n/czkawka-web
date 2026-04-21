@@ -59,11 +59,11 @@
 				</button>
 			</div>
 			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
-				{#each includedDirs as _, i}
+				{#each includedDirs as dir, i (i)}
 					<div class="flex gap-2">
 						<input
 							type="text"
-							value={includedDirs[i]}
+							value={dir}
 							oninput={(e) => updateIncludedDir(i, e.currentTarget.value)}
 							placeholder="/home/user/Downloads"
 							class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
@@ -101,11 +101,11 @@
 				</button>
 			</div>
 			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
-				{#each excludedDirs as _, i}
+				{#each excludedDirs as dir, i (i)}
 					<div class="flex gap-2">
 						<input
 							type="text"
-							value={excludedDirs[i]}
+							value={dir}
 							oninput={(e) => updateExcludedDir(i, e.currentTarget.value)}
 							placeholder="/home/user/Downloads/temp"
 							class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
