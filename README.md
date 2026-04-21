@@ -9,3 +9,6 @@ This project is built with an emphasis on zero bloat and high performance.
 * **Frontend:** [SvelteKit](https://kit.svelte.dev/)
 * [Bun](https://bun.sh/)
 * [Mise](https://mise.jdx.dev/)
+
+## Acknowledgments
+A huge thanks to [qarmin](https://github.com/qarmin) for creating and maintaining [czkawka](https://github.com/qarmin/czkawka). This project wouldn't be possible without the incredible work put into that amazing project.
