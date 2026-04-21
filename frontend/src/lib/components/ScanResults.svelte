@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Search, ChevronDown, File } from 'lucide-svelte';
+	import { Search } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { ScanResults } from '$lib/api';
-	import { formatBytes, formatDuration } from '$lib/utils';
+	import type { ScanResults, DuplicateFile } from '$lib/api';
+	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
 
 	let {
 		scanState,
@@ -13,27 +13,106 @@
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		scanError: string;
 		scanResults: ScanResults | null;
-		onSelectFile: (file: string, size: number) => void;
+		onSelectFile: (file: string | null, size: number) => void;
 	} = $props();
 
-	let expandedGroups = $state<SvelteSet<number>>(new SvelteSet());
+	let containerEl = $state<HTMLDivElement | null>(null);
+	let selectedIndex = $state(-1);
+	let checkedFiles = $state<SvelteSet<string>>(new SvelteSet());
+
+	type ListItem =
+		| { type: 'file'; file: DuplicateFile; size: number }
+		| { type: 'separator' };
+
+	function buildListItems(results: ScanResults | null): ListItem[] {
+		if (!results) return [];
+		const items: ListItem[] = [];
+		for (let gi = 0; gi < results.groups.length; gi++) {
+			const group = results.groups[gi];
+			for (const file of group.files) {
+				items.push({ type: 'file', file, size: group.size });
+			}
+			if (gi < results.groups.length - 1) {
+				items.push({ type: 'separator' });
+			}
+		}
+		return items;
+	}
+
+	let listItems = $derived(buildListItems(scanResults));
 
 	$effect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		scanResults;
-		expandedGroups.clear();
+		selectedIndex = -1;
+		checkedFiles.clear();
 	});
 
-	function toggleGroup(index: number) {
-		if (expandedGroups.has(index)) {
-			expandedGroups.delete(index);
+	function toggleCheck(path: string) {
+		if (checkedFiles.has(path)) {
+			checkedFiles.delete(path);
 		} else {
-			expandedGroups.add(index);
+			checkedFiles.add(path);
 		}
+	}
+
+	function handleSelect(index: number) {
+		selectedIndex = index;
+		containerEl?.focus();
+		const item = listItems[index];
+		if (item.type === 'file') {
+			onSelectFile(item.file.path, item.size);
+		} else {
+			onSelectFile(null, 0);
+		}
+	}
+
+	function handleKeyDown(e: KeyboardEvent) {
+		if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			const next = selectedIndex + 1;
+			if (next < listItems.length) {
+				handleSelect(next);
+				scrollToIndex(next);
+			}
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			const prev = selectedIndex - 1;
+			if (prev >= 0) {
+				handleSelect(prev);
+				scrollToIndex(prev);
+			}
+		} else if (e.key === ' ') {
+			e.preventDefault();
+			const item = listItems[selectedIndex];
+			if (item?.type === 'file') {
+				toggleCheck(item.file.path);
+			}
+		}
+	}
+
+	function scrollToIndex(index: number) {
+		const el = document.getElementById(`scan-item-${index}`);
+		if (el) {
+			el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		}
+	}
+
+	function splitPath(fullPath: string): { name: string; dir: string } {
+		const lastSlash = fullPath.lastIndexOf('/');
+		const lastBackslash = fullPath.lastIndexOf('\\');
+		const lastSep = Math.max(lastSlash, lastBackslash);
+		if (lastSep === -1) return { name: fullPath, dir: '' };
+		return { name: fullPath.slice(lastSep + 1), dir: fullPath.slice(0, lastSep) };
 	}
 </script>
 
-<div class="flex flex-1 flex-col min-h-0 overflow-auto">
+<div
+	bind:this={containerEl}
+	class="flex flex-1 flex-col min-h-0 overflow-auto outline-none"
+	tabindex="0"
+	onkeydown={handleKeyDown}
+>
 	{#if scanState === 'idle' && !scanResults}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 text-text-muted">
 			<Search class="h-10 w-10 opacity-30" />
@@ -46,7 +125,9 @@
 		</div>
 	{:else if scanState === 'error'}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 p-8">
-			<div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger max-w-md w-full text-center">
+			<div
+				class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger max-w-md w-full text-center"
+			>
 				{scanError}
 			</div>
 		</div>
@@ -66,42 +147,50 @@
 		{:else}
 			<!-- Table -->
 			<div class="flex flex-col">
-				<div class="grid grid-cols-[120px_1fr_80px_40px] gap-4 border-b border-border px-4 py-2 text-xs font-medium text-text-muted uppercase tracking-wider">
-					<div>Size</div>
-					<div>Hash</div>
-					<div class="text-right">Files</div>
+				<div
+					class="grid grid-cols-[32px_100px_1fr_1.5fr_140px] gap-3 border-b border-border px-4 py-2 text-xs font-medium text-text-muted uppercase tracking-wider"
+				>
 					<div></div>
+					<div>Size</div>
+					<div>Filename</div>
+					<div>Path</div>
+					<div>Modified</div>
 				</div>
-				{#each scanResults.groups as group, i (group.hash)}
-					<div class="border-b border-border">
-						<button
-							class="grid w-full grid-cols-[120px_1fr_80px_40px] items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-surface-raised"
-							onclick={() => toggleGroup(i)}
+				{#each listItems as item, i (item.type === 'file' ? item.file.path : `sep-${i}`)}
+					{#if item.type === 'separator'}
+						<div
+							id="scan-item-{i}"
+							class="h-4 cursor-default {selectedIndex === i ? 'bg-surface-raised/30' : ''}"
+							onclick={() => handleSelect(i)}
+						></div>
+					{:else}
+						{@const { name, dir } = splitPath(item.file.path)}
+						<div
+							id="scan-item-{i}"
+							class="grid grid-cols-[32px_100px_1fr_1.5fr_140px] gap-3 px-4 py-2 text-sm cursor-pointer transition-colors {selectedIndex === i ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'}"
+							onclick={() => handleSelect(i)}
 						>
-							<span class="text-sm font-medium text-text">{formatBytes(group.size)}</span>
-							<span class="truncate font-mono text-xs text-text-muted">{group.hash}</span>
-							<span class="text-right text-sm text-text-muted">{group.files.length}</span>
-							<div class="flex justify-center">
-							<ChevronDown
-								class="h-4 w-4 text-text-muted transition-transform duration-200 {expandedGroups.has(i) ? 'rotate-180' : ''}"
-							/>
+							<div class="flex items-center justify-center">
+								<input
+									type="checkbox"
+									checked={checkedFiles.has(item.file.path)}
+									onclick={(e) => {
+										e.stopPropagation();
+										toggleCheck(item.file.path);
+										handleSelect(i);
+									}}
+								/>
 							</div>
-						</button>
-
-						{#if expandedGroups.has(i)}
-							<div class="bg-surface/40">
-								{#each group.files as file (file)}
-									<button
-										class="flex w-full items-center gap-3 px-4 py-2 pl-8 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-										onclick={() => onSelectFile(file, group.size)}
-									>
-										<File class="h-3.5 w-3.5 shrink-0 opacity-60" />
-										<span class="truncate font-mono text-xs">{file}</span>
-									</button>
-								{/each}
+							<div class="flex items-center text-text font-medium">{formatBytes(item.size)}</div>
+							<div class="flex items-center truncate text-text" title={name}>{name}</div>
+							<div class="flex items-center truncate font-mono text-xs text-text-muted" title={dir}>
+								{dir}
 							</div>
-						{/if}
-					</div>
+							<div class="flex items-center text-xs text-text-muted">
+								{formatDate(item.file.modified_date)}
+							</div>
+						</div>
+					{/if}
 				{/each}
 			</div>
 		{/if}

@@ -38,7 +38,7 @@
 		}
 	}
 
-	function selectFile(file: string, size: number) {
+	function selectFile(file: string | null, size: number) {
 		selectedFile = file;
 		selectedFileSize = size;
 	}
