@@ -127,8 +127,6 @@ async fn start_scan(
 }
 
 fn run_scan(request: ScanRequest) -> Result<ScanResults, String> {
-    set_config_cache_path("Czkawka", "Czkawka");
-
     let params = DuplicateFinderParameters::new(
         CheckingMethod::Hash,
         HashType::Blake3,
@@ -300,6 +298,7 @@ async fn list_directories(
 #[tokio::main]
 async fn main() {
     env_logger::init();
+    set_config_cache_path("Czkawka", "Czkawka");
 
     log::info!("Backend starting on 0.0.0.0:3000");
 
