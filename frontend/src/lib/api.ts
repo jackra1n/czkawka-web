@@ -11,10 +11,15 @@ export interface ScanResponse {
 	status: string;
 }
 
+export interface DuplicateFile {
+	path: string;
+	modified_date?: number;
+}
+
 export interface DuplicateGroup {
 	size: number;
 	hash: string;
-	files: string[];
+	files: DuplicateFile[];
 }
 
 export interface ScanResults {

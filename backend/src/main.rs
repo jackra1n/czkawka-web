@@ -71,10 +71,16 @@ struct ScanResults {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+struct DuplicateFile {
+    path: String,
+    modified_date: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct DuplicateGroup {
     size: u64,
     hash: String,
-    files: Vec<String>,
+    files: Vec<DuplicateFile>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -170,7 +176,13 @@ fn run_scan(request: ScanRequest) -> Result<ScanResults, String> {
                 let mut files = Vec::new();
                 let mut hash = String::new();
                 for entry in group {
-                    files.push(entry.path.to_string_lossy().to_string());
+                    let path = entry.path.to_string_lossy().to_string();
+                    let modified_date = std::fs::metadata(&entry.path)
+                        .and_then(|m| m.modified())
+                        .ok()
+                        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                        .map(|d| d.as_millis() as u64);
+                    files.push(DuplicateFile { path, modified_date });
                     if hash.is_empty() {
                         hash = entry.hash.clone();
                     }
