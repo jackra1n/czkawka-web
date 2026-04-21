@@ -8,6 +8,7 @@ use axum::{
     http::StatusCode,
     routing::{get, post},
 };
+use czkawka_core::common::config_cache_path::set_config_cache_path;
 use czkawka_core::common::model::{CheckingMethod, HashType};
 use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
 use czkawka_core::common::traits::Search;
@@ -88,13 +89,16 @@ async fn start_scan(
     let scan_id_clone = scan_id.clone();
 
     spawn_blocking(move || {
+        log::info!("Starting scan {}", scan_id_clone);
         let result = run_scan(request);
         let mut scans = state_clone.scans.lock().unwrap();
         match result {
             Ok(results) => {
+                log::info!("Scan {} completed with {} groups", scan_id_clone, results.total_duplicate_groups);
                 scans.insert(scan_id_clone, ScanState::Completed(results));
             }
             Err(e) => {
+                log::info!("Scan {} error: {}", scan_id_clone, e);
                 scans.insert(scan_id_clone, ScanState::Error(e));
             }
         }
@@ -110,6 +114,8 @@ async fn start_scan(
 }
 
 fn run_scan(request: ScanRequest) -> Result<ScanResults, String> {
+    set_config_cache_path("Czkawka", "Czkawka");
+
     let params = DuplicateFinderParameters::new(
         CheckingMethod::Hash,
         HashType::Blake3,
@@ -227,6 +233,10 @@ async fn health() -> &'static str {
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+
+    log::info!("Backend starting on 0.0.0.0:3000");
+
     let state = Arc::new(AppState {
         scans: Arc::new(Mutex::new(HashMap::new())),
     });
