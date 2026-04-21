@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, Folder, ChevronRight } from 'lucide-svelte';
+	import { X, Folder, ChevronRight, Loader } from 'lucide-svelte';
 
 	interface Props {
 		open: boolean;
@@ -9,89 +9,34 @@
 
 	let { open, onClose, onSelect }: Props = $props();
 
-	interface MockNode {
+	interface DirectoryEntry {
 		name: string;
 		path: string;
-		children?: MockNode[];
 	}
 
-	const mockTree: MockNode = {
-		name: '/',
-		path: '/',
-		children: [
-			{
-				name: 'home',
-				path: '/home',
-				children: [
-					{
-						name: 'user',
-						path: '/home/user',
-						children: [
-							{ name: 'Downloads', path: '/home/user/Downloads' },
-							{ name: 'Desktop', path: '/home/user/Desktop' },
-							{ name: 'Documents', path: '/home/user/Documents' },
-							{ name: 'Pictures', path: '/home/user/Pictures' },
-							{ name: 'Music', path: '/home/user/Music' },
-							{ name: 'Videos', path: '/home/user/Videos' }
-						]
-					},
-					{
-						name: 'admin',
-						path: '/home/admin',
-						children: [
-							{ name: 'Projects', path: '/home/admin/Projects' },
-							{ name: 'Backups', path: '/home/admin/Backups' }
-						]
-					}
-				]
-			},
-			{
-				name: 'etc',
-				path: '/etc',
-				children: [
-					{ name: 'nginx', path: '/etc/nginx' },
-					{ name: 'systemd', path: '/etc/systemd' }
-				]
-			},
-			{
-				name: 'var',
-				path: '/var',
-				children: [
-					{ name: 'log', path: '/var/log' },
-					{ name: 'tmp', path: '/var/tmp' }
-				]
-			},
-			{
-				name: 'tmp',
-				path: '/tmp',
-				children: [
-					{ name: 'build', path: '/tmp/build' },
-					{ name: 'cache', path: '/tmp/cache' }
-				]
-			},
-			{
-				name: 'usr',
-				path: '/usr',
-				children: [
-					{ name: 'local', path: '/usr/local' },
-					{ name: 'share', path: '/usr/share' }
-				]
-			}
-		]
-	};
-
 	let currentPath = $state('/');
+	let directories = $state<DirectoryEntry[]>([]);
+	let loading = $state(false);
+	let error = $state<string | null>(null);
 
-	function getNodeAtPath(path: string): MockNode | null {
-		if (path === '/') return mockTree;
-		const parts = path.split('/').filter(Boolean);
-		let node: MockNode | undefined = mockTree;
-		for (const part of parts) {
-			if (!node?.children) return null;
-			node = node.children.find((c) => c.name === part);
-			if (!node) return null;
+	async function fetchDirectories(path: string) {
+		loading = true;
+		error = null;
+		try {
+			const res = await fetch(`/api/directories?path=${encodeURIComponent(path)}`);
+			if (res.ok) {
+				const data = await res.json();
+				directories = data.directories;
+			} else {
+				error = 'Failed to load directories';
+				directories = [];
+			}
+		} catch (e) {
+			error = 'Failed to connect to server';
+			directories = [];
+		} finally {
+			loading = false;
 		}
-		return node;
 	}
 
 	function getBreadcrumbs(path: string): { name: string; path: string }[] {
@@ -108,6 +53,7 @@
 
 	function navigateTo(path: string) {
 		currentPath = path;
+		fetchDirectories(path);
 	}
 
 	function selectCurrent() {
@@ -115,13 +61,17 @@
 		onClose();
 	}
 
-	let currentNode = $derived(getNodeAtPath(currentPath));
-	let breadcrumbs = $derived(getBreadcrumbs(currentPath));
-	let folders = $derived(currentNode?.children?.filter((c) => c.children) ?? []);
-
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') onClose();
 	}
+
+	$effect(() => {
+		if (open && currentPath === '/') {
+			fetchDirectories('/');
+		}
+	});
+
+	let breadcrumbs = $derived(getBreadcrumbs(currentPath));
 </script>
 
 {#if open}
@@ -167,29 +117,37 @@
 
 			<!-- Folder list -->
 			<div class="flex-1 overflow-y-auto px-2 py-1">
-				{#if currentPath !== '/'}
-					<button
-						class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-						onclick={() => {
-							const parent = currentPath.split('/').slice(0, -1).join('/') || '/';
-							navigateTo(parent);
-						}}
-					>
-						<Folder class="h-4 w-4 opacity-50" />
-						<span>..</span>
-					</button>
-				{/if}
-				{#each folders as folder}
-					<button
-						class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-surface-raised"
-						onclick={() => navigateTo(folder.path)}
-					>
-						<Folder class="h-4 w-4 text-accent" />
-						<span>{folder.name}</span>
-					</button>
-				{/each}
-				{#if folders.length === 0 && currentPath === '/'}
-					<p class="px-3 py-8 text-center text-sm text-text-muted">No folders available.</p>
+				{#if loading}
+					<div class="flex items-center justify-center py-8">
+						<Loader class="h-5 w-5 animate-spin text-text-muted" />
+					</div>
+				{:else if error}
+					<p class="px-3 py-8 text-center text-sm text-red-500">{error}</p>
+				{:else}
+					{#if currentPath !== '/'}
+						<button
+							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+							onclick={() => {
+								const parent = currentPath.split('/').slice(0, -1).join('/') || '/';
+								navigateTo(parent);
+							}}
+						>
+							<Folder class="h-4 w-4 opacity-50" />
+							<span>..</span>
+						</button>
+					{/if}
+					{#each directories as folder}
+						<button
+							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-surface-raised"
+							onclick={() => navigateTo(folder.path)}
+						>
+							<Folder class="h-4 w-4 text-accent" />
+							<span>{folder.name}</span>
+						</button>
+					{/each}
+					{#if directories.length === 0 && currentPath === '/'}
+						<p class="px-3 py-8 text-center text-sm text-text-muted">No folders available.</p>
+					{/if}
 				{/if}
 			</div>
 
