@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { X, Folder, ChevronRight, Loader } from 'lucide-svelte';
+	import { lastDirectory } from '$lib/stores/lastDirectory';
 
 	interface Props {
 		open: boolean;
@@ -14,16 +15,28 @@
 		path: string;
 	}
 
-	let currentPath = $state('/');
+	function expandPath(path: string): string {
+		return path;
+	}
+
+	function getParentPath(path: string): string {
+		if (path === '~' || path === '~/') return '~';
+		const parts = path.split('/').filter(Boolean);
+		if (parts.length <= 1) return '~';
+		parts.pop();
+		return '/' + parts.join('/') || '~';
+	}
+
+	let currentPath = $state('~');
 	let directories = $state<DirectoryEntry[]>([]);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 
-	async function fetchDirectories(path: string) {
+	async function fetchDirs(path: string) {
 		loading = true;
 		error = null;
 		try {
-			const res = await fetch(`/api/directories?path=${encodeURIComponent(path)}`);
+			const res = await fetch(`/api/directories?path=${encodeURIComponent(expandPath(path))}`);
 			if (res.ok) {
 				const data = await res.json();
 				directories = data.directories;
@@ -31,7 +44,7 @@
 				error = 'Failed to load directories';
 				directories = [];
 			}
-		} catch (e) {
+		} catch {
 			error = 'Failed to connect to server';
 			directories = [];
 		} finally {
@@ -40,10 +53,10 @@
 	}
 
 	function getBreadcrumbs(path: string): { name: string; path: string }[] {
-		if (path === '/') return [{ name: 'root', path: '/' }];
+		if (path === '~') return [{ name: 'Home', path: '~' }];
 		const parts = path.split('/').filter(Boolean);
-		const crumbs = [{ name: 'root', path: '/' }];
-		let build = '';
+		const crumbs = [{ name: 'Home', path: '~' }];
+		let build = '~';
 		for (const part of parts) {
 			build += '/' + part;
 			crumbs.push({ name: part, path: build });
@@ -51,23 +64,16 @@
 		return crumbs;
 	}
 
-	function navigateTo(path: string) {
-		currentPath = path;
-		fetchDirectories(path);
-	}
-
-	function selectCurrent() {
-		onSelect(currentPath);
+	function selectFolder() {
+		lastDirectory.set(getParentPath(currentPath));
+		onSelect(expandPath(currentPath));
 		onClose();
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') onClose();
-	}
-
 	$effect(() => {
-		if (open && currentPath === '/') {
-			fetchDirectories('/');
+		if (open) {
+			currentPath = $lastDirectory;
+			fetchDirs(currentPath);
 		}
 	});
 
@@ -78,7 +84,7 @@
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
 		onclick={onClose}
-		onkeydown={handleKeydown}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
 		role="presentation"
 	>
 		<div
@@ -89,24 +95,16 @@
 			aria-modal="true"
 			tabindex="-1"
 		>
-			<!-- Header -->
 			<div class="flex items-center justify-between border-b border-border px-5 py-4">
 				<h2 class="text-sm font-semibold">Select folder</h2>
-				<button
-					onclick={onClose}
-					class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-				>
+				<button onclick={onClose} class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text">
 					<X class="h-4 w-4" />
 				</button>
 			</div>
 
-			<!-- Breadcrumb -->
 			<div class="flex items-center gap-1 border-b border-border px-5 py-2.5 text-xs text-text-muted">
 				{#each breadcrumbs as crumb, i}
-					<button
-						class="transition-colors hover:text-accent"
-						onclick={() => navigateTo(crumb.path)}
-					>
+					<button class="transition-colors hover:text-accent" onclick={() => { currentPath = crumb.path; fetchDirs(crumb.path); }}>
 						{crumb.name}
 					</button>
 					{#if i < breadcrumbs.length - 1}
@@ -115,7 +113,6 @@
 				{/each}
 			</div>
 
-			<!-- Folder list -->
 			<div class="flex-1 overflow-y-auto px-2 py-1">
 				{#if loading}
 					<div class="flex items-center justify-center py-8">
@@ -124,13 +121,10 @@
 				{:else if error}
 					<p class="px-3 py-8 text-center text-sm text-red-500">{error}</p>
 				{:else}
-					{#if currentPath !== '/'}
+					{#if currentPath !== '~'}
 						<button
 							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-							onclick={() => {
-								const parent = currentPath.split('/').slice(0, -1).join('/') || '/';
-								navigateTo(parent);
-							}}
+							onclick={() => { currentPath = getParentPath(currentPath); fetchDirs(currentPath); }}
 						>
 							<Folder class="h-4 w-4 opacity-50" />
 							<span>..</span>
@@ -139,31 +133,24 @@
 					{#each directories as folder}
 						<button
 							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-surface-raised"
-							onclick={() => navigateTo(folder.path)}
+							onclick={() => { currentPath = folder.path; fetchDirs(folder.path); }}
 						>
 							<Folder class="h-4 w-4 text-accent" />
 							<span>{folder.name}</span>
 						</button>
 					{/each}
-					{#if directories.length === 0 && currentPath === '/'}
+					{#if directories.length === 0}
 						<p class="px-3 py-8 text-center text-sm text-text-muted">No folders available.</p>
 					{/if}
 				{/if}
 			</div>
 
-			<!-- Footer -->
 			<div class="flex items-center justify-end gap-3 border-t border-border px-5 py-4">
-				<button
-					onclick={onClose}
-					class="rounded-md border border-border px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
-				>
+				<button onclick={onClose} class="rounded-md border border-border px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised">
 					Cancel
 				</button>
-				<button
-					onclick={selectCurrent}
-					class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
-				>
-					Select "{breadcrumbs[breadcrumbs.length - 1]?.name ?? ''}"
+				<button onclick={selectFolder} class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover">
+					Select "{breadcrumbs.at(-1)?.name ?? ''}"
 				</button>
 			</div>
 		</div>
