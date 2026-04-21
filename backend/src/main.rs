@@ -252,9 +252,15 @@ struct DirectoryQuery {
 async fn list_directories(
     Query(query): Query<DirectoryQuery>,
 ) -> (StatusCode, Json<DirectoryListingResponse>) {
-    let path = &query.path;
+    let mut path = query.path;
 
-    match std::fs::read_dir(path) {
+    if path == "~" || path == "~/" {
+        if let Some(home) = dirs::home_dir() {
+            path = home.to_string_lossy().to_string();
+        }
+    }
+
+    match std::fs::read_dir(&path) {
         Ok(entries) => {
             let mut directories = Vec::new();
             for entry in entries.flatten() {
