@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, Folder, ChevronRight, Loader } from 'lucide-svelte';
+	import { X, Folder, ChevronRight, Loader, Eye, EyeOff } from 'lucide-svelte';
 	import { lastDirectory } from '$lib/stores/lastDirectory';
 
 	interface Props {
@@ -15,31 +15,30 @@
 		path: string;
 	}
 
-	function expandPath(path: string): string {
-		return path;
-	}
-
 	function getParentPath(path: string): string {
-		if (path === '~' || path === '~/') return '~';
+		if (path === '/') return '/';
 		const parts = path.split('/').filter(Boolean);
-		if (parts.length <= 1) return '~';
+		if (parts.length <= 1) return '/';
 		parts.pop();
-		return '/' + parts.join('/') || '~';
+		return '/' + parts.join('/');
 	}
 
-	let currentPath = $state('~');
+	let fetchPath = $state('');
+	let displayPath = $state('');
 	let directories = $state<DirectoryEntry[]>([]);
 	let loading = $state(false);
 	let error = $state<string | null>(null);
+	let showHidden = $state(false);
 
 	async function fetchDirs(path: string) {
 		loading = true;
 		error = null;
 		try {
-			const res = await fetch(`/api/directories?path=${encodeURIComponent(expandPath(path))}`);
+			const res = await fetch(`/api/directories?path=${encodeURIComponent(path)}&hidden=${showHidden}`);
 			if (res.ok) {
 				const data = await res.json();
 				directories = data.directories;
+				displayPath = data.path || path;
 			} else {
 				error = 'Failed to load directories';
 				directories = [];
@@ -53,10 +52,10 @@
 	}
 
 	function getBreadcrumbs(path: string): { name: string; path: string }[] {
-		if (path === '~') return [{ name: 'Home', path: '~' }];
+		if (path === '/') return [{ name: '/', path: '/' }];
 		const parts = path.split('/').filter(Boolean);
-		const crumbs = [{ name: 'Home', path: '~' }];
-		let build = '~';
+		const crumbs = [{ name: '/', path: '/' }];
+		let build = '';
 		for (const part of parts) {
 			build += '/' + part;
 			crumbs.push({ name: part, path: build });
@@ -65,19 +64,26 @@
 	}
 
 	function selectFolder() {
-		lastDirectory.set(getParentPath(currentPath));
-		onSelect(expandPath(currentPath));
+		lastDirectory.set(getParentPath(displayPath));
+		onSelect(displayPath);
 		onClose();
 	}
 
 	$effect(() => {
 		if (open) {
-			currentPath = $lastDirectory;
-			fetchDirs(currentPath);
+			const stored = $lastDirectory;
+			fetchPath = stored && stored !== '~' && stored !== '~/' ? stored : '~';
 		}
 	});
 
-	let breadcrumbs = $derived(getBreadcrumbs(currentPath));
+	$effect(() => {
+		if (open && fetchPath) {
+			showHidden;
+			fetchDirs(fetchPath);
+		}
+	});
+
+	let breadcrumbs = $derived(getBreadcrumbs(displayPath));
 </script>
 
 {#if open}
@@ -104,7 +110,7 @@
 
 			<div class="flex items-center gap-1 border-b border-border px-5 py-2.5 text-xs text-text-muted">
 				{#each breadcrumbs as crumb, i}
-					<button class="transition-colors hover:text-accent" onclick={() => { currentPath = crumb.path; fetchDirs(crumb.path); }}>
+					<button class="transition-colors hover:text-accent" onclick={() => { fetchPath = crumb.path; }}>
 						{crumb.name}
 					</button>
 					{#if i < breadcrumbs.length - 1}
@@ -121,10 +127,10 @@
 				{:else if error}
 					<p class="px-3 py-8 text-center text-sm text-red-500">{error}</p>
 				{:else}
-					{#if currentPath !== '~'}
+					{#if displayPath !== '/'}
 						<button
 							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-							onclick={() => { currentPath = getParentPath(currentPath); fetchDirs(currentPath); }}
+							onclick={() => { fetchPath = getParentPath(displayPath); }}
 						>
 							<Folder class="h-4 w-4 opacity-50" />
 							<span>..</span>
@@ -133,7 +139,7 @@
 					{#each directories as folder}
 						<button
 							class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-surface-raised"
-							onclick={() => { currentPath = folder.path; fetchDirs(folder.path); }}
+							onclick={() => { fetchPath = folder.path; }}
 						>
 							<Folder class="h-4 w-4 text-accent" />
 							<span>{folder.name}</span>
@@ -145,13 +151,27 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-3 border-t border-border px-5 py-4">
-				<button onclick={onClose} class="rounded-md border border-border px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised">
-					Cancel
+			<div class="flex items-center justify-between gap-3 border-t border-border px-5 py-4">
+				<button
+					onclick={() => showHidden = !showHidden}
+					class="flex items-center gap-1.5 rounded border border-border px-3 py-2 text-xs font-medium transition-colors {showHidden ? 'bg-surface-raised text-accent' : 'text-text-muted hover:bg-surface-raised hover:text-text'}"
+					title={showHidden ? 'Hide hidden folders' : 'Show hidden folders'}
+				>
+					{#if showHidden}
+						<Eye class="h-3.5 w-3.5" />
+					{:else}
+						<EyeOff class="h-3.5 w-3.5" />
+					{/if}
+					<span>Hidden</span>
 				</button>
-				<button onclick={selectFolder} class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover">
-					Select "{breadcrumbs.at(-1)?.name ?? ''}"
-				</button>
+				<div class="flex items-center gap-3">
+					<button onclick={onClose} class="rounded-md border border-border px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised">
+						Cancel
+					</button>
+					<button onclick={selectFolder} class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover">
+						Select "{breadcrumbs.at(-1)?.name ?? ''}"
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>

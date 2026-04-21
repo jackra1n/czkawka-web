@@ -247,12 +247,15 @@ async fn health() -> &'static str {
 #[derive(Debug, Deserialize)]
 struct DirectoryQuery {
     path: String,
+    #[serde(default)]
+    hidden: bool,
 }
 
 async fn list_directories(
     Query(query): Query<DirectoryQuery>,
 ) -> (StatusCode, Json<DirectoryListingResponse>) {
     let mut path = query.path;
+    let show_hidden = query.hidden;
 
     if path == "~" || path == "~/" {
         if let Some(home) = dirs::home_dir() {
@@ -266,6 +269,9 @@ async fn list_directories(
             for entry in entries.flatten() {
                 if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
                     if let Ok(name) = entry.file_name().into_string() {
+                        if !show_hidden && name.starts_with('.') {
+                            continue;
+                        }
                         if let Some(full_path) = entry.path().to_str().map(|p| p.to_string()) {
                             directories.push(DirectoryEntry {
                                 name,
