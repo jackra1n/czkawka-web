@@ -47,6 +47,20 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	return res.json();
 }
 
+export function getFileUrl(path: string): string {
+	return `${API_BASE}/api/file?path=${encodeURIComponent(path)}`;
+}
+
+export async function fetchFileText(path: string, signal?: AbortSignal): Promise<string> {
+	const res = await fetch(getFileUrl(path), { signal });
+	if (!res.ok) {
+		const text = await res.text().catch(() => 'Unknown error');
+		throw new Error(`HTTP ${res.status}: ${text}`);
+	}
+	const text = await res.text();
+	return text.length > 3000 ? text.slice(0, 3000) + '\n\n... (truncated)' : text;
+}
+
 export const api = {
 	health(): Promise<string> {
 		return fetch(`${API_BASE}/api/health`).then((r) => r.text());

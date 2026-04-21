@@ -3,10 +3,12 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use axum::{
+    body::Body,
     extract::Query,
     Json, Router,
     extract::{Path, State},
     http::StatusCode,
+    response::Response,
     routing::{get, post},
 };
 use czkawka_core::common::config_cache_path::set_config_cache_path;
@@ -295,6 +297,38 @@ async fn list_directories(
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct FileQuery {
+    path: String,
+}
+
+async fn serve_file(
+    Query(query): Query<FileQuery>,
+) -> Result<Response, (StatusCode, String)> {
+    let path = PathBuf::from(&query.path);
+
+    if !path.is_file() {
+        return Err((StatusCode::NOT_FOUND, "File not found".to_string()));
+    }
+
+    let content = match tokio::fs::read(&path).await {
+        Ok(data) => data,
+        Err(e) => {
+            log::warn!("Failed to read file {}: {}", query.path, e);
+            return Err((StatusCode::INTERNAL_SERVER_ERROR, "Failed to read file".to_string()));
+        }
+    };
+
+    let content_type = mime_guess::from_path(&path)
+        .first_or_octet_stream()
+        .to_string();
+
+    Ok(Response::builder()
+        .header("Content-Type", content_type)
+        .body(Body::from(content))
+        .unwrap())
+}
+
 #[tokio::main]
 async fn main() {
     env_logger::init();
@@ -311,6 +345,7 @@ async fn main() {
         .route("/api/scan", post(start_scan))
         .route("/api/scan/{id}", get(get_scan_status))
         .route("/api/directories", get(list_directories))
+        .route("/api/file", get(serve_file))
         .layer(CorsLayer::permissive())
         .with_state(state);
 
