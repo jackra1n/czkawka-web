@@ -335,6 +335,7 @@ dependencies = [
  "dirs",
  "env_logger",
  "log",
+ "mime_guess",
  "serde",
  "serde_json",
  "tokio",
