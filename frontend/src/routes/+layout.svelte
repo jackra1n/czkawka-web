@@ -20,14 +20,14 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>Czkawka</title>
+	<title>czkawka-web</title>
 </svelte:head>
 
 <div class="flex h-dvh flex-col">
 	<header class="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
 		<div class="flex items-center gap-2.5">
 			<div class="h-2.5 w-2.5 rounded-full bg-accent"></div>
-			<span class="text-sm font-semibold tracking-tight">Czkawka</span>
+			<span class="text-sm font-semibold tracking-tight">czkawka-web</span>
 		</div>
 		<div class="flex items-center gap-3">
 			<a
