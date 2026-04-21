@@ -1,28 +1,26 @@
 <script lang="ts">
-	import { Folder, Plus, Minus, Search } from 'lucide-svelte';
+	import { Plus, Minus, Search } from 'lucide-svelte';
 
 	let {
 		includedDirs = $bindable<string[]>(),
 		excludedDirs = $bindable<string[]>(),
 		scanState,
 		onStartScan,
-		onOpenModal
+		onAddDir
 	}: {
 		includedDirs: string[];
 		excludedDirs: string[];
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		onStartScan: () => void;
-		onOpenModal: (target: 'include' | 'exclude', index: number) => void;
+		onAddDir: (target: 'include' | 'exclude') => void;
 	} = $props();
 
 	function addIncludedDir() {
-		if (includedDirs.length > 0 && includedDirs[includedDirs.length - 1].trim() === '') return;
-		includedDirs = [...includedDirs, ''];
+		onAddDir('include');
 	}
 
 	function removeIncludedDir(index: number) {
 		includedDirs = includedDirs.filter((_, i) => i !== index);
-		if (includedDirs.length === 0) includedDirs = [''];
 	}
 
 	function updateIncludedDir(index: number, value: string) {
@@ -30,13 +28,11 @@
 	}
 
 	function addExcludedDir() {
-		if (excludedDirs.length > 0 && excludedDirs[excludedDirs.length - 1].trim() === '') return;
-		excludedDirs = [...excludedDirs, ''];
+		onAddDir('exclude');
 	}
 
 	function removeExcludedDir(index: number) {
 		excludedDirs = excludedDirs.filter((_, i) => i !== index);
-		if (excludedDirs.length === 0) excludedDirs = [''];
 	}
 
 	function updateExcludedDir(index: number, value: string) {
@@ -58,34 +54,32 @@
 					Add
 				</button>
 			</div>
-			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
-				{#each includedDirs as dir, i (i)}
-					<div class="flex gap-2">
-						<input
-							type="text"
-							value={dir}
-							oninput={(e) => updateIncludedDir(i, e.currentTarget.value)}
-							placeholder="/home/user/Downloads"
-							class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-						/>
-						<button
-							type="button"
-							onclick={() => onOpenModal('include', i)}
-							class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-accent hover:text-accent"
-							title="Browse"
-						>
-							<Folder class="h-4 w-4" />
-						</button>
-						<button
-							type="button"
-							onclick={() => removeIncludedDir(i)}
-							class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
-							title="Remove"
-						>
-							<Minus class="h-4 w-4" />
-						</button>
+			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-bg p-2 pr-1">
+				{#if includedDirs.length === 0}
+					<div class="flex items-center justify-center py-4 text-sm text-text-muted">
+						No directories added
 					</div>
-				{/each}
+				{:else}
+					{#each includedDirs as dir, i (i)}
+						<div class="flex gap-2">
+							<input
+								type="text"
+								value={dir}
+								oninput={(e) => updateIncludedDir(i, e.currentTarget.value)}
+								placeholder="/home/user/Downloads"
+								class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+							/>
+							<button
+								type="button"
+								onclick={() => removeIncludedDir(i)}
+								class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
+								title="Remove"
+							>
+								<Minus class="h-4 w-4" />
+							</button>
+						</div>
+					{/each}
+				{/if}
 			</div>
 		</div>
 		<div class="flex flex-1 flex-col gap-2">
@@ -100,34 +94,32 @@
 					Add
 				</button>
 			</div>
-			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
-				{#each excludedDirs as dir, i (i)}
-					<div class="flex gap-2">
-						<input
-							type="text"
-							value={dir}
-							oninput={(e) => updateExcludedDir(i, e.currentTarget.value)}
-							placeholder="/home/user/Downloads/temp"
-							class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-						/>
-						<button
-							type="button"
-							onclick={() => onOpenModal('exclude', i)}
-							class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-accent hover:text-accent"
-							title="Browse"
-						>
-							<Folder class="h-4 w-4" />
-						</button>
-						<button
-							type="button"
-							onclick={() => removeExcludedDir(i)}
-							class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
-							title="Remove"
-						>
-							<Minus class="h-4 w-4" />
-						</button>
+			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-bg p-2 pr-1">
+				{#if excludedDirs.length === 0}
+					<div class="flex items-center justify-center py-4 text-sm text-text-muted">
+						No directories added
 					</div>
-				{/each}
+				{:else}
+					{#each excludedDirs as dir, i (i)}
+						<div class="flex gap-2">
+							<input
+								type="text"
+								value={dir}
+								oninput={(e) => updateExcludedDir(i, e.currentTarget.value)}
+								placeholder="/home/user/Downloads/temp"
+								class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+							/>
+							<button
+								type="button"
+								onclick={() => removeExcludedDir(i)}
+								class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
+								title="Remove"
+							>
+								<Minus class="h-4 w-4" />
+							</button>
+						</div>
+					{/each}
+				{/if}
 			</div>
 		</div>
 	</div>

@@ -7,8 +7,8 @@
 	import FilePreview from '$lib/components/FilePreview.svelte';
 	import { onDestroy } from 'svelte';
 
-	let includedDirs = $state<string[]>(['']);
-	let excludedDirs = $state<string[]>(['']);
+	let includedDirs = $state<string[]>([]);
+	let excludedDirs = $state<string[]>([]);
 
 	let scanState = $state<'idle' | 'running' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
@@ -20,23 +20,21 @@
 
 	let modalOpen = $state(false);
 	let modalTarget: 'include' | 'exclude' = $state('include');
-	let modalTargetIndex = $state(0);
 
 	let activeTool = $state('duplicates');
 
 	let intervalId: ReturnType<typeof setInterval>;
 
-	function openModal(target: 'include' | 'exclude', index: number) {
+	function openModal(target: 'include' | 'exclude') {
 		modalTarget = target;
-		modalTargetIndex = index;
 		modalOpen = true;
 	}
 
 	function handleModalSelect(path: string) {
 		if (modalTarget === 'include') {
-			includedDirs[modalTargetIndex] = path;
+			includedDirs = [...includedDirs, path];
 		} else {
-			excludedDirs[modalTargetIndex] = path;
+			excludedDirs = [...excludedDirs, path];
 		}
 	}
 
@@ -119,7 +117,7 @@
 			bind:excludedDirs
 			{scanState}
 			onStartScan={startScan}
-			onOpenModal={openModal}
+			onAddDir={openModal}
 		/>
 
 		<div class="flex flex-1 min-h-0 overflow-hidden">
