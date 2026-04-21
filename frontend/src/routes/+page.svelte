@@ -1,29 +1,10 @@
 <script lang="ts">
-	import { api, type ScanResults } from '$lib/api';
+	import { api, type ScanResults as ScanResultsType } from '$lib/api';
 	import DirectoryBrowserModal from '$lib/components/DirectoryBrowserModal.svelte';
-	import {
-		Copy,
-		FolderOpen,
-		BarChart3,
-		FileX,
-		Clock,
-		Images,
-		Video,
-		Music,
-		Link,
-		AlertTriangle,
-		FileCode,
-		Camera,
-		Type,
-		Search,
-		ChevronDown,
-		File,
-		X,
-		Lock,
-		Plus,
-		Minus,
-		Folder
-	} from 'lucide-svelte';
+	import ToolSidebar from '$lib/components/ToolSidebar.svelte';
+	import ScanConfig from '$lib/components/ScanConfig.svelte';
+	import ScanResults from '$lib/components/ScanResults.svelte';
+	import FilePreview from '$lib/components/FilePreview.svelte';
 	import { onDestroy } from 'svelte';
 
 	let includedDirs = $state<string[]>(['']);
@@ -31,10 +12,9 @@
 
 	let scanState = $state<'idle' | 'running' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
-	let scanResults = $state<ScanResults | null>(null);
+	let scanResults = $state<ScanResultsType | null>(null);
 	let scanId = $state('');
 
-	let expandedGroups = $state<Set<number>>(new Set());
 	let selectedFile = $state<string | null>(null);
 	let selectedFileSize = $state(0);
 
@@ -42,54 +22,9 @@
 	let modalTarget: 'include' | 'exclude' = $state('include');
 	let modalTargetIndex = $state(0);
 
-	let intervalId: ReturnType<typeof setInterval>;
-
-	const tools = [
-		{ id: 'duplicates', label: 'Duplicate Files', icon: Copy, disabled: false },
-		{ id: 'empty-folders', label: 'Empty Folders', icon: FolderOpen, disabled: true },
-		{ id: 'big-files', label: 'Big Files', icon: BarChart3, disabled: true },
-		{ id: 'empty-files', label: 'Empty Files', icon: FileX, disabled: true },
-		{ id: 'temporary', label: 'Temporary Files', icon: Clock, disabled: true },
-		{ id: 'similar-images', label: 'Similar Images', icon: Images, disabled: true },
-		{ id: 'similar-videos', label: 'Similar Videos', icon: Video, disabled: true },
-		{ id: 'same-music', label: 'Same Music', icon: Music, disabled: true },
-		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link, disabled: true },
-		{ id: 'broken-files', label: 'Broken Files', icon: AlertTriangle, disabled: true },
-		{ id: 'bad-extensions', label: 'Bad Extensions', icon: FileCode, disabled: true },
-		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera, disabled: true },
-		{ id: 'bad-names', label: 'Bad Names', icon: Type, disabled: true }
-	];
-
 	let activeTool = $state('duplicates');
 
-	function addIncludedDir() {
-		// Only add if the last entry has some text
-		if (includedDirs.length > 0 && includedDirs[includedDirs.length - 1].trim() === '') return;
-		includedDirs = [...includedDirs, ''];
-	}
-
-	function removeIncludedDir(index: number) {
-		includedDirs = includedDirs.filter((_, i) => i !== index);
-		if (includedDirs.length === 0) includedDirs = [''];
-	}
-
-	function updateIncludedDir(index: number, value: string) {
-		includedDirs[index] = value;
-	}
-
-	function addExcludedDir() {
-		if (excludedDirs.length > 0 && excludedDirs[excludedDirs.length - 1].trim() === '') return;
-		excludedDirs = [...excludedDirs, ''];
-	}
-
-	function removeExcludedDir(index: number) {
-		excludedDirs = excludedDirs.filter((_, i) => i !== index);
-		if (excludedDirs.length === 0) excludedDirs = [''];
-	}
-
-	function updateExcludedDir(index: number, value: string) {
-		excludedDirs[index] = value;
-	}
+	let intervalId: ReturnType<typeof setInterval>;
 
 	function openModal(target: 'include' | 'exclude', index: number) {
 		modalTarget = target;
@@ -99,38 +34,19 @@
 
 	function handleModalSelect(path: string) {
 		if (modalTarget === 'include') {
-			updateIncludedDir(modalTargetIndex, path);
+			includedDirs[modalTargetIndex] = path;
 		} else {
-			updateExcludedDir(modalTargetIndex, path);
+			excludedDirs[modalTargetIndex] = path;
 		}
-	}
-
-	function formatBytes(bytes: number): string {
-		if (bytes === 0) return '0 B';
-		const k = 1024;
-		const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-		const i = Math.floor(Math.log(bytes) / Math.log(k));
-		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-	}
-
-	function formatDuration(ms: number): string {
-		if (ms < 1000) return ms + ' ms';
-		return (ms / 1000).toFixed(2) + ' s';
-	}
-
-	function toggleGroup(index: number) {
-		const next = new Set(expandedGroups);
-		if (next.has(index)) {
-			next.delete(index);
-		} else {
-			next.add(index);
-		}
-		expandedGroups = next;
 	}
 
 	function selectFile(file: string, size: number) {
 		selectedFile = file;
 		selectedFileSize = size;
+	}
+
+	function closePreview() {
+		selectedFile = null;
 	}
 
 	async function poll() {
@@ -173,7 +89,6 @@
 		scanError = '';
 		scanResults = null;
 		selectedFile = null;
-		expandedGroups = new Set();
 
 		try {
 			const res = await api.startScan({
@@ -196,247 +111,31 @@
 </script>
 
 <div class="flex h-full w-full">
-	<!-- Sidebar -->
-	<aside class="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface">
-		<div class="flex flex-col gap-0.5 p-2">
-			{#each tools as tool}
-				<button
-					class="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors"
-					class:bg-surface-raised={tool.id === activeTool}
-					class:text-text={tool.id === activeTool}
-					class:text-text-muted={tool.id !== activeTool}
-					class:hover:bg-surface-raised={!tool.disabled}
-					class:hover:text-text={!tool.disabled}
-					class:opacity-40={tool.disabled}
-					class:cursor-not-allowed={tool.disabled}
-					disabled={tool.disabled}
-					onclick={() => {
-						if (!tool.disabled) activeTool = tool.id;
-					}}
-				>
-					{#if tool.disabled}
-						<Lock class="h-3.5 w-3.5 shrink-0 opacity-60" />
-					{:else}
-						<tool.icon class="h-4 w-4 shrink-0" />
-					{/if}
-					<span class="truncate">{tool.label}</span>
-				</button>
-			{/each}
-		</div>
-	</aside>
+	<ToolSidebar bind:activeTool />
 
-	<!-- Main content -->
 	<div class="flex flex-1 flex-col min-h-0 overflow-hidden bg-bg">
-		<!-- Top config bar -->
-		<div class="shrink-0 border-b border-border bg-surface p-4">
-			<div class="flex gap-4">
-				<div class="flex flex-1 flex-col gap-2">
-					<div class="flex items-center justify-between">
-						<span class="text-xs font-medium text-text-muted">Included directories</span>
-						<button
-							type="button"
-							onclick={addIncludedDir}
-							class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
-						>
-							<Plus class="h-3.5 w-3.5" />
-							Add
-						</button>
-					</div>
-					<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
-						{#each includedDirs as _, i}
-							<div class="flex gap-2">
-								<input
-									type="text"
-									value={includedDirs[i]}
-									oninput={(e) => updateIncludedDir(i, e.currentTarget.value)}
-									placeholder="/home/user/Downloads"
-									class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-								/>
-								<button
-									type="button"
-									onclick={() => openModal('include', i)}
-									class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-accent hover:text-accent"
-									title="Browse"
-								>
-									<Folder class="h-4 w-4" />
-								</button>
-								<button
-									type="button"
-									onclick={() => removeIncludedDir(i)}
-									class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
-									title="Remove"
-								>
-									<Minus class="h-4 w-4" />
-								</button>
-							</div>
-						{/each}
-					</div>
-				</div>
-				<div class="flex flex-1 flex-col gap-2">
-					<div class="flex items-center justify-between">
-						<span class="text-xs font-medium text-text-muted">Excluded directories</span>
-						<button
-							type="button"
-							onclick={addExcludedDir}
-							class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
-						>
-							<Plus class="h-3.5 w-3.5" />
-							Add
-						</button>
-					</div>
-					<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
-						{#each excludedDirs as _, i}
-							<div class="flex gap-2">
-								<input
-									type="text"
-									value={excludedDirs[i]}
-									oninput={(e) => updateExcludedDir(i, e.currentTarget.value)}
-									placeholder="/home/user/Downloads/temp"
-									class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-								/>
-								<button
-									type="button"
-									onclick={() => openModal('exclude', i)}
-									class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-accent hover:text-accent"
-									title="Browse"
-								>
-									<Folder class="h-4 w-4" />
-								</button>
-								<button
-									type="button"
-									onclick={() => removeExcludedDir(i)}
-									class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
-									title="Remove"
-								>
-									<Minus class="h-4 w-4" />
-								</button>
-							</div>
-						{/each}
-					</div>
-				</div>
-			</div>
-			<div class="mt-4">
-				<button
-					onclick={startScan}
-					disabled={scanState === 'running'}
-					class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{#if scanState === 'running'}
-						<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-						Scanning…
-					{:else}
-						<Search class="h-4 w-4" />
-						Search
-					{/if}
-				</button>
-			</div>
-		</div>
+		<ScanConfig
+			bind:includedDirs
+			bind:excludedDirs
+			{scanState}
+			onStartScan={startScan}
+			onOpenModal={openModal}
+		/>
 
-		<!-- Results area -->
 		<div class="flex flex-1 min-h-0 overflow-hidden">
-			<div class="flex flex-1 flex-col min-h-0 overflow-auto">
-				{#if scanState === 'idle' && !scanResults}
-					<div class="flex flex-1 flex-col items-center justify-center gap-3 text-text-muted">
-						<Search class="h-10 w-10 opacity-30" />
-						<p class="text-sm">Enter directories and click Search to begin</p>
-					</div>
-				{:else if scanState === 'running'}
-					<div class="flex flex-1 flex-col items-center justify-center gap-4">
-						<div class="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent"></div>
-						<p class="text-sm text-text-muted">Scanning for duplicates…</p>
-					</div>
-				{:else if scanState === 'error'}
-					<div class="flex flex-1 flex-col items-center justify-center gap-3 p-8">
-						<div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger max-w-md w-full text-center">
-							{scanError}
-						</div>
-					</div>
-				{:else if scanResults}
-					<!-- Stats bar -->
-					<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
-						<span>Groups: <strong class="text-text">{scanResults.total_duplicate_groups}</strong></span>
-						<span>Files: <strong class="text-text">{scanResults.total_duplicate_files}</strong></span>
-						<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_space_bytes)}</strong></span>
-						<span>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong></span>
-					</div>
+			<ScanResults
+				{scanState}
+				{scanError}
+				{scanResults}
+				onSelectFile={selectFile}
+			/>
 
-					{#if scanResults.groups.length === 0}
-						<div class="flex flex-1 flex-col items-center justify-center text-sm text-text-muted">
-							No duplicates found.
-						</div>
-					{:else}
-						<!-- Table -->
-						<div class="flex flex-col">
-							<div class="grid grid-cols-[120px_1fr_80px_40px] gap-4 border-b border-border px-4 py-2 text-xs font-medium text-text-muted uppercase tracking-wider">
-								<div>Size</div>
-								<div>Hash</div>
-								<div class="text-right">Files</div>
-								<div></div>
-							</div>
-							{#each scanResults.groups as group, i (group.hash)}
-								<div class="border-b border-border">
-									<button
-										class="grid w-full grid-cols-[120px_1fr_80px_40px] items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-surface-raised"
-										onclick={() => toggleGroup(i)}
-									>
-										<span class="text-sm font-medium text-text">{formatBytes(group.size)}</span>
-										<span class="truncate font-mono text-xs text-text-muted">{group.hash}</span>
-										<span class="text-right text-sm text-text-muted">{group.files.length}</span>
-										<div class="flex justify-center">
-										<ChevronDown
-											class="h-4 w-4 text-text-muted transition-transform duration-200 {expandedGroups.has(i) ? 'rotate-180' : ''}"
-										/>
-										</div>
-									</button>
-
-									{#if expandedGroups.has(i)}
-										<div class="bg-surface/40">
-											{#each group.files as file}
-												<button
-													class="flex w-full items-center gap-3 px-4 py-2 pl-8 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-													onclick={() => selectFile(file, group.size)}
-												>
-													<File class="h-3.5 w-3.5 shrink-0 opacity-60" />
-													<span class="truncate font-mono text-xs">{file}</span>
-												</button>
-											{/each}
-										</div>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					{/if}
-				{/if}
-			</div>
-
-			<!-- Preview panel -->
 			{#if selectedFile}
-				<aside class="flex w-72 shrink-0 flex-col border-l border-border bg-surface">
-					<div class="flex items-center justify-between border-b border-border px-4 py-3">
-						<span class="text-sm font-medium">Preview</span>
-						<button
-							onclick={() => (selectedFile = null)}
-							class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-						>
-							<X class="h-4 w-4" />
-						</button>
-					</div>
-					<div class="flex flex-1 flex-col items-center gap-6 p-6">
-						<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border bg-bg">
-							<File class="h-12 w-12 text-text-muted opacity-40" />
-						</div>
-						<div class="w-full space-y-4">
-							<div>
-								<p class="mb-1 text-xs font-medium text-text-muted">Path</p>
-								<p class="break-all text-xs font-mono leading-relaxed text-text">{selectedFile}</p>
-							</div>
-							<div>
-								<p class="mb-1 text-xs font-medium text-text-muted">Size</p>
-								<p class="text-sm text-text">{formatBytes(selectedFileSize)}</p>
-							</div>
-						</div>
-					</div>
-				</aside>
+				<FilePreview
+					{selectedFile}
+					{selectedFileSize}
+					onClose={closePreview}
+				/>
 			{/if}
 		</div>
 	</div>
