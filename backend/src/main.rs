@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use axum::{
+    extract::Query,
     Json, Router,
     extract::{Path, State},
     http::StatusCode,
@@ -72,6 +73,18 @@ struct DuplicateGroup {
     size: u64,
     hash: String,
     files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct DirectoryEntry {
+    name: String,
+    path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct DirectoryListingResponse {
+    path: String,
+    directories: Vec<DirectoryEntry>,
 }
 
 async fn start_scan(
@@ -231,6 +244,47 @@ async fn health() -> &'static str {
     "ok"
 }
 
+#[derive(Debug, Deserialize)]
+struct DirectoryQuery {
+    path: String,
+}
+
+async fn list_directories(
+    Query(query): Query<DirectoryQuery>,
+) -> (StatusCode, Json<DirectoryListingResponse>) {
+    let path = &query.path;
+
+    match std::fs::read_dir(path) {
+        Ok(entries) => {
+            let mut directories = Vec::new();
+            for entry in entries.flatten() {
+                if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
+                    if let Ok(name) = entry.file_name().into_string() {
+                        if let Some(full_path) = entry.path().to_str().map(|p| p.to_string()) {
+                            directories.push(DirectoryEntry {
+                                name,
+                                path: full_path,
+                            });
+                        }
+                    }
+                }
+            }
+            directories.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+            (StatusCode::OK, Json(DirectoryListingResponse {
+                path: path.to_string(),
+                directories,
+            }))
+        }
+        Err(e) => {
+            log::warn!("Failed to read directory {}: {}", path, e);
+            (StatusCode::NOT_FOUND, Json(DirectoryListingResponse {
+                path: path.to_string(),
+                directories: Vec::new(),
+            }))
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     env_logger::init();
@@ -245,6 +299,7 @@ async fn main() {
         .route("/api/health", get(health))
         .route("/api/scan", post(start_scan))
         .route("/api/scan/{id}", get(get_scan_status))
+        .route("/api/directories", get(list_directories))
         .layer(CorsLayer::permissive())
         .with_state(state);
 
