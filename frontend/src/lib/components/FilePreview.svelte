@@ -32,6 +32,48 @@
 	let previewType = $derived(getPreviewType(selectedFile));
 	let fileUrl = $derived(getFileUrl(selectedFile));
 
+	const MIN_WIDTH = 200;
+	const MAX_WIDTH_FRACTION = 0.6;
+	const STORAGE_KEY = 'filePreviewWidth';
+
+	let panelWidth = $state(288);
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		const saved = localStorage.getItem(STORAGE_KEY);
+		if (saved) {
+			const parsed = parseInt(saved, 10);
+			if (!isNaN(parsed)) {
+				panelWidth = Math.max(MIN_WIDTH, Math.min(window.innerWidth * MAX_WIDTH_FRACTION, parsed));
+			}
+		}
+	});
+
+	function startResize(e: MouseEvent) {
+		e.preventDefault();
+		const startX = e.clientX;
+		const startWidth = panelWidth;
+		const body = document.body;
+		const originalUserSelect = body.style.userSelect;
+		body.style.userSelect = 'none';
+
+		function onMouseMove(e: MouseEvent) {
+			const delta = startX - e.clientX;
+			const maxWidth = window.innerWidth * MAX_WIDTH_FRACTION;
+			panelWidth = Math.max(MIN_WIDTH, Math.min(maxWidth, startWidth + delta));
+		}
+
+		function onMouseUp() {
+			window.removeEventListener('mousemove', onMouseMove);
+			window.removeEventListener('mouseup', onMouseUp);
+			body.style.userSelect = originalUserSelect;
+			localStorage.setItem(STORAGE_KEY, String(panelWidth));
+		}
+
+		window.addEventListener('mousemove', onMouseMove);
+		window.addEventListener('mouseup', onMouseUp);
+	}
+
 	$effect(() => {
 		const file = selectedFile;
 		const type = previewType;
@@ -67,7 +109,22 @@
 	}
 </script>
 
-<aside class="flex w-72 shrink-0 flex-col border-l border-border bg-surface">
+<aside class="relative flex shrink-0 flex-col border-l border-border bg-surface" style:width="{panelWidth}px">
+	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+	<div
+		class="absolute left-0 top-0 bottom-0 w-4 cursor-col-resize z-20 flex items-center justify-center group"
+		onmousedown={startResize}
+		role="separator"
+		aria-label="Resize preview panel"
+		aria-orientation="vertical"
+	>
+		<div class="h-10 w-1.5 rounded-full bg-border flex flex-col items-center justify-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+			<div class="w-px h-1 bg-text-muted rounded-full"></div>
+			<div class="w-px h-1 bg-text-muted rounded-full"></div>
+			<div class="w-px h-1 bg-text-muted rounded-full"></div>
+		</div>
+	</div>
+
 	<div class="flex items-center justify-between border-b border-border px-4 py-3">
 		<span class="text-sm font-medium">Preview</span>
 		<button
