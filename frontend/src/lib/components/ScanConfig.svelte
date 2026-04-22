@@ -17,6 +17,8 @@
 		onAddDir: (target: 'include' | 'exclude') => void;
 	} = $props();
 
+	let activeTab = $state<'directories' | 'items'>('directories');
+
 	function addIncludedDir() {
 		onAddDir('include');
 	}
@@ -35,81 +37,105 @@
 </script>
 
 <div class="shrink-0 border-b border-border bg-surface p-4">
-	<div class="flex gap-4">
-		<div class="flex flex-1 flex-col gap-2">
-			<div class="flex items-center justify-between">
-				<span class="text-xs font-medium text-text-muted">Included directories</span>
-				<button
-					type="button"
-					onclick={addIncludedDir}
-					class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
-				>
-					<Plus class="h-3.5 w-3.5" />
-					Add
-				</button>
-			</div>
-			<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
-				{#if includedDirs.length === 0}
-					<div class="flex items-center justify-center py-2 text-sm text-text-muted">
-						No directories added
-					</div>
-				{:else}
-					{#each includedDirs as dir, i (i)}
-						<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
-							<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
-								{dir}
-							</span>
-							<button
-								type="button"
-								onclick={() => removeIncludedDir(i)}
-								class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
-								title="Remove"
-							>
-								<X class="h-3.5 w-3.5" />
-							</button>
-						</div>
-					{/each}
-				{/if}
-			</div>
-		</div>
-		<div class="flex flex-1 flex-col gap-2">
-			<div class="flex items-center justify-between">
-				<span class="text-xs font-medium text-text-muted">Excluded directories</span>
-				<button
-					type="button"
-					onclick={addExcludedDir}
-					class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
-				>
-					<Plus class="h-3.5 w-3.5" />
-					Add
-				</button>
-			</div>
-			<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
-				{#if excludedDirs.length === 0}
-					<div class="flex items-center justify-center py-2 text-sm text-text-muted">
-						No directories added
-					</div>
-				{:else}
-					{#each excludedDirs as dir, i (i)}
-						<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
-							<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
-								{dir}
-							</span>
-							<button
-								type="button"
-								onclick={() => removeExcludedDir(i)}
-								class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
-								title="Remove"
-							>
-								<X class="h-3.5 w-3.5" />
-							</button>
-						</div>
-					{/each}
-				{/if}
-			</div>
-		</div>
+	<div class="mb-3 flex border-b border-border">
+		<button
+			type="button"
+			onclick={() => (activeTab = 'directories')}
+			class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === 'directories' ? 'text-accent' : 'text-text-muted hover:text-text'}"
+		>
+			Directories
+			{#if activeTab === 'directories'}
+				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
+			{/if}
+		</button>
+		<button
+			type="button"
+			onclick={() => (activeTab = 'items')}
+			class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === 'items' ? 'text-accent' : 'text-text-muted hover:text-text'}"
+		>
+			Items
+			{#if activeTab === 'items'}
+				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
+			{/if}
+		</button>
 	</div>
-	<div class="mt-4">
+
+	{#if activeTab === 'directories'}
+		<div class="flex gap-4">
+			<div class="flex flex-1 flex-col gap-2">
+				<div class="flex items-center justify-between">
+					<span class="text-xs font-medium text-text-muted">Included directories</span>
+					<button
+						type="button"
+						onclick={addIncludedDir}
+						class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
+					>
+						<Plus class="h-3.5 w-3.5" />
+						Add
+					</button>
+				</div>
+				<div class="flex max-h-[160px] flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
+					{#if includedDirs.length === 0}
+						<div class="flex items-center justify-center py-2 text-sm text-text-muted">
+							No directories added
+						</div>
+					{:else}
+						{#each includedDirs as dir, i (i)}
+							<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
+								<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
+									{dir}
+								</span>
+								<button
+									type="button"
+									onclick={() => removeIncludedDir(i)}
+									class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
+									title="Remove"
+								>
+									<X class="h-3.5 w-3.5" />
+								</button>
+							</div>
+						{/each}
+					{/if}
+				</div>
+			</div>
+			<div class="flex flex-1 flex-col gap-2">
+				<div class="flex items-center justify-between">
+					<span class="text-xs font-medium text-text-muted">Excluded directories</span>
+					<button
+						type="button"
+						onclick={addExcludedDir}
+						class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
+					>
+						<Plus class="h-3.5 w-3.5" />
+						Add
+					</button>
+				</div>
+				<div class="flex max-h-[160px] flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
+					{#if excludedDirs.length === 0}
+						<div class="flex items-center justify-center py-2 text-sm text-text-muted">
+							No directories added
+						</div>
+					{:else}
+						{#each excludedDirs as dir, i (i)}
+							<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
+								<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
+									{dir}
+								</span>
+								<button
+									type="button"
+									onclick={() => removeExcludedDir(i)}
+									class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
+									title="Remove"
+								>
+									<X class="h-3.5 w-3.5" />
+								</button>
+							</div>
+						{/each}
+					{/if}
+				</div>
+			</div>
+		</div>
+	{:else}
 		<div class="flex flex-col gap-1.5">
 			<label for="excluded-items" class="text-xs font-medium text-text-muted">Excluded items</label>
 			<input
@@ -121,7 +147,8 @@
 			/>
 			<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
 		</div>
-	</div>
+	{/if}
+
 	<div class="mt-4">
 		<button
 			onclick={onStartScan}
