@@ -21,6 +21,8 @@ pub struct Directories {
     pub included: Vec<String>,
     #[serde(default)]
     pub excluded: Vec<String>,
+    #[serde(default)]
+    pub excluded_items: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

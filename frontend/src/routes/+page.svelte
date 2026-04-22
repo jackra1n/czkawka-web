@@ -14,6 +14,7 @@
 
 	let includedDirs = $state<string[]>([]);
 	let excludedDirs = $state<string[]>([]);
+	let excludedItems = $state<string>('');
 
 	let uiState = $state<UiState>(loadUiState());
 	let activeTool = $state(uiState.activeTool);
@@ -43,6 +44,18 @@
 			backendState = state;
 			includedDirs = state.directories.included;
 			excludedDirs = state.directories.excluded;
+			excludedItems = state.directories.excluded_items;
+
+			// Populate defaults on fresh state
+			if (excludedDirs.length === 0 && excludedItems === '') {
+				try {
+					const defaults = await api.getDefaults();
+					excludedDirs = defaults.excluded_directories;
+					excludedItems = defaults.excluded_items;
+				} catch (e) {
+					console.error('Failed to load defaults:', e);
+				}
+			}
 
 			restoreToolState(activeTool);
 		} catch (err) {
@@ -111,9 +124,10 @@
 		if (!stateLoaded) return;
 		const included = [...includedDirs];
 		const excluded = [...excludedDirs];
+		const items = excludedItems;
 		clearTimeout(dirsTimeout);
 		dirsTimeout = setTimeout(() => {
-			api.updateDirectories(included, excluded).catch(console.error);
+			api.updateDirectories(included, excluded, items).catch(console.error);
 		}, 500);
 		return () => clearTimeout(dirsTimeout);
 	});
@@ -197,6 +211,7 @@
 			const res = await api.startScan({
 				directories: dirs,
 				exclude_directories: excluded.length > 0 ? excluded : undefined,
+				excluded_items: excludedItems.trim() || undefined,
 				min_file_size: 8192,
 				tool_id: activeTool
 			});
@@ -223,6 +238,7 @@
 		<ScanConfig
 			bind:includedDirs
 			bind:excludedDirs
+			bind:excludedItems
 			{scanState}
 			onStartScan={startScan}
 			onAddDir={openModal}

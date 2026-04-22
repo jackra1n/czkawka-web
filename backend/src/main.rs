@@ -12,6 +12,7 @@ use axum::{
     routing::{get, post},
 };
 use czkawka_core::common::config_cache_path::set_config_cache_path;
+use czkawka_core::common::items::{DEFAULT_EXCLUDED_DIRECTORIES, DEFAULT_EXCLUDED_ITEMS};
 use czkawka_core::common::model::{CheckingMethod, HashType};
 use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
 use czkawka_core::common::traits::Search;
@@ -43,6 +44,8 @@ struct ScanRequest {
     directories: Vec<String>,
     #[serde(default)]
     exclude_directories: Vec<String>,
+    #[serde(default)]
+    excluded_items: String,
     #[serde(default = "default_min_file_size")]
     min_file_size: u64,
     #[serde(default = "default_tool_id")]
@@ -91,6 +94,12 @@ struct DuplicateGroup {
     size: u64,
     hash: String,
     files: Vec<DuplicateFile>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct DefaultsResponse {
+    excluded_directories: Vec<String>,
+    excluded_items: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -201,6 +210,18 @@ fn run_scan(request: ScanRequest) -> Result<ScanResults, String> {
 
     finder.set_included_paths(included);
     finder.set_excluded_paths(excluded);
+
+    let excluded_items: Vec<String> = request
+        .excluded_items
+        .split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+        .collect();
+    if !excluded_items.is_empty() {
+        finder.set_excluded_items(excluded_items);
+    }
+
     finder.set_minimal_file_size(request.min_file_size);
     finder.set_recursive_search(true);
     finder.set_delete_method(DeleteMethod::None);
@@ -310,12 +331,21 @@ async fn get_state(State(state): State<Arc<AppState>>) -> Json<state::AppPersist
     Json(persistent.clone())
 }
 
+async fn get_defaults() -> Json<DefaultsResponse> {
+    Json(DefaultsResponse {
+        excluded_directories: DEFAULT_EXCLUDED_DIRECTORIES.iter().map(|s| s.to_string()).collect(),
+        excluded_items: DEFAULT_EXCLUDED_ITEMS.to_string(),
+    })
+}
+
 #[derive(Debug, Deserialize)]
 struct UpdateDirectoriesRequest {
     #[serde(default)]
     included: Vec<String>,
     #[serde(default)]
     excluded: Vec<String>,
+    #[serde(default)]
+    excluded_items: String,
 }
 
 async fn update_directories(
@@ -325,6 +355,7 @@ async fn update_directories(
     let mut persistent = state.persistent.lock().unwrap();
     persistent.directories.included = request.included;
     persistent.directories.excluded = request.excluded;
+    persistent.directories.excluded_items = request.excluded_items;
     if let Err(e) = state::save_state(&state.state_path, &persistent) {
         log::error!("Failed to save state: {e}");
         return StatusCode::INTERNAL_SERVER_ERROR;
@@ -480,6 +511,7 @@ async fn main() {
         .route("/api/state", get(get_state))
         .route("/api/state/directories", post(update_directories))
         .route("/api/state/tools/{tool_id}", post(update_tool_state))
+        .route("/api/defaults", get(get_defaults))
         .route("/api/directories", get(list_directories))
         .route("/api/file", get(serve_file))
         .layer(CorsLayer::permissive())

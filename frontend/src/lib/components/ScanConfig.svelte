@@ -4,12 +4,14 @@
 	let {
 		includedDirs = $bindable<string[]>(),
 		excludedDirs = $bindable<string[]>(),
+		excludedItems = $bindable<string>(),
 		scanState,
 		onStartScan,
 		onAddDir
 	}: {
 		includedDirs: string[];
 		excludedDirs: string[];
+		excludedItems: string;
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		onStartScan: () => void;
 		onAddDir: (target: 'include' | 'exclude') => void;
@@ -121,6 +123,19 @@
 					{/each}
 				{/if}
 			</div>
+		</div>
+	</div>
+	<div class="mt-4">
+		<div class="flex flex-col gap-1.5">
+			<label for="excluded-items" class="text-xs font-medium text-text-muted">Excluded items</label>
+			<textarea
+				id="excluded-items"
+				bind:value={excludedItems}
+				rows={2}
+				placeholder="*/.git/*,*/node_modules/*"
+				class="w-full resize-y rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+			></textarea>
+			<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
 		</div>
 	</div>
 	<div class="mt-4">

@@ -3,6 +3,7 @@ const API_BASE = '';
 export interface ScanRequest {
 	directories: string[];
 	exclude_directories?: string[];
+	excluded_items?: string;
 	min_file_size?: number;
 	tool_id?: string;
 }
@@ -42,6 +43,7 @@ export interface AppState {
 	directories: {
 		included: string[];
 		excluded: string[];
+		excluded_items: string;
 	};
 	tools: Record<string, ToolState>;
 }
@@ -52,6 +54,11 @@ export interface ToolState {
 	error?: string;
 	results?: ScanResults;
 	checked_files?: string[];
+}
+
+export interface DefaultsResponse {
+	excluded_directories: string[];
+	excluded_items: string;
 }
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -103,11 +110,15 @@ export const api = {
 		return fetchJson('/api/state');
 	},
 
-	updateDirectories(included: string[], excluded: string[]): Promise<void> {
+	updateDirectories(included: string[], excluded: string[], excluded_items: string): Promise<void> {
 		return fetchJson('/api/state/directories', {
 			method: 'POST',
-			body: JSON.stringify({ included, excluded })
+			body: JSON.stringify({ included, excluded, excluded_items })
 		});
+	},
+
+	getDefaults(): Promise<DefaultsResponse> {
+		return fetchJson('/api/defaults');
 	},
 
 	updateToolState(toolId: string, checkedFiles: string[]): Promise<void> {
