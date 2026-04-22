@@ -240,8 +240,11 @@
 			bind:excludedDirs
 			bind:excludedItems
 			{scanState}
+			{scanResults}
+			checkedFiles={checkedFiles}
 			onStartScan={startScan}
 			onAddDir={openModal}
+			onDelete={() => console.log('Delete', Array.from(checkedFiles))}
 		/>
 
 		<div class="flex flex-1 min-h-0 overflow-hidden">

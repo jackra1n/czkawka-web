@@ -1,20 +1,29 @@
 <script lang="ts">
 	import { Plus, X, Search } from 'lucide-svelte';
+	import { SvelteSet } from 'svelte/reactivity';
+	import type { ScanResults } from '$lib/api';
+	import ScanActions from './ScanActions.svelte';
 
 	let {
 		includedDirs = $bindable<string[]>(),
 		excludedDirs = $bindable<string[]>(),
 		excludedItems = $bindable<string>(),
 		scanState,
+		scanResults,
+		checkedFiles,
 		onStartScan,
-		onAddDir
+		onAddDir,
+		onDelete
 	}: {
 		includedDirs: string[];
 		excludedDirs: string[];
 		excludedItems: string;
 		scanState: 'idle' | 'running' | 'completed' | 'error';
+		scanResults: ScanResults | null;
+		checkedFiles: SvelteSet<string>;
 		onStartScan: () => void;
 		onAddDir: (target: 'include' | 'exclude') => void;
+		onDelete: () => void;
 	} = $props();
 
 	let activeTab = $state<'directories' | 'items'>('directories');
@@ -74,7 +83,7 @@
 						Add
 					</button>
 				</div>
-				<div class="flex max-h-[160px] flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
+				<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
 					{#if includedDirs.length === 0}
 						<div class="flex items-center justify-center py-2 text-sm text-text-muted">
 							No directories added
@@ -110,7 +119,7 @@
 						Add
 					</button>
 				</div>
-				<div class="flex max-h-[160px] flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
+				<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
 					{#if excludedDirs.length === 0}
 						<div class="flex items-center justify-center py-2 text-sm text-text-muted">
 							No directories added
@@ -149,7 +158,7 @@
 		</div>
 	{/if}
 
-	<div class="mt-4">
+	<div class="mt-4 flex items-center justify-between">
 		<button
 			onclick={onStartScan}
 			disabled={scanState === 'running'}
@@ -163,5 +172,7 @@
 				Search
 			{/if}
 		</button>
+
+		<ScanActions {scanResults} {checkedFiles} {onDelete} />
 	</div>
 </div>
