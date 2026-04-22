@@ -29,6 +29,15 @@ pub struct ScanRequest {
     pub min_file_size: u64,
     #[serde(default = "default_tool_id")]
     pub tool_id: String,
+    // Similar images configuration
+    #[serde(default)]
+    pub hash_alg: Option<String>,
+    #[serde(default)]
+    pub hash_size: Option<u8>,
+    #[serde(default)]
+    pub resize_filter: Option<String>,
+    #[serde(default)]
+    pub similarity: Option<u32>,
 }
 
 fn default_min_file_size() -> u64 {
@@ -59,20 +68,25 @@ pub struct ScanResults {
     pub total_duplicate_files: usize,
     pub wasted_space_bytes: u64,
     pub scanning_time_ms: u64,
-    pub groups: Vec<DuplicateGroup>,
+    pub groups: Vec<FileGroup>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DuplicateFile {
+pub struct ScannedFile {
     pub path: String,
     pub modified_date: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dimensions: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub similarity: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DuplicateGroup {
+pub struct FileGroup {
     pub size: u64,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub hash: String,
-    pub files: Vec<DuplicateFile>,
+    pub files: Vec<ScannedFile>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

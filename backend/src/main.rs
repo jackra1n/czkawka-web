@@ -13,6 +13,7 @@ use tower_http::cors::CorsLayer;
 mod handlers;
 mod models;
 mod scan;
+mod scanners;
 mod state;
 
 #[tokio::main]
