@@ -19,6 +19,8 @@
 	let containerEl = $state<HTMLDivElement | null>(null);
 	let selectedIndex = $state(-1);
 	let checkedFiles = $state<SvelteSet<string>>(new SvelteSet());
+	let colWidths = $state([40, 110, 240, 360, 150]);
+	const MIN_WIDTHS = [20, 50, 50, 50, 50];
 
 	type ListItem =
 		| { type: 'file'; file: DuplicateFile; size: number }
@@ -105,6 +107,33 @@
 		if (lastSep === -1) return { name: fullPath, dir: '' };
 		return { name: fullPath.slice(lastSep + 1), dir: fullPath.slice(0, lastSep) };
 	}
+
+	function startResize(e: MouseEvent, colIndex: number) {
+		e.preventDefault();
+		const startX = e.clientX;
+		const startWidth = colWidths[colIndex];
+		const body = document.body;
+		const originalUserSelect = body.style.userSelect;
+		body.style.userSelect = 'none';
+
+		function onMouseMove(ev: MouseEvent) {
+			const delta = ev.clientX - startX;
+			colWidths[colIndex] = Math.max(MIN_WIDTHS[colIndex], startWidth + delta);
+		}
+
+		function onMouseUp() {
+			window.removeEventListener('mousemove', onMouseMove);
+			window.removeEventListener('mouseup', onMouseUp);
+			body.style.userSelect = originalUserSelect;
+		}
+
+		window.addEventListener('mousemove', onMouseMove);
+		window.addEventListener('mouseup', onMouseUp);
+	}
+
+	function gridCols(): string {
+		return colWidths.map((w) => w + 'px').join(' ');
+	}
 </script>
 
 <div
@@ -146,15 +175,45 @@
 			</div>
 		{:else}
 			<!-- Table -->
-			<div class="flex flex-col">
+			<div class="flex flex-col min-w-full">
 				<div
-					class="grid grid-cols-[32px_100px_1fr_1.5fr_140px] gap-3 border-b border-border px-4 py-2 text-xs font-medium text-text-muted uppercase tracking-wider"
+					class="grid gap-3 border-b border-border px-4 py-2 text-xs font-medium text-text-muted uppercase tracking-wider"
+					style="grid-template-columns: {gridCols()};"
 				>
-					<div></div>
-					<div>Size</div>
-					<div>Filename</div>
-					<div>Path</div>
-					<div>Modified</div>
+					<div class="relative flex items-center">
+						<div
+							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+							onmousedown={(e) => startResize(e, 0)}
+						></div>
+					</div>
+					<div class="relative flex items-center">
+						Size
+						<div
+							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+							onmousedown={(e) => startResize(e, 1)}
+						></div>
+					</div>
+					<div class="relative flex items-center">
+						Filename
+						<div
+							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+							onmousedown={(e) => startResize(e, 2)}
+						></div>
+					</div>
+					<div class="relative flex items-center">
+						Path
+						<div
+							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+							onmousedown={(e) => startResize(e, 3)}
+						></div>
+					</div>
+					<div class="relative flex items-center">
+						Modified
+						<div
+							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+							onmousedown={(e) => startResize(e, 4)}
+						></div>
+					</div>
 				</div>
 				{#each listItems as item, i (item.type === 'file' ? item.file.path : `sep-${i}`)}
 					{#if item.type === 'separator'}
@@ -167,7 +226,8 @@
 						{@const { name, dir } = splitPath(item.file.path)}
 						<div
 							id="scan-item-{i}"
-							class="grid grid-cols-[32px_100px_1fr_1.5fr_140px] gap-3 px-4 py-2 text-sm cursor-pointer transition-colors {selectedIndex === i ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'}"
+							class="grid gap-3 px-4 py-2 text-sm cursor-pointer transition-colors {selectedIndex === i ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'}"
+							style="grid-template-columns: {gridCols()};"
 							onclick={() => handleSelect(i)}
 						>
 							<div class="flex items-center justify-center">
@@ -182,10 +242,12 @@
 								/>
 							</div>
 							<div class="flex items-center text-text font-medium">{formatBytes(item.size)}</div>
-							<div class="flex items-center truncate text-text" title={name}>{name}</div>
-							<div class="flex items-center truncate font-mono text-xs text-text-muted" title={dir}>
-								{dir}
-							</div>
+						<div class="flex items-center min-w-0" title={name}>
+							<span class="truncate text-text">{name}</span>
+						</div>
+						<div class="flex items-center min-w-0 font-mono text-xs text-text-muted" title={dir}>
+							<span class="truncate">{dir}</span>
+						</div>
 							<div class="flex items-center text-xs text-text-muted">
 								{formatDate(item.file.modified_date)}
 							</div>
