@@ -61,6 +61,16 @@ export interface DefaultsResponse {
 	excluded_items: string;
 }
 
+export interface FailedDeletion {
+	path: string;
+	error: string;
+}
+
+export interface DeleteResponse {
+	deleted: string[];
+	failed: FailedDeletion[];
+}
+
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}${url}`, {
 		...options,
@@ -125,6 +135,13 @@ export const api = {
 		return fetchJson(`/api/state/tools/${toolId}`, {
 			method: 'POST',
 			body: JSON.stringify({ checked_files: checkedFiles })
+		});
+	},
+
+	deleteFiles(toolId: string, files: string[]): Promise<DeleteResponse> {
+		return fetchJson('/api/delete', {
+			method: 'POST',
+			body: JSON.stringify({ tool_id: toolId, files })
 		});
 	}
 };

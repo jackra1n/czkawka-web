@@ -191,6 +191,42 @@
 		}
 	}
 
+	async function handleDelete() {
+		const files = Array.from(checkedFiles);
+		if (files.length === 0) return;
+
+		try {
+			const res = await api.deleteFiles(activeTool, files);
+			scanError = '';
+
+			for (const path of res.deleted) {
+				checkedFiles.delete(path);
+			}
+
+			selectedFile = null;
+			selectedFileSize = 0;
+
+			if (scanResults) {
+				for (const group of scanResults.groups) {
+					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
+				}
+				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= 2);
+				scanResults.total_duplicate_groups = scanResults.groups.length;
+				scanResults.total_duplicate_files = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
+				scanResults.wasted_space_bytes = scanResults.groups.reduce(
+					(sum, g) => sum + g.size * (g.files.length - 1),
+					0
+				);
+			}
+
+			if (res.failed.length > 0) {
+				scanError = `Failed to delete ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
+			}
+		} catch (err) {
+			scanError = err instanceof Error ? err.message : 'Failed to delete files';
+		}
+	}
+
 	async function startScan() {
 		const dirs = includedDirs.map((s) => s.trim()).filter(Boolean);
 
@@ -244,7 +280,7 @@
 			checkedFiles={checkedFiles}
 			onStartScan={startScan}
 			onAddDir={openModal}
-			onDelete={() => console.log('Delete', Array.from(checkedFiles))}
+			onDelete={handleDelete}
 		/>
 
 		<div class="flex flex-1 min-h-0 overflow-hidden">

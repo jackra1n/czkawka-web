@@ -114,6 +114,76 @@ struct DirectoryListingResponse {
     directories: Vec<DirectoryEntry>,
 }
 
+#[derive(Debug, Deserialize)]
+struct DeleteRequest {
+    tool_id: String,
+    files: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct FailedDeletion {
+    path: String,
+    error: String,
+}
+
+#[derive(Debug, Serialize)]
+struct DeleteResponse {
+    deleted: Vec<String>,
+    failed: Vec<FailedDeletion>,
+}
+
+async fn delete_files(
+    State(state): State<Arc<AppState>>,
+    Json(request): Json<DeleteRequest>,
+) -> (StatusCode, Json<DeleteResponse>) {
+    let mut deleted = Vec::new();
+    let mut failed = Vec::new();
+
+    for path in &request.files {
+        match tokio::fs::remove_file(path).await {
+            Ok(()) => {
+                deleted.push(path.clone());
+            }
+            Err(e) => {
+                log::warn!("Failed to delete file {path}: {e}");
+                failed.push(FailedDeletion {
+                    path: path.clone(),
+                    error: e.to_string(),
+                });
+            }
+        }
+    }
+
+    if !deleted.is_empty() {
+        let mut persistent = state.persistent.lock().unwrap();
+        if let Some(tool) = persistent.tools.get_mut(&request.tool_id) {
+            // Remove deleted files from checked_files
+            tool.checked_files.retain(|p| !deleted.contains(p));
+
+            // Update results if present
+            if let Some(ref mut results) = tool.results {
+                for group in results.groups.iter_mut() {
+                    group.files.retain(|f| !deleted.contains(&f.path));
+                }
+                results.groups.retain(|g| g.files.len() >= 2);
+                results.total_duplicate_groups = results.groups.len();
+                results.total_duplicate_files = results.groups.iter().map(|g| g.files.len()).sum();
+                results.wasted_space_bytes = results
+                    .groups
+                    .iter()
+                    .map(|g| g.size * (g.files.len() as u64 - 1))
+                    .sum();
+            }
+
+            if let Err(e) = state::save_state(&state.state_path, &persistent) {
+                log::error!("Failed to save state after deletion: {e}");
+            }
+        }
+    }
+
+    (StatusCode::OK, Json(DeleteResponse { deleted, failed }))
+}
+
 async fn start_scan(
     State(state): State<Arc<AppState>>,
     Json(request): Json<ScanRequest>,
@@ -511,6 +581,7 @@ async fn main() {
         .route("/api/state", get(get_state))
         .route("/api/state/directories", post(update_directories))
         .route("/api/state/tools/{tool_id}", post(update_tool_state))
+        .route("/api/delete", post(delete_files))
         .route("/api/defaults", get(get_defaults))
         .route("/api/directories", get(list_directories))
         .route("/api/file", get(serve_file))
