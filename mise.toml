@@ -1,3 +1,38 @@
 [tools]
 bun = "latest"
 rust = "latest"
+
+[tasks.frontend]
+description = "Start the frontend development server"
+dir = "frontend"
+run = "bun run dev"
+
+[tasks.backend]
+description = "Start the backend server"
+dir = "backend"
+run = "cargo run"
+
+[tasks.lint]
+description = "Run ESLint in the frontend"
+dir = "frontend"
+run = "bunx eslint ."
+
+[tasks.check]
+description = "Run Svelte type-checking in the frontend"
+dir = "frontend"
+run = "bun run check"
+
+[tasks.clippy]
+description = "Run Clippy in the backend"
+dir = "backend"
+run = "cargo clippy"
+
+[tasks.fmt]
+description = "Format the backend Rust code"
+dir = "backend"
+run = "cargo fmt"
+
+[tasks."fmt-check"]
+description = "Check backend formatting without writing"
+dir = "backend"
+run = "cargo fmt -- --check"
