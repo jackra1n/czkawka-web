@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use axum::{
+    Json, Router,
     body::Body,
     extract::Query,
-    Json, Router,
     extract::{Path, State},
     http::StatusCode,
     response::Response,
@@ -115,7 +115,11 @@ async fn start_scan(
         let mut scans = state_clone.scans.lock().unwrap();
         match result {
             Ok(results) => {
-                log::info!("Scan {} completed with {} groups", scan_id_clone, results.total_duplicate_groups);
+                log::info!(
+                    "Scan {} completed with {} groups",
+                    scan_id_clone,
+                    results.total_duplicate_groups
+                );
                 scans.insert(scan_id_clone, ScanState::Completed(results));
             }
             Err(e) => {
@@ -182,7 +186,10 @@ fn run_scan(request: ScanRequest) -> Result<ScanResults, String> {
                         .ok()
                         .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
                         .map(|d| d.as_millis() as u64);
-                    files.push(DuplicateFile { path, modified_date });
+                    files.push(DuplicateFile {
+                        path,
+                        modified_date,
+                    });
                     if hash.is_empty() {
                         hash = entry.hash.clone();
                     }
@@ -269,42 +276,48 @@ async fn list_directories(
     let mut path = query.path;
     let show_hidden = query.hidden;
 
-    if path == "~" || path == "~/" {
-        if let Some(home) = dirs::home_dir() {
-            path = home.to_string_lossy().to_string();
-        }
+    if (path == "~" || path == "~/")
+        && let Some(home) = dirs::home_dir()
+    {
+        path = home.to_string_lossy().to_string();
     }
 
     match std::fs::read_dir(&path) {
         Ok(entries) => {
             let mut directories = Vec::new();
             for entry in entries.flatten() {
-                if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
-                    if let Ok(name) = entry.file_name().into_string() {
-                        if !show_hidden && name.starts_with('.') {
-                            continue;
-                        }
-                        if let Some(full_path) = entry.path().to_str().map(|p| p.to_string()) {
-                            directories.push(DirectoryEntry {
-                                name,
-                                path: full_path,
-                            });
-                        }
+                if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false)
+                    && let Ok(name) = entry.file_name().into_string()
+                {
+                    if !show_hidden && name.starts_with('.') {
+                        continue;
+                    }
+                    if let Some(full_path) = entry.path().to_str().map(|p| p.to_string()) {
+                        directories.push(DirectoryEntry {
+                            name,
+                            path: full_path,
+                        });
                     }
                 }
             }
-            directories.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
-            (StatusCode::OK, Json(DirectoryListingResponse {
-                path: path.to_string(),
-                directories,
-            }))
+            directories.sort_by_key(|a| a.name.to_lowercase());
+            (
+                StatusCode::OK,
+                Json(DirectoryListingResponse {
+                    path: path.to_string(),
+                    directories,
+                }),
+            )
         }
         Err(e) => {
             log::warn!("Failed to read directory {}: {}", path, e);
-            (StatusCode::NOT_FOUND, Json(DirectoryListingResponse {
-                path: path.to_string(),
-                directories: Vec::new(),
-            }))
+            (
+                StatusCode::NOT_FOUND,
+                Json(DirectoryListingResponse {
+                    path: path.to_string(),
+                    directories: Vec::new(),
+                }),
+            )
         }
     }
 }
@@ -314,9 +327,7 @@ struct FileQuery {
     path: String,
 }
 
-async fn serve_file(
-    Query(query): Query<FileQuery>,
-) -> Result<Response, (StatusCode, String)> {
+async fn serve_file(Query(query): Query<FileQuery>) -> Result<Response, (StatusCode, String)> {
     let path = PathBuf::from(&query.path);
 
     if !path.is_file() {
@@ -327,7 +338,10 @@ async fn serve_file(
         Ok(data) => data,
         Err(e) => {
             log::warn!("Failed to read file {}: {}", query.path, e);
-            return Err((StatusCode::INTERNAL_SERVER_ERROR, "Failed to read file".to_string()));
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to read file".to_string(),
+            ));
         }
     };
 
