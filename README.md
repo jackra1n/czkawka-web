@@ -7,7 +7,7 @@ I built this because I wanted to run Czkawka on my server, but I needed a good U
 > [!IMPORTANT]
 > This project is still in early development. Expect bugs, missing features, and breaking changes.
 
-![Czkawka Web Preview](docs/images/czkawka-web_preview.png)
+![Czkawka Web Preview](docs/images/czkawka-web_preview.webp)
 
 ## Tech Stack
 This project is built with an emphasis on zero bloat and high performance.
