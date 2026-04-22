@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { X, Folder, ChevronRight, Loader, Eye, EyeOff } from 'lucide-svelte';
-	import { lastDirectory } from '$lib/stores/lastDirectory';
+	import { getLastDirectory, setLastDirectory } from '$lib/stores/lastDirectory.svelte';
 
 	interface Props {
 		open: boolean;
@@ -64,14 +64,14 @@
 	}
 
 	function selectFolder() {
-		lastDirectory.set(getParentPath(displayPath));
+		setLastDirectory(getParentPath(displayPath));
 		onSelect(displayPath);
 		onClose();
 	}
 
 	$effect(() => {
 		if (open) {
-			const stored = $lastDirectory;
+			const stored = getLastDirectory();
 			fetchPath = stored && stored !== '~' && stored !== '~/' ? stored : '~';
 		}
 	});
