@@ -23,9 +23,13 @@ use tokio::task::spawn_blocking;
 use tower_http::cors::CorsLayer;
 use uuid::Uuid;
 
+mod state;
+
 #[derive(Clone)]
 struct AppState {
     scans: Arc<Mutex<HashMap<String, ScanState>>>,
+    persistent: Arc<Mutex<state::AppPersistentState>>,
+    state_path: PathBuf,
 }
 
 enum ScanState {
@@ -41,10 +45,16 @@ struct ScanRequest {
     exclude_directories: Vec<String>,
     #[serde(default = "default_min_file_size")]
     min_file_size: u64,
+    #[serde(default = "default_tool_id")]
+    tool_id: String,
 }
 
 fn default_min_file_size() -> u64 {
     8192
+}
+
+fn default_tool_id() -> String {
+    "duplicates".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -100,31 +110,63 @@ async fn start_scan(
     Json(request): Json<ScanRequest>,
 ) -> (StatusCode, Json<ScanResponse>) {
     let scan_id = Uuid::new_v4().to_string();
+    let tool_id = request.tool_id.clone();
 
     {
         let mut scans = state.scans.lock().unwrap();
         scans.insert(scan_id.clone(), ScanState::Running);
     }
 
+    {
+        let mut persistent = state.persistent.lock().unwrap();
+        let tool = persistent.tools.entry(tool_id.clone()).or_default();
+        tool.status = "running".to_string();
+        tool.scan_id = Some(scan_id.clone());
+        tool.results = None;
+        tool.error = None;
+        if let Err(e) = state::save_state(&state.state_path, &persistent) {
+            log::error!("Failed to save state at scan start: {e}");
+        }
+    }
+
     let state_clone = Arc::clone(&state);
     let scan_id_clone = scan_id.clone();
 
     spawn_blocking(move || {
-        log::info!("Starting scan {}", scan_id_clone);
+        log::info!("Starting scan {scan_id_clone} for tool {tool_id}");
         let result = run_scan(request);
         let mut scans = state_clone.scans.lock().unwrap();
         match result {
             Ok(results) => {
                 log::info!(
-                    "Scan {} completed with {} groups",
-                    scan_id_clone,
+                    "Scan {scan_id_clone} completed with {} groups",
                     results.total_duplicate_groups
                 );
-                scans.insert(scan_id_clone, ScanState::Completed(results));
+                scans.insert(scan_id_clone.clone(), ScanState::Completed(results.clone()));
+
+                let mut persistent = state_clone.persistent.lock().unwrap();
+                let tool = persistent.tools.entry(tool_id.clone()).or_default();
+                tool.status = "completed".to_string();
+                tool.results = Some(results);
+                tool.scan_id = None;
+                tool.error = None;
+                if let Err(e) = state::save_state(&state_clone.state_path, &persistent) {
+                    log::error!("Failed to save state at scan completion: {e}");
+                }
             }
             Err(e) => {
-                log::info!("Scan {} error: {}", scan_id_clone, e);
-                scans.insert(scan_id_clone, ScanState::Error(e));
+                log::info!("Scan {scan_id_clone} error: {e}");
+                scans.insert(scan_id_clone.clone(), ScanState::Error(e.clone()));
+
+                let mut persistent = state_clone.persistent.lock().unwrap();
+                let tool = persistent.tools.entry(tool_id).or_default();
+                tool.status = "error".to_string();
+                tool.error = Some(e);
+                tool.scan_id = None;
+                tool.results = None;
+                if let Err(e) = state::save_state(&state_clone.state_path, &persistent) {
+                    log::error!("Failed to save state at scan error: {e}");
+                }
             }
         }
     });
@@ -263,6 +305,54 @@ async fn health() -> &'static str {
     "ok"
 }
 
+async fn get_state(State(state): State<Arc<AppState>>) -> Json<state::AppPersistentState> {
+    let persistent = state.persistent.lock().unwrap();
+    Json(persistent.clone())
+}
+
+#[derive(Debug, Deserialize)]
+struct UpdateDirectoriesRequest {
+    #[serde(default)]
+    included: Vec<String>,
+    #[serde(default)]
+    excluded: Vec<String>,
+}
+
+async fn update_directories(
+    State(state): State<Arc<AppState>>,
+    Json(request): Json<UpdateDirectoriesRequest>,
+) -> StatusCode {
+    let mut persistent = state.persistent.lock().unwrap();
+    persistent.directories.included = request.included;
+    persistent.directories.excluded = request.excluded;
+    if let Err(e) = state::save_state(&state.state_path, &persistent) {
+        log::error!("Failed to save state: {e}");
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    }
+    StatusCode::OK
+}
+
+#[derive(Debug, Deserialize)]
+struct UpdateToolStateRequest {
+    #[serde(default)]
+    checked_files: Vec<String>,
+}
+
+async fn update_tool_state(
+    State(state): State<Arc<AppState>>,
+    Path(tool_id): Path<String>,
+    Json(request): Json<UpdateToolStateRequest>,
+) -> StatusCode {
+    let mut persistent = state.persistent.lock().unwrap();
+    let tool = persistent.tools.entry(tool_id).or_default();
+    tool.checked_files = request.checked_files;
+    if let Err(e) = state::save_state(&state.state_path, &persistent) {
+        log::error!("Failed to save state: {e}");
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    }
+    StatusCode::OK
+}
+
 #[derive(Debug, Deserialize)]
 struct DirectoryQuery {
     path: String,
@@ -310,7 +400,7 @@ async fn list_directories(
             )
         }
         Err(e) => {
-            log::warn!("Failed to read directory {}: {}", path, e);
+            log::warn!("Failed to read directory {path}: {e}");
             (
                 StatusCode::NOT_FOUND,
                 Json(DirectoryListingResponse {
@@ -360,16 +450,36 @@ async fn main() {
     env_logger::init();
     set_config_cache_path("Czkawka", "Czkawka");
 
+    let config_dir = dirs::config_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
+    let app_config_dir = config_dir.join("czkawka-web");
+    let state_path = app_config_dir.join("state.json");
+
+    let mut persistent_state = state::load_state(&state_path);
+    for tool in persistent_state.tools.values_mut() {
+        if tool.status == "running" {
+            tool.status = "idle".to_string();
+            tool.scan_id = None;
+        }
+    }
+    if let Err(e) = state::save_state(&state_path, &persistent_state) {
+        log::warn!("Failed to save cleaned state on startup: {e}");
+    }
+
     log::info!("Backend starting on 0.0.0.0:3000");
 
     let state = Arc::new(AppState {
         scans: Arc::new(Mutex::new(HashMap::new())),
+        persistent: Arc::new(Mutex::new(persistent_state)),
+        state_path,
     });
 
     let app = Router::new()
         .route("/api/health", get(health))
         .route("/api/scan", post(start_scan))
         .route("/api/scan/{id}", get(get_scan_status))
+        .route("/api/state", get(get_state))
+        .route("/api/state/directories", post(update_directories))
+        .route("/api/state/tools/{tool_id}", post(update_tool_state))
         .route("/api/directories", get(list_directories))
         .route("/api/file", get(serve_file))
         .layer(CorsLayer::permissive())
