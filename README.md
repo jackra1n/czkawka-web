@@ -2,6 +2,13 @@
 
 A lightning-fast, minimalist web frontend for the [Czkawka](https://github.com/qarmin/czkawka) duplicate file finder.
 
+I built this because I wanted to run Czkawka on my server, but I needed a good UI and easy Docker deployment for it.
+
+> [!IMPORTANT]
+> This project is still in early development. Expect bugs, missing features, and breaking changes.
+
+![Czkawka Web Preview](docs/images/czkawka-web_preview.png)
+
 ## Tech Stack
 This project is built with an emphasis on zero bloat and high performance.
 
