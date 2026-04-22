@@ -37,6 +37,8 @@
 		}
 	});
 
+	let toolSelections = $state<Record<string, { path: string | null; size: number }>>({});
+
 	let modalOpen = $state(false);
 	let modalTarget: 'include' | 'exclude' = $state('include');
 
@@ -118,9 +120,11 @@
 	}
 
 	function switchTool(toolId: string) {
+		toolSelections[activeTool] = { path: selectedFile, size: selectedFileSize };
 		activeTool = toolId;
-		selectedFile = null;
-		selectedFileSize = 0;
+		const saved = toolSelections[toolId];
+		selectedFile = saved?.path ?? null;
+		selectedFileSize = saved?.size ?? 0;
 		restoreToolState(toolId);
 	}
 
@@ -169,10 +173,13 @@
 	function selectFile(file: string | null, size: number) {
 		selectedFile = file;
 		selectedFileSize = size;
+		toolSelections[activeTool] = { path: file, size };
 	}
 
 	function closePreview() {
 		selectedFile = null;
+		selectedFileSize = 0;
+		toolSelections[activeTool] = { path: null, size: 0 };
 	}
 
 	async function poll() {
@@ -215,6 +222,7 @@
 
 			selectedFile = null;
 			selectedFileSize = 0;
+			toolSelections[activeTool] = { path: null, size: 0 };
 
 			if (scanResults) {
 				for (const group of scanResults.groups) {
