@@ -107,6 +107,11 @@
 	function handleMediaError() {
 		mediaError = true;
 	}
+
+	function setDefaultVolume(e: Event) {
+		const el = e.currentTarget as HTMLVideoElement | HTMLAudioElement;
+		el.volume = 0.3;
+	}
 </script>
 
 <aside class="relative flex shrink-0 flex-col border-l border-border bg-surface" style:width="{panelWidth}px">
@@ -170,6 +175,7 @@
 						controls
 						class="max-h-full max-w-full rounded-md"
 						onerror={handleMediaError}
+						onloadedmetadata={setDefaultVolume}
 					></video>
 				</div>
 			{/if}
@@ -191,6 +197,7 @@
 						controls
 						class="w-full"
 						onerror={handleMediaError}
+						onloadedmetadata={setDefaultVolume}
 					></audio>
 				</div>
 			{/if}
