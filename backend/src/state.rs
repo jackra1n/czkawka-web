@@ -5,7 +5,7 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::ScanResults;
+use crate::models::ScanResults;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppPersistentState {

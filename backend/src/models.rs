@@ -1,0 +1,140 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::Mutex;
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone)]
+pub struct AppState {
+    pub scans: Arc<Mutex<HashMap<String, ScanState>>>,
+    pub persistent: Arc<Mutex<crate::state::AppPersistentState>>,
+    pub state_path: PathBuf,
+}
+
+pub enum ScanState {
+    Running,
+    Completed(ScanResults),
+    Error(String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanRequest {
+    pub directories: Vec<String>,
+    #[serde(default)]
+    pub exclude_directories: Vec<String>,
+    #[serde(default)]
+    pub excluded_items: String,
+    #[serde(default = "default_min_file_size")]
+    pub min_file_size: u64,
+    #[serde(default = "default_tool_id")]
+    pub tool_id: String,
+}
+
+fn default_min_file_size() -> u64 {
+    8192
+}
+
+fn default_tool_id() -> String {
+    "duplicates".to_string()
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanResponse {
+    pub id: String,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanStatusResponse {
+    pub id: String,
+    pub status: String,
+    pub results: Option<ScanResults>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanResults {
+    pub total_duplicate_groups: usize,
+    pub total_duplicate_files: usize,
+    pub wasted_space_bytes: u64,
+    pub scanning_time_ms: u64,
+    pub groups: Vec<DuplicateGroup>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DuplicateFile {
+    pub path: String,
+    pub modified_date: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DuplicateGroup {
+    pub size: u64,
+    pub hash: String,
+    pub files: Vec<DuplicateFile>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultsResponse {
+    pub excluded_directories: Vec<String>,
+    pub excluded_items: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DirectoryEntry {
+    pub name: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DirectoryListingResponse {
+    pub path: String,
+    pub directories: Vec<DirectoryEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DeleteRequest {
+    pub tool_id: String,
+    pub files: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FailedDeletion {
+    pub path: String,
+    pub error: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DeleteResponse {
+    pub deleted: Vec<String>,
+    pub failed: Vec<FailedDeletion>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateDirectoriesRequest {
+    #[serde(default)]
+    pub included: Vec<String>,
+    #[serde(default)]
+    pub excluded: Vec<String>,
+    #[serde(default)]
+    pub excluded_items: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateToolStateRequest {
+    #[serde(default)]
+    pub checked_files: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DirectoryQuery {
+    pub path: String,
+    #[serde(default)]
+    pub hidden: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FileQuery {
+    pub path: String,
+}
