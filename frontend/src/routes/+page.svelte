@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
-	import { api, type ScanResults as ScanResultsType, type AppState } from '$lib/api';
+	import { api, type ScanResults as ScanResultsType, type AppState, type ToolConfig } from '$lib/api';
 	import DirectoryBrowserModal from '$lib/components/DirectoryBrowserModal.svelte';
 	import ToolSidebar from '$lib/components/ToolSidebar.svelte';
 	import ScanConfig from '$lib/components/ScanConfig.svelte';
@@ -26,6 +26,16 @@
 	let scanId = $state('');
 	let checkedFiles = $state<SvelteSet<string>>(new SvelteSet());
 	let selectedFileSize = $state(0);
+
+	let toolConfigs = $state<Record<string, ToolConfig>>({
+		duplicates: {},
+		'similar-images': {
+			hash_alg: 'Gradient',
+			hash_size: 16,
+			resize_filter: 'Lanczos3',
+			similarity: 5
+		}
+	});
 
 	let modalOpen = $state(false);
 	let modalTarget: 'include' | 'exclude' = $state('include');
@@ -243,14 +253,24 @@
 		selectedFile = null;
 		selectedFileSize = 0;
 
+		const payload: Parameters<typeof api.startScan>[0] = {
+			directories: dirs,
+			exclude_directories: excluded.length > 0 ? excluded : undefined,
+			excluded_items: excludedItems.trim() || undefined,
+			min_file_size: 8192,
+			tool_id: activeTool
+		};
+
+		if (activeTool === 'similar-images') {
+			const cfg = toolConfigs['similar-images'];
+			payload.hash_alg = cfg?.hash_alg;
+			payload.hash_size = cfg?.hash_size;
+			payload.resize_filter = cfg?.resize_filter;
+			payload.similarity = cfg?.similarity;
+		}
+
 		try {
-			const res = await api.startScan({
-				directories: dirs,
-				exclude_directories: excluded.length > 0 ? excluded : undefined,
-				excluded_items: excludedItems.trim() || undefined,
-				min_file_size: 8192,
-				tool_id: activeTool
-			});
+			const res = await api.startScan(payload);
 			scanId = res.id;
 			poll();
 			intervalId = setInterval(poll, 1000);
@@ -275,6 +295,8 @@
 			bind:includedDirs
 			bind:excludedDirs
 			bind:excludedItems
+			bind:activeTool
+			bind:toolConfig={toolConfigs[activeTool]}
 			{scanState}
 			{scanResults}
 			checkedFiles={checkedFiles}
@@ -290,6 +312,7 @@
 				{scanResults}
 				onSelectFile={selectFile}
 				checkedFiles={checkedFiles}
+				{activeTool}
 			/>
 
 			{#if selectedFile}

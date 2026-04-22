@@ -6,6 +6,11 @@ export interface ScanRequest {
 	excluded_items?: string;
 	min_file_size?: number;
 	tool_id?: string;
+	// Similar images options
+	hash_alg?: string;
+	hash_size?: number;
+	resize_filter?: string;
+	similarity?: number;
 }
 
 export interface ScanResponse {
@@ -13,15 +18,17 @@ export interface ScanResponse {
 	status: string;
 }
 
-export interface DuplicateFile {
+export interface ScannedFile {
 	path: string;
 	modified_date?: number;
+	dimensions?: string;
+	similarity?: string;
 }
 
-export interface DuplicateGroup {
+export interface FileGroup {
 	size: number;
 	hash: string;
-	files: DuplicateFile[];
+	files: ScannedFile[];
 }
 
 export interface ScanResults {
@@ -29,7 +36,7 @@ export interface ScanResults {
 	total_duplicate_files: number;
 	wasted_space_bytes: number;
 	scanning_time_ms: number;
-	groups: DuplicateGroup[];
+	groups: FileGroup[];
 }
 
 export interface ScanStatusResponse {
@@ -70,6 +77,15 @@ export interface DeleteResponse {
 	deleted: string[];
 	failed: FailedDeletion[];
 }
+
+export interface SimilarImagesConfig {
+	hash_alg: string;
+	hash_size: number;
+	resize_filter: string;
+	similarity: number;
+}
+
+export type ToolConfig = Partial<SimilarImagesConfig>;
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}${url}`, {

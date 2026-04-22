@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { ChevronDown, Trash2 } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { ScanResults, DuplicateFile } from '$lib/api';
+	import type { ScanResults, ScannedFile } from '$lib/api';
 	import ConfirmModal from './ConfirmModal.svelte';
 
 	let {
@@ -70,7 +70,7 @@
 	function selectAllExceptOldest() {
 		if (!scanResults) return;
 		for (const group of scanResults.groups) {
-			let oldest: DuplicateFile | null = null;
+			let oldest: ScannedFile | null = null;
 			for (const file of group.files) {
 				if (!oldest || (file.modified_date ?? 0) < (oldest.modified_date ?? 0)) {
 					oldest = file;
@@ -90,7 +90,7 @@
 	function selectAllExceptNewest() {
 		if (!scanResults) return;
 		for (const group of scanResults.groups) {
-			let newest: DuplicateFile | null = null;
+			let newest: ScannedFile | null = null;
 			for (const file of group.files) {
 				if (!newest || (file.modified_date ?? 0) > (newest.modified_date ?? 0)) {
 					newest = file;

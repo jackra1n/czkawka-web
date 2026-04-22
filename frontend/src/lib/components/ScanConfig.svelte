@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { Plus, X, Search } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { ScanResults } from '$lib/api';
+	import type { ScanResults, ToolConfig } from '$lib/api';
 	import ScanActions from './ScanActions.svelte';
 
 	let {
 		includedDirs = $bindable<string[]>(),
 		excludedDirs = $bindable<string[]>(),
 		excludedItems = $bindable<string>(),
+		activeTool = $bindable<string>(),
+		toolConfig = $bindable<ToolConfig>({}),
 		scanState,
 		scanResults,
 		checkedFiles,
@@ -18,6 +20,8 @@
 		includedDirs: string[];
 		excludedDirs: string[];
 		excludedItems: string;
+		activeTool: string;
+		toolConfig: ToolConfig;
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		scanResults: ScanResults | null;
 		checkedFiles: SvelteSet<string>;
@@ -26,7 +30,11 @@
 		onDelete: () => void;
 	} = $props();
 
-	let activeTab = $state<'directories' | 'items'>('directories');
+	let activeTab = $state<'directories' | 'items' | 'settings'>('directories');
+
+	const HASH_ALGS = ['Mean', 'Gradient', 'Blockhash', 'VertGradient', 'DoubleGradient', 'Median'];
+	const HASH_SIZES = [8, 16, 32, 64];
+	const RESIZE_FILTERS = ['Lanczos3', 'Nearest', 'Triangle', 'Gaussian', 'CatmullRom'];
 
 	function addIncludedDir() {
 		onAddDir('include');
@@ -43,6 +51,12 @@
 	function removeExcludedDir(index: number) {
 		excludedDirs = excludedDirs.filter((_, i) => i !== index);
 	}
+
+	$effect(() => {
+		if (activeTab === 'settings' && activeTool !== 'similar-images') {
+			activeTab = 'directories';
+		}
+	});
 </script>
 
 <div class="shrink-0 border-b border-border bg-surface p-4">
@@ -67,6 +81,18 @@
 				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
 			{/if}
 		</button>
+		{#if activeTool === 'similar-images'}
+			<button
+				type="button"
+				onclick={() => (activeTab = 'settings')}
+				class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === 'settings' ? 'text-accent' : 'text-text-muted hover:text-text'}"
+			>
+				Settings
+				{#if activeTab === 'settings'}
+					<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
+				{/if}
+			</button>
+		{/if}
 	</div>
 
 	{#if activeTab === 'directories'}
@@ -144,7 +170,7 @@
 				</div>
 			</div>
 		</div>
-	{:else}
+	{:else if activeTab === 'items'}
 		<div class="flex flex-col gap-1.5">
 			<label for="excluded-items" class="text-xs font-medium text-text-muted">Excluded items</label>
 			<input
@@ -155,6 +181,68 @@
 				class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
 			/>
 			<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
+		</div>
+	{:else if activeTab === 'settings' && activeTool === 'similar-images'}
+		<div class="flex flex-col gap-4">
+			<div class="flex gap-4">
+				<div class="flex flex-1 flex-col gap-1.5">
+					<label for="hash-alg" class="text-xs font-medium text-text-muted">Hash Algorithm</label>
+					<select
+						id="hash-alg"
+						value={toolConfig.hash_alg ?? 'Gradient'}
+						onchange={(e) => toolConfig = { ...toolConfig, hash_alg: e.currentTarget.value }}
+						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					>
+						{#each HASH_ALGS as alg (alg)}
+							<option value={alg}>{alg}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="flex flex-1 flex-col gap-1.5">
+					<label for="hash-size" class="text-xs font-medium text-text-muted">Hash Size</label>
+					<select
+						id="hash-size"
+						value={toolConfig.hash_size ?? 16}
+						onchange={(e) => toolConfig = { ...toolConfig, hash_size: Number(e.currentTarget.value) }}
+						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					>
+						{#each HASH_SIZES as size (size)}
+							<option value={size}>{size}</option>
+						{/each}
+					</select>
+				</div>
+			</div>
+			<div class="flex flex-col gap-1.5">
+				<label for="resize-filter" class="text-xs font-medium text-text-muted">Resize Algorithm</label>
+				<select
+					id="resize-filter"
+					value={toolConfig.resize_filter ?? 'Lanczos3'}
+					onchange={(e) => toolConfig = { ...toolConfig, resize_filter: e.currentTarget.value }}
+					class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+				>
+					{#each RESIZE_FILTERS as filter (filter)}
+						<option value={filter}>{filter}</option>
+					{/each}
+				</select>
+			</div>
+			<div class="flex flex-col gap-1.5">
+				<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
+				<div class="flex items-center gap-3">
+					<span class="text-[10px] text-text-muted shrink-0 w-14 text-right">Very high</span>
+					<input
+						id="similarity"
+						type="range"
+						min="0"
+						max="40"
+						step="1"
+						value={toolConfig.similarity ?? 5}
+						oninput={(e) => toolConfig = { ...toolConfig, similarity: Number(e.currentTarget.value) }}
+						class="flex-1 accent-accent"
+					/>
+					<span class="text-xs font-medium text-text w-6 text-center">{toolConfig.similarity ?? 5}</span>
+					<span class="text-[10px] text-text-muted shrink-0 w-12">Minimal</span>
+				</div>
+			</div>
 		</div>
 	{/if}
 

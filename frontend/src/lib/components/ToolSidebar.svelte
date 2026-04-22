@@ -22,7 +22,7 @@
 		{ id: 'big-files', label: 'Big Files', icon: BarChart3, disabled: true },
 		{ id: 'empty-files', label: 'Empty Files', icon: FileX, disabled: true },
 		{ id: 'temporary', label: 'Temporary Files', icon: Clock, disabled: true },
-		{ id: 'similar-images', label: 'Similar Images', icon: Images, disabled: true },
+		{ id: 'similar-images', label: 'Similar Images', icon: Images, disabled: false },
 		{ id: 'similar-videos', label: 'Similar Videos', icon: Video, disabled: true },
 		{ id: 'same-music', label: 'Same Music', icon: Music, disabled: true },
 		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link, disabled: true },

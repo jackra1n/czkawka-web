@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Search } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { ScanResults, DuplicateFile } from '$lib/api';
+	import type { ScanResults, ScannedFile } from '$lib/api';
 	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
 
 	let {
@@ -9,22 +9,51 @@
 		scanError,
 		scanResults,
 		onSelectFile,
-		checkedFiles
+		checkedFiles,
+		activeTool
 	}: {
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		scanError: string;
 		scanResults: ScanResults | null;
 		onSelectFile: (file: string | null, size: number) => void;
 		checkedFiles: SvelteSet<string>;
+		activeTool: string;
 	} = $props();
 
 	let containerEl = $state<HTMLDivElement | null>(null);
 	let selectedIndex = $state(-1);
-	let colWidths = $state([40, 110, 240, 360, 150]);
-	const MIN_WIDTHS = [20, 50, 50, 50, 50];
+
+	type ColDef = { key: string; label: string; width: number; minWidth: number };
+
+	const TOOL_COLS: Record<string, ColDef[]> = {
+		duplicates: [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
+		'similar-images': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'dimensions', label: 'Dimensions', width: 100, minWidth: 50 },
+			{ key: 'similarity', label: 'Similarity', width: 100, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
+	};
+
+	let colDefs = $derived(TOOL_COLS[activeTool] ?? TOOL_COLS.duplicates);
+	let colWidths = $state<number[]>([]);
+
+	$effect(() => {
+		colWidths = colDefs.map((c) => c.width);
+		selectedIndex = -1;
+	});
 
 	type ListItem =
-		| { type: 'file'; file: DuplicateFile; size: number }
+		| { type: 'file'; file: ScannedFile; size: number }
 		| { type: 'separator' };
 
 	function buildListItems(results: ScanResults | null): ListItem[] {
@@ -113,13 +142,14 @@
 		e.preventDefault();
 		const startX = e.clientX;
 		const startWidth = colWidths[colIndex];
+		const minW = colDefs[colIndex].minWidth;
 		const body = document.body;
 		const originalUserSelect = body.style.userSelect;
 		body.style.userSelect = 'none';
 
 		function onMouseMove(ev: MouseEvent) {
 			const delta = ev.clientX - startX;
-			colWidths[colIndex] = Math.max(MIN_WIDTHS[colIndex], startWidth + delta);
+			colWidths[colIndex] = Math.max(minW, startWidth + delta);
 		}
 
 		function onMouseUp() {
@@ -135,6 +165,13 @@
 	function gridCols(): string {
 		return colWidths.map((w) => w + 'px').join(' ');
 	}
+
+	let scanningText = $derived(
+		activeTool === 'similar-images' ? 'Scanning for similar images…' : 'Scanning for duplicates…'
+	);
+	let emptyText = $derived(
+		activeTool === 'similar-images' ? 'No similar images found.' : 'No duplicates found.'
+	);
 </script>
 
 <div
@@ -151,7 +188,7 @@
 	{:else if scanState === 'running'}
 		<div class="flex flex-1 flex-col items-center justify-center gap-4">
 			<div class="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent"></div>
-			<p class="text-sm text-text-muted">Scanning for duplicates…</p>
+			<p class="text-sm text-text-muted">{scanningText}</p>
 		</div>
 	{:else if scanState === 'error'}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 p-8">
@@ -172,7 +209,7 @@
 
 		{#if scanResults.groups.length === 0}
 			<div class="flex flex-1 flex-col items-center justify-center text-sm text-text-muted">
-				No duplicates found.
+				{emptyText}
 			</div>
 		{:else}
 			<!-- Table -->
@@ -181,40 +218,17 @@
 					class="grid gap-3 border-b border-border px-4 py-2 text-xs font-medium text-text-muted uppercase tracking-wider"
 					style="grid-template-columns: {gridCols()};"
 				>
-					<div class="relative flex items-center">
-						<div
-							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
-							onmousedown={(e) => startResize(e, 0)}
-						></div>
-					</div>
-					<div class="relative flex items-center">
-						Size
-						<div
-							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
-							onmousedown={(e) => startResize(e, 1)}
-						></div>
-					</div>
-					<div class="relative flex items-center">
-						Filename
-						<div
-							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
-							onmousedown={(e) => startResize(e, 2)}
-						></div>
-					</div>
-					<div class="relative flex items-center">
-						Path
-						<div
-							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
-							onmousedown={(e) => startResize(e, 3)}
-						></div>
-					</div>
-					<div class="relative flex items-center">
-						Modified
-						<div
-							class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
-							onmousedown={(e) => startResize(e, 4)}
-						></div>
-					</div>
+					{#each colDefs as col, ci (col.key)}
+						<div class="relative flex items-center">
+							{col.label}
+							{#if ci < colDefs.length - 1}
+								<div
+									class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+									onmousedown={(e) => startResize(e, ci)}
+								></div>
+							{/if}
+						</div>
+					{/each}
 				</div>
 				{#each listItems as item, i (item.type === 'file' ? item.file.path : `sep-${i}`)}
 					{#if item.type === 'separator'}
@@ -231,27 +245,39 @@
 							style="grid-template-columns: {gridCols()};"
 							onclick={() => handleSelect(i)}
 						>
-							<div class="flex items-center justify-center">
-								<input
-									type="checkbox"
-									checked={checkedFiles.has(item.file.path)}
-									onclick={(e) => {
-										e.stopPropagation();
-										toggleCheck(item.file.path);
-										handleSelect(i);
-									}}
-								/>
-							</div>
-							<div class="flex items-center text-text font-medium">{formatBytes(item.size)}</div>
-						<div class="flex items-center min-w-0" title={name}>
-							<span class="truncate text-text">{name}</span>
-						</div>
-						<div class="flex items-center min-w-0 font-mono text-xs text-text-muted" title={dir}>
-							<span class="truncate">{dir}</span>
-						</div>
-							<div class="flex items-center text-xs text-text-muted">
-								{formatDate(item.file.modified_date)}
-							</div>
+							{#each colDefs as col (col.key)}
+								{#if col.key === 'checkbox'}
+									<div class="flex items-center justify-center">
+										<input
+											type="checkbox"
+											checked={checkedFiles.has(item.file.path)}
+											onclick={(e) => {
+												e.stopPropagation();
+												toggleCheck(item.file.path);
+												handleSelect(i);
+											}}
+										/>
+									</div>
+								{:else if col.key === 'size'}
+									<div class="flex items-center text-text font-medium">{formatBytes(item.size)}</div>
+								{:else if col.key === 'dimensions'}
+									<div class="flex items-center text-text font-medium">{item.file.dimensions ?? ''}</div>
+								{:else if col.key === 'similarity'}
+									<div class="flex items-center text-text font-medium">{item.file.similarity ?? ''}</div>
+								{:else if col.key === 'filename'}
+									<div class="flex items-center min-w-0" title={name}>
+										<span class="truncate text-text">{name}</span>
+									</div>
+								{:else if col.key === 'path'}
+									<div class="flex items-center min-w-0 font-mono text-xs text-text-muted" title={dir}>
+										<span class="truncate">{dir}</span>
+									</div>
+								{:else if col.key === 'modified'}
+									<div class="flex items-center text-xs text-text-muted">
+										{formatDate(item.file.modified_date)}
+									</div>
+								{/if}
+							{/each}
 						</div>
 					{/if}
 				{/each}
