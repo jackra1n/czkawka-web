@@ -4,6 +4,7 @@ export interface ScanRequest {
 	directories: string[];
 	exclude_directories?: string[];
 	min_file_size?: number;
+	tool_id?: string;
 }
 
 export interface ScanResponse {
@@ -35,6 +36,22 @@ export interface ScanStatusResponse {
 	status: string;
 	results?: ScanResults;
 	error?: string;
+}
+
+export interface AppState {
+	directories: {
+		included: string[];
+		excluded: string[];
+	};
+	tools: Record<string, ToolState>;
+}
+
+export interface ToolState {
+	status: string;
+	scan_id?: string;
+	error?: string;
+	results?: ScanResults;
+	checked_files?: string[];
 }
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
@@ -80,5 +97,23 @@ export const api = {
 
 	getScanStatus(id: string): Promise<ScanStatusResponse> {
 		return fetchJson(`/api/scan/${id}`);
+	},
+
+	getState(): Promise<AppState> {
+		return fetchJson('/api/state');
+	},
+
+	updateDirectories(included: string[], excluded: string[]): Promise<void> {
+		return fetchJson('/api/state/directories', {
+			method: 'POST',
+			body: JSON.stringify({ included, excluded })
+		});
+	},
+
+	updateToolState(toolId: string, checkedFiles: string[]): Promise<void> {
+		return fetchJson(`/api/state/tools/${toolId}`, {
+			method: 'POST',
+			body: JSON.stringify({ checked_files: checkedFiles })
+		});
 	}
 };

@@ -1,29 +1,133 @@
 <script lang="ts">
-	import { api, type ScanResults as ScanResultsType } from '$lib/api';
+	import { SvelteSet } from 'svelte/reactivity';
+	import { api, type ScanResults as ScanResultsType, type AppState } from '$lib/api';
 	import DirectoryBrowserModal from '$lib/components/DirectoryBrowserModal.svelte';
 	import ToolSidebar from '$lib/components/ToolSidebar.svelte';
 	import ScanConfig from '$lib/components/ScanConfig.svelte';
 	import ScanResults from '$lib/components/ScanResults.svelte';
 	import FilePreview from '$lib/components/FilePreview.svelte';
+	import { loadUiState, saveUiState, type UiState } from '$lib/stores/uiState';
 	import { onDestroy } from 'svelte';
+
+	let backendState = $state<AppState | null>(null);
+	let stateLoaded = $state(false);
 
 	let includedDirs = $state<string[]>([]);
 	let excludedDirs = $state<string[]>([]);
+
+	let uiState = $state<UiState>(loadUiState());
+	let activeTool = $state(uiState.activeTool);
+	let selectedFile = $state<string | null>(uiState.selectedFile);
 
 	let scanState = $state<'idle' | 'running' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
 	let scanResults = $state<ScanResultsType | null>(null);
 	let scanId = $state('');
-
-	let selectedFile = $state<string | null>(null);
+	let checkedFiles = $state<SvelteSet<string>>(new SvelteSet());
 	let selectedFileSize = $state(0);
 
 	let modalOpen = $state(false);
 	let modalTarget: 'include' | 'exclude' = $state('include');
 
-	let activeTool = $state('duplicates');
-
 	let intervalId: ReturnType<typeof setInterval>;
+	let dirsTimeout: ReturnType<typeof setTimeout>;
+	let checkedTimeout: ReturnType<typeof setTimeout>;
+
+	$effect(() => {
+		loadState();
+	});
+
+	async function loadState() {
+		try {
+			const state = await api.getState();
+			backendState = state;
+			includedDirs = state.directories.included;
+			excludedDirs = state.directories.excluded;
+
+			restoreToolState(activeTool);
+		} catch (err) {
+			console.error('Failed to load state:', err);
+		} finally {
+			stateLoaded = true;
+		}
+	}
+
+	function restoreToolState(toolId: string) {
+		if (!backendState) return;
+
+		const tool = backendState.tools[toolId];
+		if (!tool) {
+			scanState = 'idle';
+			scanResults = null;
+			scanError = '';
+			scanId = '';
+			checkedFiles = new SvelteSet();
+			selectedFileSize = 0;
+			return;
+		}
+
+		scanState = tool.status as typeof scanState;
+		scanResults = tool.results ?? null;
+		scanError = tool.error ?? '';
+		scanId = tool.scan_id ?? '';
+		checkedFiles = new SvelteSet(tool.checked_files ?? []);
+
+		if (selectedFile && scanResults) {
+			let foundSize = 0;
+			for (const group of scanResults.groups) {
+				for (const file of group.files) {
+					if (file.path === selectedFile) {
+						foundSize = group.size;
+						break;
+					}
+				}
+				if (foundSize) break;
+			}
+			selectedFileSize = foundSize;
+		} else {
+			selectedFileSize = 0;
+		}
+
+		if (scanState === 'running' && scanId) {
+			poll();
+			intervalId = setInterval(poll, 1000);
+		}
+	}
+
+	function switchTool(toolId: string) {
+		activeTool = toolId;
+		selectedFile = null;
+		selectedFileSize = 0;
+		restoreToolState(toolId);
+	}
+
+	// Persist UI state to localStorage
+	$effect(() => {
+		saveUiState({ activeTool, selectedFile });
+	});
+
+	// Auto-save directories to backend (debounced)
+	$effect(() => {
+		if (!stateLoaded) return;
+		const included = [...includedDirs];
+		const excluded = [...excludedDirs];
+		clearTimeout(dirsTimeout);
+		dirsTimeout = setTimeout(() => {
+			api.updateDirectories(included, excluded).catch(console.error);
+		}, 500);
+		return () => clearTimeout(dirsTimeout);
+	});
+
+	// Auto-save checked files to backend (debounced)
+	$effect(() => {
+		if (!stateLoaded) return;
+		const files = Array.from(checkedFiles);
+		clearTimeout(checkedTimeout);
+		checkedTimeout = setTimeout(() => {
+			api.updateToolState(activeTool, files).catch(console.error);
+		}, 500);
+		return () => clearTimeout(checkedTimeout);
+	});
 
 	function openModal(target: 'include' | 'exclude') {
 		modalTarget = target;
@@ -87,12 +191,14 @@
 		scanError = '';
 		scanResults = null;
 		selectedFile = null;
+		selectedFileSize = 0;
 
 		try {
 			const res = await api.startScan({
 				directories: dirs,
 				exclude_directories: excluded.length > 0 ? excluded : undefined,
-				min_file_size: 8192
+				min_file_size: 8192,
+				tool_id: activeTool
 			});
 			scanId = res.id;
 			poll();
@@ -105,11 +211,13 @@
 
 	onDestroy(() => {
 		clearInterval(intervalId);
+		clearTimeout(dirsTimeout);
+		clearTimeout(checkedTimeout);
 	});
 </script>
 
 <div class="flex h-full w-full">
-	<ToolSidebar bind:activeTool />
+	<ToolSidebar {activeTool} onChangeTool={switchTool} />
 
 	<div class="flex flex-1 flex-col min-h-0 overflow-hidden bg-bg">
 		<ScanConfig
@@ -126,6 +234,7 @@
 				{scanError}
 				{scanResults}
 				onSelectFile={selectFile}
+				checkedFiles={checkedFiles}
 			/>
 
 			{#if selectedFile}

@@ -8,17 +8,18 @@
 		scanState,
 		scanError,
 		scanResults,
-		onSelectFile
+		onSelectFile,
+		checkedFiles
 	}: {
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		scanError: string;
 		scanResults: ScanResults | null;
 		onSelectFile: (file: string | null, size: number) => void;
+		checkedFiles: SvelteSet<string>;
 	} = $props();
 
 	let containerEl = $state<HTMLDivElement | null>(null);
 	let selectedIndex = $state(-1);
-	let checkedFiles = $state<SvelteSet<string>>(new SvelteSet());
 	let colWidths = $state([40, 110, 240, 360, 150]);
 	const MIN_WIDTHS = [20, 50, 50, 50, 50];
 
@@ -44,10 +45,10 @@
 	let listItems = $derived(buildListItems(scanResults));
 
 	$effect(() => {
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		scanResults;
-		selectedIndex = -1;
-		checkedFiles.clear();
+		if (scanState === 'running') {
+			selectedIndex = -1;
+			checkedFiles.clear();
+		}
 	});
 
 	function toggleCheck(path: string) {

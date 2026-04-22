@@ -32,7 +32,7 @@
 		{ id: 'bad-names', label: 'Bad Names', icon: Type, disabled: true }
 	];
 
-	let { activeTool = $bindable() }: { activeTool: string } = $props();
+	let { activeTool, onChangeTool }: { activeTool: string; onChangeTool: (toolId: string) => void } = $props();
 </script>
 
 <aside class="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface">
@@ -49,7 +49,7 @@
 				class:cursor-not-allowed={tool.disabled}
 				disabled={tool.disabled}
 				onclick={() => {
-					if (!tool.disabled) activeTool = tool.id;
+					if (!tool.disabled && tool.id !== activeTool) onChangeTool(tool.id);
 				}}
 			>
 				{#if tool.disabled}
