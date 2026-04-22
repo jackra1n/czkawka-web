@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Minus, Search } from 'lucide-svelte';
+	import { Plus, X, Search } from 'lucide-svelte';
 
 	let {
 		includedDirs = $bindable<string[]>(),
@@ -25,20 +25,12 @@
 		includedDirs = includedDirs.filter((_, i) => i !== index);
 	}
 
-	function updateIncludedDir(index: number, value: string) {
-		includedDirs[index] = value;
-	}
-
 	function addExcludedDir() {
 		onAddDir('exclude');
 	}
 
 	function removeExcludedDir(index: number) {
 		excludedDirs = excludedDirs.filter((_, i) => i !== index);
-	}
-
-	function updateExcludedDir(index: number, value: string) {
-		excludedDirs[index] = value;
 	}
 </script>
 
@@ -56,28 +48,24 @@
 					Add
 				</button>
 			</div>
-			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-bg p-2 pr-1">
+			<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
 				{#if includedDirs.length === 0}
-					<div class="flex items-center justify-center py-4 text-sm text-text-muted">
+					<div class="flex items-center justify-center py-2 text-sm text-text-muted">
 						No directories added
 					</div>
 				{:else}
 					{#each includedDirs as dir, i (i)}
-						<div class="flex gap-2">
-							<input
-								type="text"
-								value={dir}
-								oninput={(e) => updateIncludedDir(i, e.currentTarget.value)}
-								placeholder="/home/user/Downloads"
-								class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-							/>
+						<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
+							<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
+								{dir}
+							</span>
 							<button
 								type="button"
 								onclick={() => removeIncludedDir(i)}
-								class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
+								class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
 								title="Remove"
 							>
-								<Minus class="h-4 w-4" />
+								<X class="h-3.5 w-3.5" />
 							</button>
 						</div>
 					{/each}
@@ -96,28 +84,24 @@
 					Add
 				</button>
 			</div>
-			<div class="flex max-h-48 flex-col gap-1.5 overflow-y-auto rounded-md border border-border bg-bg p-2 pr-1">
+			<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
 				{#if excludedDirs.length === 0}
-					<div class="flex items-center justify-center py-4 text-sm text-text-muted">
+					<div class="flex items-center justify-center py-2 text-sm text-text-muted">
 						No directories added
 					</div>
 				{:else}
 					{#each excludedDirs as dir, i (i)}
-						<div class="flex gap-2">
-							<input
-								type="text"
-								value={dir}
-								oninput={(e) => updateExcludedDir(i, e.currentTarget.value)}
-								placeholder="/home/user/Downloads/temp"
-								class="min-w-0 flex-1 rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-							/>
+						<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
+							<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
+								{dir}
+							</span>
 							<button
 								type="button"
 								onclick={() => removeExcludedDir(i)}
-								class="flex shrink-0 items-center justify-center rounded-md border border-border bg-bg px-2.5 py-2 text-text-muted transition-colors hover:border-danger hover:text-danger"
+								class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
 								title="Remove"
 							>
-								<Minus class="h-4 w-4" />
+								<X class="h-3.5 w-3.5" />
 							</button>
 						</div>
 					{/each}
@@ -128,13 +112,13 @@
 	<div class="mt-4">
 		<div class="flex flex-col gap-1.5">
 			<label for="excluded-items" class="text-xs font-medium text-text-muted">Excluded items</label>
-			<textarea
+			<input
 				id="excluded-items"
+				type="text"
 				bind:value={excludedItems}
-				rows={2}
 				placeholder="*/.git/*,*/node_modules/*"
-				class="w-full resize-y rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-			></textarea>
+				class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+			/>
 			<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
 		</div>
 	</div>
