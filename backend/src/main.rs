@@ -20,7 +20,7 @@ mod state;
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     set_config_cache_path("Czkawka", "Czkawka");
 
     let config_dir = dirs::config_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
