@@ -33,6 +33,12 @@
 			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
 			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
+		'empty-folders': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'filename', label: 'Folder', width: 300, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 400, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
 		'similar-images': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
@@ -59,12 +65,13 @@
 	function buildListItems(results: ScanResults | null): ListItem[] {
 		if (!results) return [];
 		const items: ListItem[] = [];
+		const showSeparators = activeTool !== 'empty-folders';
 		for (let gi = 0; gi < results.groups.length; gi++) {
 			const group = results.groups[gi];
 			for (const file of group.files) {
 				items.push({ type: 'file', file, size: group.size });
 			}
-			if (gi < results.groups.length - 1) {
+			if (showSeparators && gi < results.groups.length - 1) {
 				items.push({ type: 'separator' });
 			}
 		}
@@ -166,12 +173,13 @@
 		return colWidths.map((w) => w + 'px').join(' ');
 	}
 
-	let scanningText = $derived(
-		activeTool === 'similar-images' ? 'Scanning for similar images…' : 'Scanning for duplicates…'
-	);
-	let emptyText = $derived(
-		activeTool === 'similar-images' ? 'No similar images found.' : 'No duplicates found.'
-	);
+	const SCAN_TEXTS: Record<string, { scanning: string; empty: string }> = {
+		duplicates: { scanning: 'Scanning for duplicates…', empty: 'No duplicates found.' },
+		'empty-folders': { scanning: 'Scanning for empty folders…', empty: 'No empty folders found.' },
+		'similar-images': { scanning: 'Scanning for similar images…', empty: 'No similar images found.' }
+	};
+	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');
+	let emptyText = $derived(SCAN_TEXTS[activeTool]?.empty ?? 'Nothing found.');
 </script>
 
 <div
@@ -203,9 +211,11 @@
 	{:else if scanResults}
 		<!-- Stats bar -->
 		<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
-			<span>Groups: <strong class="text-text">{scanResults.total_duplicate_groups}</strong></span>
-			<span>Files: <strong class="text-text">{scanResults.total_duplicate_files}</strong></span>
-			<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_space_bytes)}</strong></span>
+			<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
+			<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
+			{#if activeTool !== 'empty-folders'}
+				<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span>
+			{/if}
 			<span>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong></span>
 		</div>
 

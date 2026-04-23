@@ -18,7 +18,7 @@
 
 	const tools = [
 		{ id: 'duplicates', label: 'Duplicate Files', icon: Copy, disabled: false },
-		{ id: 'empty-folders', label: 'Empty Folders', icon: FolderOpen, disabled: true },
+		{ id: 'empty-folders', label: 'Empty Folders', icon: FolderOpen, disabled: false },
 		{ id: 'big-files', label: 'Big Files', icon: BarChart3, disabled: true },
 		{ id: 'empty-files', label: 'Empty Files', icon: FileX, disabled: true },
 		{ id: 'temporary', label: 'Temporary Files', icon: Clock, disabled: true },

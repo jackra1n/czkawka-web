@@ -7,6 +7,7 @@ use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
 use crate::models::ScanRequest;
 
 pub mod duplicates;
+pub mod empty_folders;
 pub mod similar_images;
 
 pub fn configure_common_data<T: CommonData>(tool: &mut T, request: &ScanRequest) {

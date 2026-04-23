@@ -29,6 +29,7 @@
 
 	let toolConfigs = $state<Record<string, ToolConfig>>({
 		duplicates: {},
+		'empty-folders': {},
 		'similar-images': {
 			hash_alg: 'Gradient',
 			hash_size: 16,
@@ -171,6 +172,11 @@
 	}
 
 	function selectFile(file: string | null, size: number) {
+		if (activeTool === 'empty-folders') {
+			selectedFile = null;
+			selectedFileSize = 0;
+			return;
+		}
 		selectedFile = file;
 		selectedFileSize = size;
 		toolSelections[activeTool] = { path: file, size };
@@ -228,10 +234,11 @@
 				for (const group of scanResults.groups) {
 					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
 				}
-				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= 2);
-				scanResults.total_duplicate_groups = scanResults.groups.length;
-				scanResults.total_duplicate_files = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
-				scanResults.wasted_space_bytes = scanResults.groups.reduce(
+				const minSize = activeTool === 'empty-folders' ? 1 : 2;
+				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
+				scanResults.total_groups = scanResults.groups.length;
+				scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
+				scanResults.wasted_bytes = scanResults.groups.reduce(
 					(sum, g) => sum + g.size * (g.files.length - 1),
 					0
 				);
