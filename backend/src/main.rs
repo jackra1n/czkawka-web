@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -9,6 +10,7 @@ use axum::{
 use czkawka_core::common::config_cache_path::set_config_cache_path;
 use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
+use tower_http::services::{ServeDir, ServeFile};
 
 mod handlers;
 mod models;
@@ -44,6 +46,8 @@ async fn main() {
         state_path,
     });
 
+    let frontend_build_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../frontend/build");
+
     let app = Router::new()
         .route("/api/health", get(handlers::health::health))
         .route("/api/scan", post(handlers::scan::start_scan))
@@ -55,6 +59,10 @@ async fn main() {
         .route("/api/defaults", get(handlers::state::get_defaults))
         .route("/api/directories", get(handlers::directories::list_directories))
         .route("/api/file", get(handlers::files::serve_file))
+        .fallback_service(
+            ServeDir::new(&frontend_build_dir)
+                .fallback(ServeFile::new(frontend_build_dir.join("index.html"))),
+        )
         .layer(CorsLayer::permissive())
         .with_state(app_state);
 

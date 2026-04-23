@@ -36,3 +36,7 @@ run = "cargo fmt"
 description = "Check backend formatting without writing"
 dir = "backend"
 run = "cargo fmt -- --check"
+
+[tasks.prod]
+description = "Production build of frontend and backend"
+run = "cd frontend && bun run build && cd ../backend && cargo build --release"
