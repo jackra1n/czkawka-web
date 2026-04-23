@@ -178,6 +178,8 @@
 	bind:this={containerEl}
 	class="flex flex-1 flex-col min-h-0 overflow-auto outline-none"
 	tabindex="0"
+	role="listbox"
+	aria-label="Scan results"
 	onkeydown={handleKeyDown}
 >
 	{#if scanState === 'idle' && !scanResults}
@@ -224,6 +226,9 @@
 							{#if ci < colDefs.length - 1}
 								<div
 									class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+									role="button"
+									tabindex="-1"
+									aria-label="Resize column"
 									onmousedown={(e) => startResize(e, ci)}
 								></div>
 							{/if}
@@ -232,18 +237,26 @@
 				</div>
 				{#each listItems as item, i (item.type === 'file' ? item.file.path : `sep-${i}`)}
 					{#if item.type === 'separator'}
-						<div
-							id="scan-item-{i}"
-							class="h-4 cursor-default {selectedIndex === i ? 'bg-surface-raised/30' : ''}"
-							onclick={() => handleSelect(i)}
-						></div>
+					<div
+						id="scan-item-{i}"
+						class="h-4 cursor-default {selectedIndex === i ? 'bg-surface-raised/30' : ''}"
+						role="option"
+						tabindex="-1"
+						aria-selected={selectedIndex === i}
+						onclick={() => handleSelect(i)}
+						onkeydown={() => {}}
+					></div>
 					{:else}
 						{@const { name, dir } = splitPath(item.file.path)}
 						<div
 							id="scan-item-{i}"
 							class="grid gap-3 px-4 py-2 text-sm cursor-pointer transition-colors {selectedIndex === i ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'}"
 							style="grid-template-columns: {gridCols()};"
+							role="option"
+							tabindex="-1"
+							aria-selected={selectedIndex === i}
 							onclick={() => handleSelect(i)}
+							onkeydown={() => {}}
 						>
 							{#each colDefs as col (col.key)}
 								{#if col.key === 'checkbox'}
