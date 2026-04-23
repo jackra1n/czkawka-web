@@ -22,12 +22,18 @@ pub async fn delete_files(
     let mut failed = Vec::new();
 
     for path in &request.files {
-        match tokio::fs::remove_file(path).await {
+        let path_buf = std::path::PathBuf::from(path);
+        let res = if path_buf.is_dir() {
+            tokio::fs::remove_dir(path).await
+        } else {
+            tokio::fs::remove_file(path).await
+        };
+        match res {
             Ok(()) => {
                 deleted.push(path.clone());
             }
             Err(e) => {
-                log::warn!("Failed to delete file {path}: {e}");
+                log::warn!("Failed to delete {path}: {e}");
                 failed.push(FailedDeletion {
                     path: path.clone(),
                     error: e.to_string(),
@@ -45,10 +51,11 @@ pub async fn delete_files(
                 for group in results.groups.iter_mut() {
                     group.files.retain(|f| !deleted.contains(&f.path));
                 }
-                results.groups.retain(|g| g.files.len() >= 2);
-                results.total_duplicate_groups = results.groups.len();
-                results.total_duplicate_files = results.groups.iter().map(|g| g.files.len()).sum();
-                results.wasted_space_bytes = results
+                let min_group_size = if request.tool_id == "empty-folders" { 1 } else { 2 };
+                results.groups.retain(|g| g.files.len() >= min_group_size);
+                results.total_groups = results.groups.len();
+                results.total_items = results.groups.iter().map(|g| g.files.len()).sum();
+                results.wasted_bytes = results
                     .groups
                     .iter()
                     .map(|g| g.size * (g.files.len() as u64 - 1))

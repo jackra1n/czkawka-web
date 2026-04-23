@@ -32,9 +32,9 @@ export interface FileGroup {
 }
 
 export interface ScanResults {
-	total_duplicate_groups: number;
-	total_duplicate_files: number;
-	wasted_space_bytes: number;
+	total_groups: number;
+	total_items: number;
+	wasted_bytes: number;
 	scanning_time_ms: number;
 	groups: FileGroup[];
 }

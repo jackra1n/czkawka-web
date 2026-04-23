@@ -49,7 +49,7 @@ pub async fn start_scan(
             Ok(results) => {
                 log::info!(
                     "Scan {scan_id_clone} completed with {} groups",
-                    results.total_duplicate_groups
+                    results.total_groups
                 );
                 scans.insert(scan_id_clone.clone(), ScanState::Completed(results.clone()));
 

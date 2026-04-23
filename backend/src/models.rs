@@ -64,9 +64,9 @@ pub struct ScanStatusResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanResults {
-    pub total_duplicate_groups: usize,
-    pub total_duplicate_files: usize,
-    pub wasted_space_bytes: u64,
+    pub total_groups: usize,
+    pub total_items: usize,
+    pub wasted_bytes: u64,
     pub scanning_time_ms: u64,
     pub groups: Vec<FileGroup>,
 }

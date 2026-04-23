@@ -60,9 +60,9 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
     }
 
     Ok(ScanResults {
-        total_duplicate_groups: duplicate_groups.len(),
-        total_duplicate_files: total_files,
-        wasted_space_bytes: info.lost_space_by_hash,
+        total_groups: duplicate_groups.len(),
+        total_items: total_files,
+        wasted_bytes: info.lost_space_by_hash,
         scanning_time_ms: info.scanning_time.as_millis() as u64,
         groups: duplicate_groups,
     })
