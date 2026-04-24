@@ -30,6 +30,10 @@
 	let toolConfigs = $state<Record<string, ToolConfig>>({
 		duplicates: {},
 		'empty-folders': {},
+		'big-files': {
+			number_of_files: 50,
+			search_mode: 'biggest'
+		},
 		'similar-images': {
 			hash_alg: 'Gradient',
 			hash_size: 16,
@@ -234,7 +238,7 @@
 				for (const group of scanResults.groups) {
 					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
 				}
-				const minSize = activeTool === 'empty-folders' ? 1 : 2;
+				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' ? 1 : 2;
 				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
 				scanResults.total_groups = scanResults.groups.length;
 				scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
@@ -275,6 +279,12 @@
 			min_file_size: 8192,
 			tool_id: activeTool
 		};
+
+		if (activeTool === 'big-files') {
+			const cfg = toolConfigs['big-files'];
+			payload.number_of_files = cfg?.number_of_files;
+			payload.search_mode = cfg?.search_mode;
+		}
 
 		if (activeTool === 'similar-images') {
 			const cfg = toolConfigs['similar-images'];

@@ -35,6 +35,10 @@
 	const HASH_ALGS = ['Mean', 'Gradient', 'Blockhash', 'VertGradient', 'DoubleGradient', 'Median'];
 	const HASH_SIZES = [8, 16, 32, 64];
 	const RESIZE_FILTERS = ['Lanczos3', 'Nearest', 'Triangle', 'Gaussian', 'CatmullRom'];
+	const SEARCH_MODES = [
+		{ value: 'biggest', label: 'Biggest' },
+		{ value: 'smallest', label: 'Smallest' }
+	];
 
 	function addIncludedDir() {
 		onAddDir('include');
@@ -53,7 +57,7 @@
 	}
 
 	$effect(() => {
-		if (activeTab === 'settings' && activeTool !== 'similar-images') {
+		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'big-files') {
 			activeTab = 'directories';
 		}
 	});
@@ -81,7 +85,7 @@
 				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
 			{/if}
 		</button>
-		{#if activeTool === 'similar-images'}
+		{#if activeTool === 'similar-images' || activeTool === 'big-files'}
 			<button
 				type="button"
 				onclick={() => (activeTab = 'settings')}
@@ -181,6 +185,36 @@
 				class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
 			/>
 			<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
+		</div>
+	{:else if activeTab === 'settings' && activeTool === 'big-files'}
+		<div class="flex flex-col gap-4">
+			<div class="flex gap-4">
+				<div class="flex flex-1 flex-col gap-1.5">
+					<label for="search-mode" class="text-xs font-medium text-text-muted">Search Mode</label>
+					<select
+						id="search-mode"
+						value={toolConfig.search_mode ?? 'biggest'}
+						onchange={(e) => toolConfig = { ...toolConfig, search_mode: e.currentTarget.value }}
+						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					>
+						{#each SEARCH_MODES as mode (mode.value)}
+							<option value={mode.value}>{mode.label}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="flex flex-1 flex-col gap-1.5">
+					<label for="number-of-files" class="text-xs font-medium text-text-muted">Number of Files</label>
+					<input
+						id="number-of-files"
+						type="number"
+						min="1"
+						max="10000"
+						value={toolConfig.number_of_files ?? 50}
+						oninput={(e) => toolConfig = { ...toolConfig, number_of_files: Number(e.currentTarget.value) }}
+						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					/>
+				</div>
+			</div>
 		</div>
 	{:else if activeTab === 'settings' && activeTool === 'similar-images'}
 		<div class="flex flex-col gap-4">

@@ -39,6 +39,13 @@
 			{ key: 'path', label: 'Path', width: 400, minWidth: 50 },
 			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
+		'big-files': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
 		'similar-images': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
@@ -65,7 +72,7 @@
 	function buildListItems(results: ScanResults | null): ListItem[] {
 		if (!results) return [];
 		const items: ListItem[] = [];
-		const showSeparators = activeTool !== 'empty-folders';
+		const showSeparators = activeTool !== 'empty-folders' && activeTool !== 'big-files';
 		for (let gi = 0; gi < results.groups.length; gi++) {
 			const group = results.groups[gi];
 			for (const file of group.files) {
@@ -176,6 +183,7 @@
 	const SCAN_TEXTS: Record<string, { scanning: string; empty: string }> = {
 		duplicates: { scanning: 'Scanning for duplicates…', empty: 'No duplicates found.' },
 		'empty-folders': { scanning: 'Scanning for empty folders…', empty: 'No empty folders found.' },
+		'big-files': { scanning: 'Scanning for big files…', empty: 'No big files found.' },
 		'similar-images': { scanning: 'Scanning for similar images…', empty: 'No similar images found.' }
 	};
 	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');
@@ -213,7 +221,7 @@
 		<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
 			<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
 			<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
-			{#if activeTool !== 'empty-folders'}
+			{#if activeTool !== 'empty-folders' && activeTool !== 'big-files'}
 				<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span>
 			{/if}
 			<span>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong></span>

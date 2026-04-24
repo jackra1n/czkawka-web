@@ -6,6 +6,9 @@ export interface ScanRequest {
 	excluded_items?: string;
 	min_file_size?: number;
 	tool_id?: string;
+	// Big files options
+	number_of_files?: number;
+	search_mode?: string;
 	// Similar images options
 	hash_alg?: string;
 	hash_size?: number;
@@ -78,6 +81,11 @@ export interface DeleteResponse {
 	failed: FailedDeletion[];
 }
 
+export interface BigFilesConfig {
+	number_of_files: number;
+	search_mode: string;
+}
+
 export interface SimilarImagesConfig {
 	hash_alg: string;
 	hash_size: number;
@@ -85,7 +93,7 @@ export interface SimilarImagesConfig {
 	similarity: number;
 }
 
-export type ToolConfig = Partial<SimilarImagesConfig>;
+export type ToolConfig = Partial<BigFilesConfig & SimilarImagesConfig>;
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}${url}`, {
