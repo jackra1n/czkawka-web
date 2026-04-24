@@ -34,6 +34,13 @@ pub struct ScanRequest {
     pub number_of_files: Option<u32>,
     #[serde(default)]
     pub search_mode: Option<String>,
+    // Similar videos configuration
+    #[serde(default)]
+    pub tolerance: Option<i32>,
+    #[serde(default)]
+    pub vid_hash_duration: Option<u32>,
+    #[serde(default)]
+    pub crop_detect: Option<String>,
     // Similar images configuration
     #[serde(default)]
     pub hash_alg: Option<String>,
