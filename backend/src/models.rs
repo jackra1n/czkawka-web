@@ -29,6 +29,11 @@ pub struct ScanRequest {
     pub min_file_size: u64,
     #[serde(default = "default_tool_id")]
     pub tool_id: String,
+    // Big files configuration
+    #[serde(default)]
+    pub number_of_files: Option<u32>,
+    #[serde(default)]
+    pub search_mode: Option<String>,
     // Similar images configuration
     #[serde(default)]
     pub hash_alg: Option<String>,

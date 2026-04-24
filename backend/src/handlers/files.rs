@@ -51,7 +51,7 @@ pub async fn delete_files(
                 for group in results.groups.iter_mut() {
                     group.files.retain(|f| !deleted.contains(&f.path));
                 }
-                let min_group_size = if request.tool_id == "empty-folders" { 1 } else { 2 };
+                let min_group_size = if request.tool_id == "empty-folders" || request.tool_id == "big-files" { 1 } else { 2 };
                 results.groups.retain(|g| g.files.len() >= min_group_size);
                 results.total_groups = results.groups.len();
                 results.total_items = results.groups.iter().map(|g| g.files.len()).sum();
