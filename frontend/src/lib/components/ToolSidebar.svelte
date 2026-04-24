@@ -27,9 +27,9 @@
 		{ id: 'same-music', label: 'Same Music', icon: Music, disabled: false },
 		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link, disabled: false },
 		{ id: 'broken-files', label: 'Broken Files', icon: AlertTriangle, disabled: false },
-		{ id: 'bad-extensions', label: 'Bad Extensions', icon: FileCode, disabled: true },
-		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera, disabled: true },
-		{ id: 'bad-names', label: 'Bad Names', icon: Type, disabled: true }
+		{ id: 'bad-extensions', label: 'Bad Extensions', icon: FileCode, disabled: false },
+		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera, disabled: false },
+		{ id: 'bad-names', label: 'Bad Names', icon: Type, disabled: false }
 	];
 
 	let { activeTool, onChangeTool }: { activeTool: string; onChangeTool: (toolId: string) => void } = $props();

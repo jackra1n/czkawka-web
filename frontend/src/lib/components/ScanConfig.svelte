@@ -58,7 +58,7 @@
 	}
 
 	$effect(() => {
-		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files' && activeTool !== 'same-music' && activeTool !== 'broken-files') {
+		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files' && activeTool !== 'same-music' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'bad-names') {
 			activeTab = 'directories';
 		}
 	});
@@ -86,7 +86,7 @@
 				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
 			{/if}
 		</button>
-		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files' || activeTool === 'same-music' || activeTool === 'broken-files'}
+		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files' || activeTool === 'same-music' || activeTool === 'broken-files' || activeTool === 'bad-extensions' || activeTool === 'bad-names'}
 			<button
 				type="button"
 				onclick={() => (activeTab = 'settings')}
@@ -363,6 +363,42 @@
 									? [...current, opt.key]
 									: current.filter((k) => k !== opt.key);
 								toolConfig = { ...toolConfig, broken_file_types: next.join(',') };
+							}}
+						/>
+						{opt.label}
+					</label>
+				{/each}
+			</div>
+		</div>
+	{:else if activeTab === 'settings' && activeTool === 'bad-extensions'}
+		<div class="flex flex-col gap-3">
+			<label class="flex items-center gap-2 text-sm text-text cursor-pointer">
+				<input
+					type="checkbox"
+					checked={toolConfig.include_files_without_extension ?? false}
+					onchange={(e) => toolConfig = { ...toolConfig, include_files_without_extension: e.currentTarget.checked }}
+				/>
+				Include files without extension
+			</label>
+		</div>
+	{:else if activeTab === 'settings' && activeTool === 'bad-names'}
+		<div class="flex flex-col gap-3">
+			<span class="text-xs font-medium text-text-muted">Name issues to check</span>
+			<div class="flex flex-wrap gap-4">
+				{#each [
+					{ key: 'bad_name_uppercase_extension', label: 'Uppercase extension' },
+					{ key: 'bad_name_emoji', label: 'Emoji' },
+					{ key: 'bad_name_spaces', label: 'Spaces at ends' },
+					{ key: 'bad_name_non_ascii', label: 'Non-ASCII' },
+					{ key: 'bad_name_restricted_charset', label: 'Restricted charset' },
+					{ key: 'bad_name_dedupe_non_alnum', label: 'Duplicate symbols' }
+				] as opt (opt.key)}
+					<label class="flex items-center gap-1.5 text-sm text-text cursor-pointer">
+						<input
+							type="checkbox"
+							checked={toolConfig[opt.key] ?? true}
+							onchange={(e) => {
+								toolConfig = { ...toolConfig, [opt.key]: e.currentTarget.checked };
 							}}
 						/>
 						{opt.label}

@@ -53,6 +53,18 @@
 		'broken-files': {
 			broken_file_types: 'pdf,audio,image,archive,video'
 		},
+		'bad-extensions': {
+			include_files_without_extension: false
+		},
+		'exif-remover': {},
+		'bad-names': {
+			bad_name_uppercase_extension: true,
+			bad_name_emoji: true,
+			bad_name_spaces: true,
+			bad_name_non_ascii: true,
+			bad_name_restricted_charset: true,
+			bad_name_dedupe_non_alnum: true
+		},
 		temporary: {}
 	});
 
@@ -252,7 +264,7 @@
 				for (const group of scanResults.groups) {
 					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
 				}
-				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' || activeTool === 'temporary' || activeTool === 'invalid-symlinks' || activeTool === 'broken-files' ? 1 : 2;
+				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' || activeTool === 'temporary' || activeTool === 'invalid-symlinks' || activeTool === 'broken-files' || activeTool === 'bad-extensions' || activeTool === 'exif-remover' || activeTool === 'bad-names' ? 1 : 2;
 				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
 				scanResults.total_groups = scanResults.groups.length;
 				scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
@@ -323,6 +335,21 @@
 		if (activeTool === 'broken-files') {
 			const cfg = toolConfigs['broken-files'];
 			payload.broken_file_types = cfg?.broken_file_types;
+		}
+
+		if (activeTool === 'bad-extensions') {
+			const cfg = toolConfigs['bad-extensions'];
+			payload.include_files_without_extension = cfg?.include_files_without_extension;
+		}
+
+		if (activeTool === 'bad-names') {
+			const cfg = toolConfigs['bad-names'];
+			payload.bad_name_uppercase_extension = cfg?.bad_name_uppercase_extension;
+			payload.bad_name_emoji = cfg?.bad_name_emoji;
+			payload.bad_name_spaces = cfg?.bad_name_spaces;
+			payload.bad_name_non_ascii = cfg?.bad_name_non_ascii;
+			payload.bad_name_restricted_charset = cfg?.bad_name_restricted_charset;
+			payload.bad_name_dedupe_non_alnum = cfg?.bad_name_dedupe_non_alnum;
 		}
 
 		try {

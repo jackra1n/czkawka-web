@@ -22,6 +22,15 @@ export interface ScanRequest {
 	music_check_type?: string;
 	// Broken files options
 	broken_file_types?: string;
+	// Bad extensions options
+	include_files_without_extension?: boolean;
+	// Bad names options
+	bad_name_uppercase_extension?: boolean;
+	bad_name_emoji?: boolean;
+	bad_name_spaces?: boolean;
+	bad_name_non_ascii?: boolean;
+	bad_name_restricted_charset?: boolean;
+	bad_name_dedupe_non_alnum?: boolean;
 }
 
 export interface ScanResponse {
@@ -115,7 +124,20 @@ export interface BrokenFilesConfig {
 	broken_file_types: string;
 }
 
-export type ToolConfig = Partial<BigFilesConfig & SimilarVideosConfig & SimilarImagesConfig & SameMusicConfig & BrokenFilesConfig>;
+export interface BadExtensionsConfig {
+	include_files_without_extension: boolean;
+}
+
+export interface BadNamesConfig {
+	bad_name_uppercase_extension: boolean;
+	bad_name_emoji: boolean;
+	bad_name_spaces: boolean;
+	bad_name_non_ascii: boolean;
+	bad_name_restricted_charset: boolean;
+	bad_name_dedupe_non_alnum: boolean;
+}
+
+export type ToolConfig = Partial<BigFilesConfig & SimilarVideosConfig & SimilarImagesConfig & SameMusicConfig & BrokenFilesConfig & BadExtensionsConfig & BadNamesConfig>;
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}${url}`, {

@@ -101,6 +101,30 @@
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
 			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
+		'bad-extensions': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'similarity', label: 'Extension', width: 200, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
+		'exif-remover': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'similarity', label: 'EXIF Tags', width: 120, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 220, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
+		'bad-names': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'similarity', label: 'New Name', width: 220, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
 	};
 
 	let colDefs = $derived(TOOL_COLS[activeTool] ?? TOOL_COLS.duplicates);
@@ -118,7 +142,7 @@
 	function buildListItems(results: ScanResults | null): ListItem[] {
 		if (!results) return [];
 		const items: ListItem[] = [];
-		const showSeparators = activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files';
+		const showSeparators = activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names';
 		for (let gi = 0; gi < results.groups.length; gi++) {
 			const group = results.groups[gi];
 			for (const file of group.files) {
@@ -236,6 +260,9 @@
 		'same-music': { scanning: 'Scanning for same music…', empty: 'No same music found.' },
 		'invalid-symlinks': { scanning: 'Scanning for invalid symlinks…', empty: 'No invalid symlinks found.' },
 		'broken-files': { scanning: 'Scanning for broken files…', empty: 'No broken files found.' },
+		'bad-extensions': { scanning: 'Scanning for bad extensions…', empty: 'No bad extensions found.' },
+		'exif-remover': { scanning: 'Scanning for EXIF data…', empty: 'No files with EXIF found.' },
+		'bad-names': { scanning: 'Scanning for bad names…', empty: 'No bad names found.' },
 		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' }
 	};
 	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');
@@ -273,7 +300,7 @@
 		<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
 			<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
 			<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
-			{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files'}
+			{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names'}
 				<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span>
 			{/if}
 			<span>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong></span>
