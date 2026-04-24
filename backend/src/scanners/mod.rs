@@ -6,11 +6,14 @@ use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
 
 use crate::models::ScanRequest;
 
+pub mod bad_extensions;
+pub mod bad_names;
 pub mod big_files;
 pub mod broken_files;
 pub mod duplicates;
 pub mod empty_files;
 pub mod empty_folders;
+pub mod exif_remover;
 pub mod invalid_symlinks;
 pub mod same_music;
 pub mod similar_images;

@@ -2,11 +2,14 @@ use crate::models::{ScanRequest, ScanResults};
 
 pub fn run_scan(request: ScanRequest) -> Result<ScanResults, String> {
     match request.tool_id.as_str() {
+        "bad-extensions" => crate::scanners::bad_extensions::run(request),
+        "bad-names" => crate::scanners::bad_names::run(request),
         "big-files" => crate::scanners::big_files::run(request),
         "broken-files" => crate::scanners::broken_files::run(request),
         "duplicates" => crate::scanners::duplicates::run(request),
         "empty-files" => crate::scanners::empty_files::run(request),
         "empty-folders" => crate::scanners::empty_folders::run(request),
+        "exif-remover" => crate::scanners::exif_remover::run(request),
         "invalid-symlinks" => crate::scanners::invalid_symlinks::run(request),
         "same-music" => crate::scanners::same_music::run(request),
         "similar-images" => crate::scanners::similar_images::run(request),

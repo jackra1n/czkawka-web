@@ -56,6 +56,22 @@ pub struct ScanRequest {
     // Broken files configuration
     #[serde(default)]
     pub broken_file_types: Option<String>,
+    // Bad extensions configuration
+    #[serde(default)]
+    pub include_files_without_extension: Option<bool>,
+    // Bad names configuration
+    #[serde(default)]
+    pub bad_name_uppercase_extension: Option<bool>,
+    #[serde(default)]
+    pub bad_name_emoji: Option<bool>,
+    #[serde(default)]
+    pub bad_name_spaces: Option<bool>,
+    #[serde(default)]
+    pub bad_name_non_ascii: Option<bool>,
+    #[serde(default)]
+    pub bad_name_restricted_charset: Option<bool>,
+    #[serde(default)]
+    pub bad_name_dedupe_non_alnum: Option<bool>,
 }
 
 fn default_min_file_size() -> u64 {
