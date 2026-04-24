@@ -50,6 +50,9 @@ pub struct ScanRequest {
     pub resize_filter: Option<String>,
     #[serde(default)]
     pub similarity: Option<u32>,
+    // Same music configuration
+    #[serde(default)]
+    pub music_check_type: Option<String>,
 }
 
 fn default_min_file_size() -> u64 {
