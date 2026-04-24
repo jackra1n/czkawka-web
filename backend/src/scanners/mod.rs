@@ -11,6 +11,7 @@ pub mod duplicates;
 pub mod empty_files;
 pub mod empty_folders;
 pub mod similar_images;
+pub mod temporary;
 
 pub fn configure_common_data<T: CommonData>(tool: &mut T, request: &ScanRequest) {
     let included: Vec<PathBuf> = request.directories.iter().map(PathBuf::from).collect();
