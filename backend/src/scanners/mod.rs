@@ -10,6 +10,7 @@ pub mod big_files;
 pub mod duplicates;
 pub mod empty_files;
 pub mod empty_folders;
+pub mod invalid_symlinks;
 pub mod same_music;
 pub mod similar_images;
 pub mod similar_videos;
