@@ -50,6 +50,9 @@
 			music_check_type: 'tags'
 		},
 		'invalid-symlinks': {},
+		'broken-files': {
+			broken_file_types: 'pdf,audio,image,archive,video'
+		},
 		temporary: {}
 	});
 
@@ -249,7 +252,7 @@
 				for (const group of scanResults.groups) {
 					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
 				}
-				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' || activeTool === 'temporary' || activeTool === 'invalid-symlinks' ? 1 : 2;
+				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' || activeTool === 'temporary' || activeTool === 'invalid-symlinks' || activeTool === 'broken-files' ? 1 : 2;
 				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
 				scanResults.total_groups = scanResults.groups.length;
 				scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
@@ -315,6 +318,11 @@
 		if (activeTool === 'same-music') {
 			const cfg = toolConfigs['same-music'];
 			payload.music_check_type = cfg?.music_check_type;
+		}
+
+		if (activeTool === 'broken-files') {
+			const cfg = toolConfigs['broken-files'];
+			payload.broken_file_types = cfg?.broken_file_types;
 		}
 
 		try {

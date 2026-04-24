@@ -58,7 +58,7 @@
 	}
 
 	$effect(() => {
-		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files' && activeTool !== 'same-music') {
+		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files' && activeTool !== 'same-music' && activeTool !== 'broken-files') {
 			activeTab = 'directories';
 		}
 	});
@@ -86,7 +86,7 @@
 				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
 			{/if}
 		</button>
-		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files' || activeTool === 'same-music'}
+		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files' || activeTool === 'same-music' || activeTool === 'broken-files'}
 			<button
 				type="button"
 				onclick={() => (activeTab = 'settings')}
@@ -340,6 +340,34 @@
 					<option value="tags">Tags (metadata)</option>
 					<option value="content">Content (audio fingerprint)</option>
 				</select>
+			</div>
+		</div>
+	{:else if activeTab === 'settings' && activeTool === 'broken-files'}
+		<div class="flex flex-col gap-3">
+			<span class="text-xs font-medium text-text-muted">File types to check</span>
+			<div class="flex flex-wrap gap-4">
+				{#each [
+					{ key: 'pdf', label: 'PDF' },
+					{ key: 'audio', label: 'Audio' },
+					{ key: 'image', label: 'Image' },
+					{ key: 'archive', label: 'Archive' },
+					{ key: 'video', label: 'Video' }
+				] as opt (opt.key)}
+					<label class="flex items-center gap-1.5 text-sm text-text cursor-pointer">
+						<input
+							type="checkbox"
+							checked={(toolConfig.broken_file_types ?? 'pdf,audio,image,archive,video').split(',').includes(opt.key)}
+							onchange={(e) => {
+								const current = (toolConfig.broken_file_types ?? 'pdf,audio,image,archive,video').split(',').filter(Boolean);
+								const next = e.currentTarget.checked
+									? [...current, opt.key]
+									: current.filter((k) => k !== opt.key);
+								toolConfig = { ...toolConfig, broken_file_types: next.join(',') };
+							}}
+						/>
+						{opt.label}
+					</label>
+				{/each}
 			</div>
 		</div>
 	{/if}
