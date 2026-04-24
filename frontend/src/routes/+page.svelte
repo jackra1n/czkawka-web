@@ -29,6 +29,7 @@
 
 	let toolConfigs = $state<Record<string, ToolConfig>>({
 		duplicates: {},
+		'empty-files': {},
 		'empty-folders': {},
 		'big-files': {
 			number_of_files: 50,
@@ -238,7 +239,7 @@
 				for (const group of scanResults.groups) {
 					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
 				}
-				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' ? 1 : 2;
+				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' ? 1 : 2;
 				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
 				scanResults.total_groups = scanResults.groups.length;
 				scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
