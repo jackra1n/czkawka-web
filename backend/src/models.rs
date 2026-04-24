@@ -53,6 +53,9 @@ pub struct ScanRequest {
     // Same music configuration
     #[serde(default)]
     pub music_check_type: Option<String>,
+    // Broken files configuration
+    #[serde(default)]
+    pub broken_file_types: Option<String>,
 }
 
 fn default_min_file_size() -> u64 {

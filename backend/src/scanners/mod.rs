@@ -7,6 +7,7 @@ use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
 use crate::models::ScanRequest;
 
 pub mod big_files;
+pub mod broken_files;
 pub mod duplicates;
 pub mod empty_files;
 pub mod empty_folders;
