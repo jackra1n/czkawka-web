@@ -46,6 +46,9 @@
 			vid_hash_duration: 10,
 			crop_detect: 'Letterbox'
 		},
+		'same-music': {
+			music_check_type: 'tags'
+		},
 		temporary: {}
 	});
 
@@ -306,6 +309,11 @@
 			payload.hash_size = cfg?.hash_size;
 			payload.resize_filter = cfg?.resize_filter;
 			payload.similarity = cfg?.similarity;
+		}
+
+		if (activeTool === 'same-music') {
+			const cfg = toolConfigs['same-music'];
+			payload.music_check_type = cfg?.music_check_type;
 		}
 
 		try {

@@ -77,6 +77,14 @@
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
 			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
+		'same-music': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'similarity', label: 'Track', width: 180, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
 	};
 
 	let colDefs = $derived(TOOL_COLS[activeTool] ?? TOOL_COLS.duplicates);
@@ -209,6 +217,7 @@
 		'big-files': { scanning: 'Scanning for big files…', empty: 'No big files found.' },
 		'similar-images': { scanning: 'Scanning for similar images…', empty: 'No similar images found.' },
 		'similar-videos': { scanning: 'Scanning for similar videos…', empty: 'No similar videos found.' },
+		'same-music': { scanning: 'Scanning for same music…', empty: 'No same music found.' },
 		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' }
 	};
 	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');

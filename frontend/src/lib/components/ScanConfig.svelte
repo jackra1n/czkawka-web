@@ -58,7 +58,7 @@
 	}
 
 	$effect(() => {
-		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files') {
+		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files' && activeTool !== 'same-music') {
 			activeTab = 'directories';
 		}
 	});
@@ -86,7 +86,7 @@
 				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
 			{/if}
 		</button>
-		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files'}
+		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files' || activeTool === 'same-music'}
 			<button
 				type="button"
 				onclick={() => (activeTab = 'settings')}
@@ -325,6 +325,21 @@
 					<span class="text-xs font-medium text-text w-6 text-center">{toolConfig.similarity ?? 5}</span>
 					<span class="text-[10px] text-text-muted shrink-0 w-12">Minimal</span>
 				</div>
+			</div>
+		</div>
+	{:else if activeTab === 'settings' && activeTool === 'same-music'}
+		<div class="flex flex-col gap-4">
+			<div class="flex flex-col gap-1.5">
+				<label for="music-check-type" class="text-xs font-medium text-text-muted">Comparison Method</label>
+				<select
+					id="music-check-type"
+					value={toolConfig.music_check_type ?? 'tags'}
+					onchange={(e) => toolConfig = { ...toolConfig, music_check_type: e.currentTarget.value }}
+					class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+				>
+					<option value="tags">Tags (metadata)</option>
+					<option value="content">Content (audio fingerprint)</option>
+				</select>
 			</div>
 		</div>
 	{/if}

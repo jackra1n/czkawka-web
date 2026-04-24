@@ -18,6 +18,8 @@ export interface ScanRequest {
 	hash_size?: number;
 	resize_filter?: string;
 	similarity?: number;
+	// Same music options
+	music_check_type?: string;
 }
 
 export interface ScanResponse {
@@ -103,7 +105,11 @@ export interface SimilarImagesConfig {
 	similarity: number;
 }
 
-export type ToolConfig = Partial<BigFilesConfig & SimilarVideosConfig & SimilarImagesConfig>;
+export interface SameMusicConfig {
+	music_check_type: string;
+}
+
+export type ToolConfig = Partial<BigFilesConfig & SimilarVideosConfig & SimilarImagesConfig & SameMusicConfig>;
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}${url}`, {
