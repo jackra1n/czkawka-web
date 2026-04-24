@@ -40,7 +40,8 @@
 			hash_size: 16,
 			resize_filter: 'Lanczos3',
 			similarity: 5
-		}
+		},
+		temporary: {}
 	});
 
 	let toolSelections = $state<Record<string, { path: string | null; size: number }>>({});
@@ -239,7 +240,7 @@
 				for (const group of scanResults.groups) {
 					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
 				}
-				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' ? 1 : 2;
+				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' || activeTool === 'temporary' ? 1 : 2;
 				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
 				scanResults.total_groups = scanResults.groups.length;
 				scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);

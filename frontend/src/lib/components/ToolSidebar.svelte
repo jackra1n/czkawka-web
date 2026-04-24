@@ -21,7 +21,7 @@
 		{ id: 'empty-folders', label: 'Empty Folders', icon: FolderOpen, disabled: false },
 		{ id: 'big-files', label: 'Big Files', icon: BarChart3, disabled: false },
 		{ id: 'empty-files', label: 'Empty Files', icon: FileX, disabled: false },
-		{ id: 'temporary', label: 'Temporary Files', icon: Clock, disabled: true },
+		{ id: 'temporary', label: 'Temporary Files', icon: Clock, disabled: false },
 		{ id: 'similar-images', label: 'Similar Images', icon: Images, disabled: false },
 		{ id: 'similar-videos', label: 'Similar Videos', icon: Video, disabled: true },
 		{ id: 'same-music', label: 'Same Music', icon: Music, disabled: true },
