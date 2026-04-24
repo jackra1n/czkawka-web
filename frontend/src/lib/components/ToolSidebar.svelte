@@ -25,7 +25,7 @@
 		{ id: 'similar-images', label: 'Similar Images', icon: Images, disabled: false },
 		{ id: 'similar-videos', label: 'Similar Videos', icon: Video, disabled: false },
 		{ id: 'same-music', label: 'Same Music', icon: Music, disabled: false },
-		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link, disabled: true },
+		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link, disabled: false },
 		{ id: 'broken-files', label: 'Broken Files', icon: AlertTriangle, disabled: true },
 		{ id: 'bad-extensions', label: 'Bad Extensions', icon: FileCode, disabled: true },
 		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera, disabled: true },

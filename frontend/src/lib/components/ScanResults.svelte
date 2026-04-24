@@ -85,6 +85,14 @@
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
 			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
+		'invalid-symlinks': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'similarity', label: 'Destination', width: 240, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
 	};
 
 	let colDefs = $derived(TOOL_COLS[activeTool] ?? TOOL_COLS.duplicates);
@@ -102,7 +110,7 @@
 	function buildListItems(results: ScanResults | null): ListItem[] {
 		if (!results) return [];
 		const items: ListItem[] = [];
-		const showSeparators = activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary';
+		const showSeparators = activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks';
 		for (let gi = 0; gi < results.groups.length; gi++) {
 			const group = results.groups[gi];
 			for (const file of group.files) {
@@ -218,6 +226,7 @@
 		'similar-images': { scanning: 'Scanning for similar images…', empty: 'No similar images found.' },
 		'similar-videos': { scanning: 'Scanning for similar videos…', empty: 'No similar videos found.' },
 		'same-music': { scanning: 'Scanning for same music…', empty: 'No same music found.' },
+		'invalid-symlinks': { scanning: 'Scanning for invalid symlinks…', empty: 'No invalid symlinks found.' },
 		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' }
 	};
 	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');
@@ -255,7 +264,7 @@
 		<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
 			<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
 			<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
-			{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary'}
+			{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks'}
 				<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span>
 			{/if}
 			<span>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong></span>
