@@ -9,6 +9,10 @@ export interface ScanRequest {
 	// Big files options
 	number_of_files?: number;
 	search_mode?: string;
+	// Similar videos options
+	tolerance?: number;
+	vid_hash_duration?: number;
+	crop_detect?: string;
 	// Similar images options
 	hash_alg?: string;
 	hash_size?: number;
@@ -86,6 +90,12 @@ export interface BigFilesConfig {
 	search_mode: string;
 }
 
+export interface SimilarVideosConfig {
+	tolerance: number;
+	vid_hash_duration: number;
+	crop_detect: string;
+}
+
 export interface SimilarImagesConfig {
 	hash_alg: string;
 	hash_size: number;
@@ -93,7 +103,7 @@ export interface SimilarImagesConfig {
 	similarity: number;
 }
 
-export type ToolConfig = Partial<BigFilesConfig & SimilarImagesConfig>;
+export type ToolConfig = Partial<BigFilesConfig & SimilarVideosConfig & SimilarImagesConfig>;
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}${url}`, {

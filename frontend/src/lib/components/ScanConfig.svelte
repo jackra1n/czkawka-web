@@ -35,6 +35,7 @@
 	const HASH_ALGS = ['Mean', 'Gradient', 'Blockhash', 'VertGradient', 'DoubleGradient', 'Median'];
 	const HASH_SIZES = [8, 16, 32, 64];
 	const RESIZE_FILTERS = ['Lanczos3', 'Nearest', 'Triangle', 'Gaussian', 'CatmullRom'];
+	const CROP_DETECTS = ['None', 'Letterbox', 'Motion'];
 	const SEARCH_MODES = [
 		{ value: 'biggest', label: 'Biggest' },
 		{ value: 'smallest', label: 'Smallest' }
@@ -57,7 +58,7 @@
 	}
 
 	$effect(() => {
-		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'big-files') {
+		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files') {
 			activeTab = 'directories';
 		}
 	});
@@ -85,7 +86,7 @@
 				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
 			{/if}
 		</button>
-		{#if activeTool === 'similar-images' || activeTool === 'big-files'}
+		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files'}
 			<button
 				type="button"
 				onclick={() => (activeTab = 'settings')}
@@ -213,6 +214,54 @@
 						oninput={(e) => toolConfig = { ...toolConfig, number_of_files: Number(e.currentTarget.value) }}
 						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
 					/>
+				</div>
+			</div>
+		</div>
+	{:else if activeTab === 'settings' && activeTool === 'similar-videos'}
+		<div class="flex flex-col gap-4">
+			<div class="flex gap-4">
+				<div class="flex flex-1 flex-col gap-1.5">
+					<label for="crop-detect" class="text-xs font-medium text-text-muted">Crop Detect</label>
+					<select
+						id="crop-detect"
+						value={toolConfig.crop_detect ?? 'Letterbox'}
+						onchange={(e) => toolConfig = { ...toolConfig, crop_detect: e.currentTarget.value }}
+						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					>
+						{#each CROP_DETECTS as cd (cd)}
+							<option value={cd}>{cd}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="flex flex-1 flex-col gap-1.5">
+					<label for="vid-hash-duration" class="text-xs font-medium text-text-muted">Hash Duration (s)</label>
+					<input
+						id="vid-hash-duration"
+						type="number"
+						min="2"
+						max="60"
+						value={toolConfig.vid_hash_duration ?? 10}
+						oninput={(e) => toolConfig = { ...toolConfig, vid_hash_duration: Number(e.currentTarget.value) }}
+						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					/>
+				</div>
+			</div>
+			<div class="flex flex-col gap-1.5">
+				<label for="tolerance" class="text-xs font-medium text-text-muted">Tolerance</label>
+				<div class="flex items-center gap-3">
+					<span class="text-[10px] text-text-muted shrink-0 w-14 text-right">Strict</span>
+					<input
+						id="tolerance"
+						type="range"
+						min="0"
+						max="20"
+						step="1"
+						value={toolConfig.tolerance ?? 5}
+						oninput={(e) => toolConfig = { ...toolConfig, tolerance: Number(e.currentTarget.value) }}
+						class="flex-1 accent-accent"
+					/>
+					<span class="text-xs font-medium text-text w-6 text-center">{toolConfig.tolerance ?? 5}</span>
+					<span class="text-[10px] text-text-muted shrink-0 w-12">Loose</span>
 				</div>
 			</div>
 		</div>

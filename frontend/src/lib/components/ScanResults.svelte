@@ -68,6 +68,15 @@
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
 			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
+		'similar-videos': [
+			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
+			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
+			{ key: 'dimensions', label: 'Dimensions', width: 100, minWidth: 50 },
+			{ key: 'similarity', label: 'Duration', width: 100, minWidth: 50 },
+			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
 	};
 
 	let colDefs = $derived(TOOL_COLS[activeTool] ?? TOOL_COLS.duplicates);
@@ -199,6 +208,7 @@
 		'empty-folders': { scanning: 'Scanning for empty folders…', empty: 'No empty folders found.' },
 		'big-files': { scanning: 'Scanning for big files…', empty: 'No big files found.' },
 		'similar-images': { scanning: 'Scanning for similar images…', empty: 'No similar images found.' },
+		'similar-videos': { scanning: 'Scanning for similar videos…', empty: 'No similar videos found.' },
 		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' }
 	};
 	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');

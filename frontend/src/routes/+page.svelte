@@ -41,6 +41,11 @@
 			resize_filter: 'Lanczos3',
 			similarity: 5
 		},
+		'similar-videos': {
+			tolerance: 5,
+			vid_hash_duration: 10,
+			crop_detect: 'Letterbox'
+		},
 		temporary: {}
 	});
 
@@ -286,6 +291,13 @@
 			const cfg = toolConfigs['big-files'];
 			payload.number_of_files = cfg?.number_of_files;
 			payload.search_mode = cfg?.search_mode;
+		}
+
+		if (activeTool === 'similar-videos') {
+			const cfg = toolConfigs['similar-videos'];
+			payload.tolerance = cfg?.tolerance;
+			payload.vid_hash_duration = cfg?.vid_hash_duration;
+			payload.crop_detect = cfg?.crop_detect;
 		}
 
 		if (activeTool === 'similar-images') {

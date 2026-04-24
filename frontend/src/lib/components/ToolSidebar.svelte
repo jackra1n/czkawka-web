@@ -23,7 +23,7 @@
 		{ id: 'empty-files', label: 'Empty Files', icon: FileX, disabled: false },
 		{ id: 'temporary', label: 'Temporary Files', icon: Clock, disabled: false },
 		{ id: 'similar-images', label: 'Similar Images', icon: Images, disabled: false },
-		{ id: 'similar-videos', label: 'Similar Videos', icon: Video, disabled: true },
+		{ id: 'similar-videos', label: 'Similar Videos', icon: Video, disabled: false },
 		{ id: 'same-music', label: 'Same Music', icon: Music, disabled: true },
 		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link, disabled: true },
 		{ id: 'broken-files', label: 'Broken Files', icon: AlertTriangle, disabled: true },
