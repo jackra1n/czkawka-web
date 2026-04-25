@@ -243,6 +243,17 @@
 		toolSelections[activeTool] = { path: null, size: 0 };
 	}
 
+	function updateBackendTool() {
+		if (!backendState) return;
+		backendState.tools[activeTool] = {
+			status: scanState,
+			results: scanResults ?? undefined,
+			error: scanError || undefined,
+			scan_id: scanId || undefined,
+			checked_files: Array.from(checkedFiles)
+		};
+	}
+
 	// ---- Polling ----
 	async function poll() {
 		if (!scanId) return;
@@ -252,19 +263,23 @@
 			if (res.status === 'completed') {
 				scanState = 'completed';
 				scanResults = res.results ?? null;
+				updateBackendTool();
 				clearInterval(intervalId);
 			} else if (res.status === 'error') {
 				scanState = 'error';
 				scanError = res.error ?? 'Unknown error';
+				updateBackendTool();
 				clearInterval(intervalId);
 			} else if (res.status === 'not_found') {
 				scanState = 'error';
 				scanError = 'Scan not found';
+				updateBackendTool();
 				clearInterval(intervalId);
 			}
 		} catch (err) {
 			scanState = 'error';
 			scanError = err instanceof Error ? err.message : 'Failed to fetch status';
+			updateBackendTool();
 			clearInterval(intervalId);
 		}
 	}
@@ -281,11 +296,13 @@
 			selectedFileSize = 0;
 			toolSelections[activeTool] = { path: null, size: 0 };
 			removeFromResults(res.deleted);
+			updateBackendTool();
 			if (res.failed.length > 0) {
 				scanError = `Failed to delete ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
 			}
 		} catch (err) {
 			scanError = err instanceof Error ? err.message : 'Failed to delete files';
+			updateBackendTool();
 		}
 	}
 
@@ -311,11 +328,13 @@
 			selectedFileSize = 0;
 			toolSelections[activeTool] = { path: null, size: 0 };
 			removeFromResults(res.fixed);
+			updateBackendTool();
 			if (res.failed.length > 0) {
 				scanError = `Failed to fix ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
 			}
 		} catch (err) {
 			scanError = err instanceof Error ? err.message : 'Failed to fix files';
+			updateBackendTool();
 		}
 	}
 
@@ -333,11 +352,13 @@
 		try {
 			const res = await api.startScan(payload);
 			scanId = res.id;
+			updateBackendTool();
 			poll();
 			intervalId = setInterval(poll, 1000);
 		} catch (err) {
 			scanState = 'error';
 			scanError = err instanceof Error ? err.message : 'Failed to start scan';
+			updateBackendTool();
 		}
 	}
 </script>
