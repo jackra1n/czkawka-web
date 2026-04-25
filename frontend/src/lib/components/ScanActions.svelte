@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronDown, Trash2 } from 'lucide-svelte';
+	import { ChevronDown, Trash2, Pencil, Sparkles } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults, ScannedFile } from '$lib/api';
 	import ConfirmModal from './ConfirmModal.svelte';
@@ -7,17 +7,41 @@
 	let {
 		scanResults,
 		checkedFiles,
-		onDelete
+		activeTool,
+		onDelete,
+		onFix
 	}: {
 		scanResults: ScanResults | null;
 		checkedFiles: SvelteSet<string>;
+		activeTool: string;
 		onDelete: () => void;
+		onFix: () => void;
 	} = $props();
 
 	let selectOpen = $state(false);
 	let showDeleteConfirm = $state(false);
+	let showFixConfirm = $state(false);
 
 	const hasResults = $derived(!!scanResults && scanResults.groups.length > 0);
+	const hasChecked = $derived(checkedFiles.size > 0);
+
+	const showFixButton = $derived(
+		activeTool === 'exif-remover' || activeTool === 'bad-names' || activeTool === 'bad-extensions'
+	);
+	const fixLabel = $derived(
+		activeTool === 'exif-remover' ? 'Clean' : 'Rename'
+	);
+	const FixIcon = $derived(
+		activeTool === 'exif-remover' ? Sparkles : Pencil
+	);
+	const fixConfirmTitle = $derived(
+		activeTool === 'exif-remover' ? 'Clean EXIF Data' : 'Rename Files'
+	);
+	const fixConfirmMessage = $derived(
+		activeTool === 'exif-remover'
+			? `Are you sure you want to remove EXIF data from ${checkedFiles.size} selected file${checkedFiles.size === 1 ? '' : 's'}?`
+			: `Are you sure you want to rename ${checkedFiles.size} selected file${checkedFiles.size === 1 ? '' : 's'}?`
+	);
 
 	function closeDropdown() {
 		selectOpen = false;
@@ -194,10 +218,22 @@
 		{/if}
 	</div>
 
+	{#if showFixButton}
+		<button
+			type="button"
+			onclick={() => (showFixConfirm = true)}
+			disabled={!hasChecked}
+			class="inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+		>
+			<FixIcon class="h-4 w-4" />
+			{fixLabel}
+		</button>
+	{/if}
+
 	<button
 		type="button"
 		onclick={() => (showDeleteConfirm = true)}
-		disabled={checkedFiles.size === 0}
+		disabled={!hasChecked}
 		class="inline-flex items-center gap-1.5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/20 disabled:opacity-50 disabled:cursor-not-allowed"
 	>
 		<Trash2 class="h-4 w-4" />
@@ -216,4 +252,17 @@
 		onDelete();
 	}}
 	onCancel={() => (showDeleteConfirm = false)}
+/>
+
+<ConfirmModal
+	open={showFixConfirm}
+	title={fixConfirmTitle}
+	message={fixConfirmMessage}
+	confirmText={fixLabel}
+	cancelText="Cancel"
+	onConfirm={() => {
+		showFixConfirm = false;
+		onFix();
+	}}
+	onCancel={() => (showFixConfirm = false)}
 />

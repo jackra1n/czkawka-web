@@ -30,7 +30,30 @@ export interface ScanRequest {
 	bad_name_spaces?: boolean;
 	bad_name_non_ascii?: boolean;
 	bad_name_restricted_charset?: boolean;
+	bad_name_allowed_chars?: string;
 	bad_name_dedupe_non_alnum?: boolean;
+}
+
+export interface FixRequest {
+	tool_id: string;
+	files: string[];
+	bad_name_uppercase_extension?: boolean;
+	bad_name_emoji?: boolean;
+	bad_name_spaces?: boolean;
+	bad_name_non_ascii?: boolean;
+	bad_name_restricted_charset?: boolean;
+	bad_name_allowed_chars?: string;
+	bad_name_dedupe_non_alnum?: boolean;
+}
+
+export interface FailedFix {
+	path: string;
+	error: string;
+}
+
+export interface FixResponse {
+	fixed: string[];
+	failed: FailedFix[];
 }
 
 export interface ScanResponse {
@@ -134,6 +157,7 @@ export interface BadNamesConfig {
 	bad_name_spaces: boolean;
 	bad_name_non_ascii: boolean;
 	bad_name_restricted_charset: boolean;
+	bad_name_allowed_chars: string;
 	bad_name_dedupe_non_alnum: boolean;
 }
 
@@ -210,6 +234,13 @@ export const api = {
 		return fetchJson('/api/delete', {
 			method: 'POST',
 			body: JSON.stringify({ tool_id: toolId, files })
+		});
+	},
+
+	fixFiles(request: FixRequest): Promise<FixResponse> {
+		return fetchJson('/api/fix', {
+			method: 'POST',
+			body: JSON.stringify(request)
 		});
 	}
 };
