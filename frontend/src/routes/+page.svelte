@@ -9,6 +9,7 @@
 	import { loadUiState, saveUiState, type UiState } from '$lib/stores/uiState';
 	import { onDestroy } from 'svelte';
 
+	// ---- State ----
 	let backendState = $state<AppState | null>(null);
 	let stateLoaded = $state(false);
 
@@ -31,45 +32,26 @@
 		duplicates: {},
 		'empty-files': {},
 		'empty-folders': {},
-		'big-files': {
-			number_of_files: 50,
-			search_mode: 'biggest'
-		},
-		'similar-images': {
-			hash_alg: 'Gradient',
-			hash_size: 16,
-			resize_filter: 'Lanczos3',
-			similarity: 5
-		},
-		'similar-videos': {
-			tolerance: 5,
-			vid_hash_duration: 10,
-			crop_detect: 'Letterbox'
-		},
-		'same-music': {
-			music_check_type: 'tags'
-		},
+		'big-files': { number_of_files: 50, search_mode: 'biggest' },
+		'similar-images': { hash_alg: 'Gradient', hash_size: 16, resize_filter: 'Lanczos3', similarity: 5 },
+		'similar-videos': { tolerance: 5, vid_hash_duration: 10, crop_detect: 'Letterbox' },
+		'same-music': { music_check_type: 'tags' },
 		'invalid-symlinks': {},
-		'broken-files': {
-			broken_file_types: 'pdf,audio,image,archive,video'
-		},
-		'bad-extensions': {
-			include_files_without_extension: false
-		},
+		'broken-files': { broken_file_types: 'pdf,audio,image,archive,video' },
+		'bad-extensions': { include_files_without_extension: false },
 		'exif-remover': {},
 		'bad-names': {
 			bad_name_uppercase_extension: true,
 			bad_name_emoji: true,
 			bad_name_spaces: true,
 			bad_name_non_ascii: true,
-			bad_name_restricted_charset: true,
-			bad_name_dedupe_non_alnum: true
+			bad_name_restricted_charset: false,
+			bad_name_dedupe_non_alnum: false
 		},
 		temporary: {}
 	});
 
 	let toolSelections = $state<Record<string, { path: string | null; size: number }>>({});
-
 	let modalOpen = $state(false);
 	let modalTarget: 'include' | 'exclude' = $state('include');
 
@@ -77,10 +59,100 @@
 	let dirsTimeout: ReturnType<typeof setTimeout>;
 	let checkedTimeout: ReturnType<typeof setTimeout>;
 
+	const SINGLE_FILE_TOOLS = new Set([
+		'empty-folders', 'big-files', 'empty-files', 'temporary',
+		'invalid-symlinks', 'broken-files', 'bad-extensions', 'exif-remover', 'bad-names'
+	]);
+
+	// ---- Effects ----
+	$effect(() => { loadState(); });
+	$effect(() => { saveUiState({ activeTool, selectedFile }); });
 	$effect(() => {
-		loadState();
+		if (!stateLoaded) return;
+		clearTimeout(dirsTimeout);
+		dirsTimeout = setTimeout(() => {
+			api.updateDirectories([...includedDirs], [...excludedDirs], excludedItems).catch(console.error);
+		}, 500);
+		return () => clearTimeout(dirsTimeout);
+	});
+	$effect(() => {
+		if (!stateLoaded) return;
+		clearTimeout(checkedTimeout);
+		checkedTimeout = setTimeout(() => {
+			api.updateToolState(activeTool, Array.from(checkedFiles)).catch(console.error);
+		}, 500);
+		return () => clearTimeout(checkedTimeout);
 	});
 
+	onDestroy(() => {
+		clearInterval(intervalId);
+		clearTimeout(dirsTimeout);
+		clearTimeout(checkedTimeout);
+	});
+
+	// ---- Helpers ----
+	function groupSizeFor(path: string): number {
+		if (!scanResults) return 0;
+		for (const group of scanResults.groups) {
+			for (const file of group.files) {
+				if (file.path === path) return group.size;
+			}
+		}
+		return 0;
+	}
+
+	function removeFromResults(paths: string[]) {
+		if (!scanResults) return;
+		for (const group of scanResults.groups) {
+			group.files = group.files.filter((f) => !paths.includes(f.path));
+		}
+		const minSize = SINGLE_FILE_TOOLS.has(activeTool) ? 1 : 2;
+		scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
+		scanResults.total_groups = scanResults.groups.length;
+		scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
+		scanResults.wasted_bytes = scanResults.groups.reduce((sum, g) => sum + g.size * (g.files.length - 1), 0);
+	}
+
+	function buildPayload(): Parameters<typeof api.startScan>[0] {
+		const cfg = toolConfigs[activeTool];
+		const base: Parameters<typeof api.startScan>[0] = {
+			directories: includedDirs.map((s) => s.trim()).filter(Boolean),
+			exclude_directories: excludedDirs.map((s) => s.trim()).filter(Boolean).length > 0 ? excludedDirs.map((s) => s.trim()).filter(Boolean) : undefined,
+			excluded_items: excludedItems.trim() || undefined,
+			min_file_size: 8192,
+			tool_id: activeTool
+		};
+
+		switch (activeTool) {
+			case 'big-files':
+				return { ...base, number_of_files: cfg?.number_of_files, search_mode: cfg?.search_mode };
+			case 'similar-videos':
+				return { ...base, tolerance: cfg?.tolerance, vid_hash_duration: cfg?.vid_hash_duration, crop_detect: cfg?.crop_detect };
+			case 'similar-images':
+				return { ...base, hash_alg: cfg?.hash_alg, hash_size: cfg?.hash_size, resize_filter: cfg?.resize_filter, similarity: cfg?.similarity };
+			case 'same-music':
+				return { ...base, music_check_type: cfg?.music_check_type };
+			case 'broken-files':
+				return { ...base, broken_file_types: cfg?.broken_file_types };
+			case 'bad-extensions':
+				return { ...base, include_files_without_extension: cfg?.include_files_without_extension };
+			case 'bad-names':
+				return {
+					...base,
+					bad_name_uppercase_extension: cfg?.bad_name_uppercase_extension,
+					bad_name_emoji: cfg?.bad_name_emoji,
+					bad_name_spaces: cfg?.bad_name_spaces,
+					bad_name_non_ascii: cfg?.bad_name_non_ascii,
+					bad_name_restricted_charset: cfg?.bad_name_restricted_charset,
+					bad_name_allowed_chars: cfg?.bad_name_allowed_chars,
+					bad_name_dedupe_non_alnum: cfg?.bad_name_dedupe_non_alnum
+				};
+			default:
+				return base;
+		}
+	}
+
+	// ---- State loading ----
 	async function loadState() {
 		try {
 			const state = await api.getState();
@@ -89,7 +161,6 @@
 			excludedDirs = state.directories.excluded;
 			excludedItems = state.directories.excluded_items;
 
-			// Populate defaults on fresh state
 			if (excludedDirs.length === 0 && excludedItems === '') {
 				try {
 					const defaults = await api.getDefaults();
@@ -110,7 +181,6 @@
 
 	function restoreToolState(toolId: string) {
 		if (!backendState) return;
-
 		const tool = backendState.tools[toolId];
 		if (!tool) {
 			scanState = 'idle';
@@ -121,29 +191,12 @@
 			selectedFileSize = 0;
 			return;
 		}
-
 		scanState = tool.status as typeof scanState;
 		scanResults = tool.results ?? null;
 		scanError = tool.error ?? '';
 		scanId = tool.scan_id ?? '';
 		checkedFiles = new SvelteSet(tool.checked_files ?? []);
-
-		if (selectedFile && scanResults) {
-			let foundSize = 0;
-			for (const group of scanResults.groups) {
-				for (const file of group.files) {
-					if (file.path === selectedFile) {
-						foundSize = group.size;
-						break;
-					}
-				}
-				if (foundSize) break;
-			}
-			selectedFileSize = foundSize;
-		} else {
-			selectedFileSize = 0;
-		}
-
+		selectedFileSize = selectedFile && scanResults ? groupSizeFor(selectedFile) : 0;
 		if (scanState === 'running' && scanId) {
 			poll();
 			intervalId = setInterval(poll, 1000);
@@ -159,35 +212,7 @@
 		restoreToolState(toolId);
 	}
 
-	// Persist UI state to localStorage
-	$effect(() => {
-		saveUiState({ activeTool, selectedFile });
-	});
-
-	// Auto-save directories to backend (debounced)
-	$effect(() => {
-		if (!stateLoaded) return;
-		const included = [...includedDirs];
-		const excluded = [...excludedDirs];
-		const items = excludedItems;
-		clearTimeout(dirsTimeout);
-		dirsTimeout = setTimeout(() => {
-			api.updateDirectories(included, excluded, items).catch(console.error);
-		}, 500);
-		return () => clearTimeout(dirsTimeout);
-	});
-
-	// Auto-save checked files to backend (debounced)
-	$effect(() => {
-		if (!stateLoaded) return;
-		const files = Array.from(checkedFiles);
-		clearTimeout(checkedTimeout);
-		checkedTimeout = setTimeout(() => {
-			api.updateToolState(activeTool, files).catch(console.error);
-		}, 500);
-		return () => clearTimeout(checkedTimeout);
-	});
-
+	// ---- Modal & preview ----
 	function openModal(target: 'include' | 'exclude') {
 		modalTarget = target;
 		modalOpen = true;
@@ -218,12 +243,12 @@
 		toolSelections[activeTool] = { path: null, size: 0 };
 	}
 
+	// ---- Polling ----
 	async function poll() {
 		if (!scanId) return;
 		try {
 			const res = await api.getScanStatus(scanId);
 			scanError = '';
-
 			if (res.status === 'completed') {
 				scanState = 'completed';
 				scanResults = res.results ?? null;
@@ -244,36 +269,18 @@
 		}
 	}
 
+	// ---- Actions ----
 	async function handleDelete() {
 		const files = Array.from(checkedFiles);
 		if (files.length === 0) return;
-
 		try {
 			const res = await api.deleteFiles(activeTool, files);
 			scanError = '';
-
-			for (const path of res.deleted) {
-				checkedFiles.delete(path);
-			}
-
+			for (const path of res.deleted) checkedFiles.delete(path);
 			selectedFile = null;
 			selectedFileSize = 0;
 			toolSelections[activeTool] = { path: null, size: 0 };
-
-			if (scanResults) {
-				for (const group of scanResults.groups) {
-					group.files = group.files.filter((f) => !res.deleted.includes(f.path));
-				}
-				const minSize = activeTool === 'empty-folders' || activeTool === 'big-files' || activeTool === 'empty-files' || activeTool === 'temporary' || activeTool === 'invalid-symlinks' || activeTool === 'broken-files' || activeTool === 'bad-extensions' || activeTool === 'exif-remover' || activeTool === 'bad-names' ? 1 : 2;
-				scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
-				scanResults.total_groups = scanResults.groups.length;
-				scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
-				scanResults.wasted_bytes = scanResults.groups.reduce(
-					(sum, g) => sum + g.size * (g.files.length - 1),
-					0
-				);
-			}
-
+			removeFromResults(res.deleted);
 			if (res.failed.length > 0) {
 				scanError = `Failed to delete ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
 			}
@@ -282,76 +289,47 @@
 		}
 	}
 
-	async function startScan() {
-		const dirs = includedDirs.map((s) => s.trim()).filter(Boolean);
+	async function handleFix() {
+		const files = Array.from(checkedFiles);
+		if (files.length === 0) return;
+		try {
+			const cfg = toolConfigs[activeTool];
+			const res = await api.fixFiles({
+				tool_id: activeTool,
+				files,
+				bad_name_uppercase_extension: cfg?.bad_name_uppercase_extension,
+				bad_name_emoji: cfg?.bad_name_emoji,
+				bad_name_spaces: cfg?.bad_name_spaces,
+				bad_name_non_ascii: cfg?.bad_name_non_ascii,
+				bad_name_restricted_charset: cfg?.bad_name_restricted_charset,
+				bad_name_allowed_chars: cfg?.bad_name_allowed_chars,
+				bad_name_dedupe_non_alnum: cfg?.bad_name_dedupe_non_alnum
+			});
+			scanError = '';
+			for (const path of res.fixed) checkedFiles.delete(path);
+			selectedFile = null;
+			selectedFileSize = 0;
+			toolSelections[activeTool] = { path: null, size: 0 };
+			removeFromResults(res.fixed);
+			if (res.failed.length > 0) {
+				scanError = `Failed to fix ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
+			}
+		} catch (err) {
+			scanError = err instanceof Error ? err.message : 'Failed to fix files';
+		}
+	}
 
-		if (dirs.length === 0) {
+	async function startScan() {
+		const payload = buildPayload();
+		if (payload.directories.length === 0) {
 			scanError = 'Please enter at least one directory.';
 			return;
 		}
-
-		const excluded = excludedDirs.map((s) => s.trim()).filter(Boolean);
-
 		scanState = 'running';
 		scanError = '';
 		scanResults = null;
 		selectedFile = null;
 		selectedFileSize = 0;
-
-		const payload: Parameters<typeof api.startScan>[0] = {
-			directories: dirs,
-			exclude_directories: excluded.length > 0 ? excluded : undefined,
-			excluded_items: excludedItems.trim() || undefined,
-			min_file_size: 8192,
-			tool_id: activeTool
-		};
-
-		if (activeTool === 'big-files') {
-			const cfg = toolConfigs['big-files'];
-			payload.number_of_files = cfg?.number_of_files;
-			payload.search_mode = cfg?.search_mode;
-		}
-
-		if (activeTool === 'similar-videos') {
-			const cfg = toolConfigs['similar-videos'];
-			payload.tolerance = cfg?.tolerance;
-			payload.vid_hash_duration = cfg?.vid_hash_duration;
-			payload.crop_detect = cfg?.crop_detect;
-		}
-
-		if (activeTool === 'similar-images') {
-			const cfg = toolConfigs['similar-images'];
-			payload.hash_alg = cfg?.hash_alg;
-			payload.hash_size = cfg?.hash_size;
-			payload.resize_filter = cfg?.resize_filter;
-			payload.similarity = cfg?.similarity;
-		}
-
-		if (activeTool === 'same-music') {
-			const cfg = toolConfigs['same-music'];
-			payload.music_check_type = cfg?.music_check_type;
-		}
-
-		if (activeTool === 'broken-files') {
-			const cfg = toolConfigs['broken-files'];
-			payload.broken_file_types = cfg?.broken_file_types;
-		}
-
-		if (activeTool === 'bad-extensions') {
-			const cfg = toolConfigs['bad-extensions'];
-			payload.include_files_without_extension = cfg?.include_files_without_extension;
-		}
-
-		if (activeTool === 'bad-names') {
-			const cfg = toolConfigs['bad-names'];
-			payload.bad_name_uppercase_extension = cfg?.bad_name_uppercase_extension;
-			payload.bad_name_emoji = cfg?.bad_name_emoji;
-			payload.bad_name_spaces = cfg?.bad_name_spaces;
-			payload.bad_name_non_ascii = cfg?.bad_name_non_ascii;
-			payload.bad_name_restricted_charset = cfg?.bad_name_restricted_charset;
-			payload.bad_name_dedupe_non_alnum = cfg?.bad_name_dedupe_non_alnum;
-		}
-
 		try {
 			const res = await api.startScan(payload);
 			scanId = res.id;
@@ -362,12 +340,6 @@
 			scanError = err instanceof Error ? err.message : 'Failed to start scan';
 		}
 	}
-
-	onDestroy(() => {
-		clearInterval(intervalId);
-		clearTimeout(dirsTimeout);
-		clearTimeout(checkedTimeout);
-	});
 </script>
 
 <div class="flex h-full w-full">
@@ -386,6 +358,7 @@
 			onStartScan={startScan}
 			onAddDir={openModal}
 			onDelete={handleDelete}
+			onFix={handleFix}
 		/>
 
 		<div class="flex flex-1 min-h-0 overflow-hidden">
@@ -399,11 +372,7 @@
 			/>
 
 			{#if selectedFile}
-				<FilePreview
-					{selectedFile}
-					{selectedFileSize}
-					onClose={closePreview}
-				/>
+				<FilePreview {selectedFile} {selectedFileSize} onClose={closePreview} />
 			{/if}
 		</div>
 	</div>

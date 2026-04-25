@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { Plus, X, Search } from 'lucide-svelte';
+	import { Search } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults, ToolConfig } from '$lib/api';
+	import DirectoryList from './DirectoryList.svelte';
 	import ScanActions from './ScanActions.svelte';
+	import ToolSettings from './ToolSettings.svelte';
 
 	let {
 		includedDirs = $bindable<string[]>(),
@@ -15,7 +17,8 @@
 		checkedFiles,
 		onStartScan,
 		onAddDir,
-		onDelete
+		onDelete,
+		onFix
 	}: {
 		includedDirs: string[];
 		excludedDirs: string[];
@@ -28,37 +31,18 @@
 		onStartScan: () => void;
 		onAddDir: (target: 'include' | 'exclude') => void;
 		onDelete: () => void;
+		onFix: () => void;
 	} = $props();
 
 	let activeTab = $state<'directories' | 'items' | 'settings'>('directories');
 
-	const HASH_ALGS = ['Mean', 'Gradient', 'Blockhash', 'VertGradient', 'DoubleGradient', 'Median'];
-	const HASH_SIZES = [8, 16, 32, 64];
-	const RESIZE_FILTERS = ['Lanczos3', 'Nearest', 'Triangle', 'Gaussian', 'CatmullRom'];
-	const CROP_DETECTS = ['None', 'Letterbox', 'Motion'];
-	const SEARCH_MODES = [
-		{ value: 'biggest', label: 'Biggest' },
-		{ value: 'smallest', label: 'Smallest' }
-	];
-
-	function addIncludedDir() {
-		onAddDir('include');
-	}
-
-	function removeIncludedDir(index: number) {
-		includedDirs = includedDirs.filter((_, i) => i !== index);
-	}
-
-	function addExcludedDir() {
-		onAddDir('exclude');
-	}
-
-	function removeExcludedDir(index: number) {
-		excludedDirs = excludedDirs.filter((_, i) => i !== index);
-	}
+	const SETTINGS_TOOLS = new Set([
+		'similar-images', 'similar-videos', 'big-files', 'same-music',
+		'broken-files', 'bad-extensions', 'bad-names'
+	]);
 
 	$effect(() => {
-		if (activeTab === 'settings' && activeTool !== 'similar-images' && activeTool !== 'similar-videos' && activeTool !== 'big-files' && activeTool !== 'same-music' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'bad-names') {
+		if (activeTab === 'settings' && !SETTINGS_TOOLS.has(activeTool)) {
 			activeTab = 'directories';
 		}
 	});
@@ -66,114 +50,26 @@
 
 <div class="shrink-0 border-b border-border bg-surface p-4">
 	<div class="mb-3 flex border-b border-border">
-		<button
-			type="button"
-			onclick={() => (activeTab = 'directories')}
-			class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === 'directories' ? 'text-accent' : 'text-text-muted hover:text-text'}"
-		>
-			Directories
-			{#if activeTab === 'directories'}
-				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
+		{#each [{ k: 'directories', l: 'Directories' }, { k: 'items', l: 'Items' }, { k: 'settings', l: 'Settings' }] as t (t.k)}
+			{#if t.k !== 'settings' || SETTINGS_TOOLS.has(activeTool)}
+				<button
+					type="button"
+					onclick={() => (activeTab = t.k as typeof activeTab)}
+					class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === t.k ? 'text-accent' : 'text-text-muted hover:text-text'}"
+				>
+					{t.l}
+					{#if activeTab === t.k}
+						<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
+					{/if}
+				</button>
 			{/if}
-		</button>
-		<button
-			type="button"
-			onclick={() => (activeTab = 'items')}
-			class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === 'items' ? 'text-accent' : 'text-text-muted hover:text-text'}"
-		>
-			Items
-			{#if activeTab === 'items'}
-				<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
-			{/if}
-		</button>
-		{#if activeTool === 'similar-images' || activeTool === 'similar-videos' || activeTool === 'big-files' || activeTool === 'same-music' || activeTool === 'broken-files' || activeTool === 'bad-extensions' || activeTool === 'bad-names'}
-			<button
-				type="button"
-				onclick={() => (activeTab = 'settings')}
-				class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === 'settings' ? 'text-accent' : 'text-text-muted hover:text-text'}"
-			>
-				Settings
-				{#if activeTab === 'settings'}
-					<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-sm"></span>
-				{/if}
-			</button>
-		{/if}
+		{/each}
 	</div>
 
 	{#if activeTab === 'directories'}
 		<div class="flex gap-4">
-			<div class="flex flex-1 flex-col gap-2">
-				<div class="flex items-center justify-between">
-					<span class="text-xs font-medium text-text-muted">Included directories</span>
-					<button
-						type="button"
-						onclick={addIncludedDir}
-						class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
-					>
-						<Plus class="h-3.5 w-3.5" />
-						Add
-					</button>
-				</div>
-				<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
-					{#if includedDirs.length === 0}
-						<div class="flex items-center justify-center py-2 text-sm text-text-muted">
-							No directories added
-						</div>
-					{:else}
-						{#each includedDirs as dir, i (i)}
-							<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
-								<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
-									{dir}
-								</span>
-								<button
-									type="button"
-									onclick={() => removeIncludedDir(i)}
-									class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
-									title="Remove"
-								>
-									<X class="h-3.5 w-3.5" />
-								</button>
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
-			<div class="flex flex-1 flex-col gap-2">
-				<div class="flex items-center justify-between">
-					<span class="text-xs font-medium text-text-muted">Excluded directories</span>
-					<button
-						type="button"
-						onclick={addExcludedDir}
-						class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
-					>
-						<Plus class="h-3.5 w-3.5" />
-						Add
-					</button>
-				</div>
-				<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
-					{#if excludedDirs.length === 0}
-						<div class="flex items-center justify-center py-2 text-sm text-text-muted">
-							No directories added
-						</div>
-					{:else}
-						{#each excludedDirs as dir, i (i)}
-							<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
-								<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>
-									{dir}
-								</span>
-								<button
-									type="button"
-									onclick={() => removeExcludedDir(i)}
-									class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
-									title="Remove"
-								>
-									<X class="h-3.5 w-3.5" />
-								</button>
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
+			<DirectoryList label="Included directories" bind:dirs={includedDirs} onAdd={() => onAddDir('include')} />
+			<DirectoryList label="Excluded directories" bind:dirs={excludedDirs} onAdd={() => onAddDir('exclude')} />
 		</div>
 	{:else if activeTab === 'items'}
 		<div class="flex flex-col gap-1.5">
@@ -187,225 +83,8 @@
 			/>
 			<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
 		</div>
-	{:else if activeTab === 'settings' && activeTool === 'big-files'}
-		<div class="flex flex-col gap-4">
-			<div class="flex gap-4">
-				<div class="flex flex-1 flex-col gap-1.5">
-					<label for="search-mode" class="text-xs font-medium text-text-muted">Search Mode</label>
-					<select
-						id="search-mode"
-						value={toolConfig.search_mode ?? 'biggest'}
-						onchange={(e) => toolConfig = { ...toolConfig, search_mode: e.currentTarget.value }}
-						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-					>
-						{#each SEARCH_MODES as mode (mode.value)}
-							<option value={mode.value}>{mode.label}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="flex flex-1 flex-col gap-1.5">
-					<label for="number-of-files" class="text-xs font-medium text-text-muted">Number of Files</label>
-					<input
-						id="number-of-files"
-						type="number"
-						min="1"
-						max="10000"
-						value={toolConfig.number_of_files ?? 50}
-						oninput={(e) => toolConfig = { ...toolConfig, number_of_files: Number(e.currentTarget.value) }}
-						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-					/>
-				</div>
-			</div>
-		</div>
-	{:else if activeTab === 'settings' && activeTool === 'similar-videos'}
-		<div class="flex flex-col gap-4">
-			<div class="flex gap-4">
-				<div class="flex flex-1 flex-col gap-1.5">
-					<label for="crop-detect" class="text-xs font-medium text-text-muted">Crop Detect</label>
-					<select
-						id="crop-detect"
-						value={toolConfig.crop_detect ?? 'Letterbox'}
-						onchange={(e) => toolConfig = { ...toolConfig, crop_detect: e.currentTarget.value }}
-						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-					>
-						{#each CROP_DETECTS as cd (cd)}
-							<option value={cd}>{cd}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="flex flex-1 flex-col gap-1.5">
-					<label for="vid-hash-duration" class="text-xs font-medium text-text-muted">Hash Duration (s)</label>
-					<input
-						id="vid-hash-duration"
-						type="number"
-						min="2"
-						max="60"
-						value={toolConfig.vid_hash_duration ?? 10}
-						oninput={(e) => toolConfig = { ...toolConfig, vid_hash_duration: Number(e.currentTarget.value) }}
-						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-					/>
-				</div>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<label for="tolerance" class="text-xs font-medium text-text-muted">Tolerance</label>
-				<div class="flex items-center gap-3">
-					<span class="text-[10px] text-text-muted shrink-0 w-14 text-right">Strict</span>
-					<input
-						id="tolerance"
-						type="range"
-						min="0"
-						max="20"
-						step="1"
-						value={toolConfig.tolerance ?? 5}
-						oninput={(e) => toolConfig = { ...toolConfig, tolerance: Number(e.currentTarget.value) }}
-						class="flex-1 accent-accent"
-					/>
-					<span class="text-xs font-medium text-text w-6 text-center">{toolConfig.tolerance ?? 5}</span>
-					<span class="text-[10px] text-text-muted shrink-0 w-12">Loose</span>
-				</div>
-			</div>
-		</div>
-	{:else if activeTab === 'settings' && activeTool === 'similar-images'}
-		<div class="flex flex-col gap-4">
-			<div class="flex gap-4">
-				<div class="flex flex-1 flex-col gap-1.5">
-					<label for="hash-alg" class="text-xs font-medium text-text-muted">Hash Algorithm</label>
-					<select
-						id="hash-alg"
-						value={toolConfig.hash_alg ?? 'Gradient'}
-						onchange={(e) => toolConfig = { ...toolConfig, hash_alg: e.currentTarget.value }}
-						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-					>
-						{#each HASH_ALGS as alg (alg)}
-							<option value={alg}>{alg}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="flex flex-1 flex-col gap-1.5">
-					<label for="hash-size" class="text-xs font-medium text-text-muted">Hash Size</label>
-					<select
-						id="hash-size"
-						value={toolConfig.hash_size ?? 16}
-						onchange={(e) => toolConfig = { ...toolConfig, hash_size: Number(e.currentTarget.value) }}
-						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-					>
-						{#each HASH_SIZES as size (size)}
-							<option value={size}>{size}</option>
-						{/each}
-					</select>
-				</div>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<label for="resize-filter" class="text-xs font-medium text-text-muted">Resize Algorithm</label>
-				<select
-					id="resize-filter"
-					value={toolConfig.resize_filter ?? 'Lanczos3'}
-					onchange={(e) => toolConfig = { ...toolConfig, resize_filter: e.currentTarget.value }}
-					class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-				>
-					{#each RESIZE_FILTERS as filter (filter)}
-						<option value={filter}>{filter}</option>
-					{/each}
-				</select>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
-				<div class="flex items-center gap-3">
-					<span class="text-[10px] text-text-muted shrink-0 w-14 text-right">Very high</span>
-					<input
-						id="similarity"
-						type="range"
-						min="0"
-						max="40"
-						step="1"
-						value={toolConfig.similarity ?? 5}
-						oninput={(e) => toolConfig = { ...toolConfig, similarity: Number(e.currentTarget.value) }}
-						class="flex-1 accent-accent"
-					/>
-					<span class="text-xs font-medium text-text w-6 text-center">{toolConfig.similarity ?? 5}</span>
-					<span class="text-[10px] text-text-muted shrink-0 w-12">Minimal</span>
-				</div>
-			</div>
-		</div>
-	{:else if activeTab === 'settings' && activeTool === 'same-music'}
-		<div class="flex flex-col gap-4">
-			<div class="flex flex-col gap-1.5">
-				<label for="music-check-type" class="text-xs font-medium text-text-muted">Comparison Method</label>
-				<select
-					id="music-check-type"
-					value={toolConfig.music_check_type ?? 'tags'}
-					onchange={(e) => toolConfig = { ...toolConfig, music_check_type: e.currentTarget.value }}
-					class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-				>
-					<option value="tags">Tags (metadata)</option>
-					<option value="content">Content (audio fingerprint)</option>
-				</select>
-			</div>
-		</div>
-	{:else if activeTab === 'settings' && activeTool === 'broken-files'}
-		<div class="flex flex-col gap-3">
-			<span class="text-xs font-medium text-text-muted">File types to check</span>
-			<div class="flex flex-wrap gap-4">
-				{#each [
-					{ key: 'pdf', label: 'PDF' },
-					{ key: 'audio', label: 'Audio' },
-					{ key: 'image', label: 'Image' },
-					{ key: 'archive', label: 'Archive' },
-					{ key: 'video', label: 'Video' }
-				] as opt (opt.key)}
-					<label class="flex items-center gap-1.5 text-sm text-text cursor-pointer">
-						<input
-							type="checkbox"
-							checked={(toolConfig.broken_file_types ?? 'pdf,audio,image,archive,video').split(',').includes(opt.key)}
-							onchange={(e) => {
-								const current = (toolConfig.broken_file_types ?? 'pdf,audio,image,archive,video').split(',').filter(Boolean);
-								const next = e.currentTarget.checked
-									? [...current, opt.key]
-									: current.filter((k) => k !== opt.key);
-								toolConfig = { ...toolConfig, broken_file_types: next.join(',') };
-							}}
-						/>
-						{opt.label}
-					</label>
-				{/each}
-			</div>
-		</div>
-	{:else if activeTab === 'settings' && activeTool === 'bad-extensions'}
-		<div class="flex flex-col gap-3">
-			<label class="flex items-center gap-2 text-sm text-text cursor-pointer">
-				<input
-					type="checkbox"
-					checked={toolConfig.include_files_without_extension ?? false}
-					onchange={(e) => toolConfig = { ...toolConfig, include_files_without_extension: e.currentTarget.checked }}
-				/>
-				Include files without extension
-			</label>
-		</div>
-	{:else if activeTab === 'settings' && activeTool === 'bad-names'}
-		<div class="flex flex-col gap-3">
-			<span class="text-xs font-medium text-text-muted">Name issues to check</span>
-			<div class="flex flex-wrap gap-4">
-				{#each [
-					{ key: 'bad_name_uppercase_extension', label: 'Uppercase extension' },
-					{ key: 'bad_name_emoji', label: 'Emoji' },
-					{ key: 'bad_name_spaces', label: 'Spaces at ends' },
-					{ key: 'bad_name_non_ascii', label: 'Non-ASCII' },
-					{ key: 'bad_name_restricted_charset', label: 'Restricted charset' },
-					{ key: 'bad_name_dedupe_non_alnum', label: 'Duplicate symbols' }
-				] as opt (opt.key)}
-					<label class="flex items-center gap-1.5 text-sm text-text cursor-pointer">
-						<input
-							type="checkbox"
-							checked={toolConfig[opt.key] ?? true}
-							onchange={(e) => {
-								toolConfig = { ...toolConfig, [opt.key]: e.currentTarget.checked };
-							}}
-						/>
-						{opt.label}
-					</label>
-				{/each}
-			</div>
-		</div>
+	{:else if activeTab === 'settings'}
+		<ToolSettings {activeTool} bind:toolConfig />
 	{/if}
 
 	<div class="mt-4 flex items-center justify-between">
@@ -423,6 +102,6 @@
 			{/if}
 		</button>
 
-		<ScanActions {scanResults} {checkedFiles} {onDelete} />
+		<ScanActions {scanResults} {checkedFiles} {activeTool} {onDelete} {onFix} />
 	</div>
 </div>
