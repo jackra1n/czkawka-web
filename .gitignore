@@ -1,5 +1,6 @@
 # Local environment
 .env
+data/
 
 # Build artifacts
 frontend/build/

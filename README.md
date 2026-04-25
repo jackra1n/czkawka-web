@@ -53,7 +53,14 @@ If you want to build the image locally from source instead of using the pre-buil
 ```bash
 cp .env.example .env
 # Edit .env and set SCAN_PATH to the directory you want to scan
-docker compose -f compose.dev.yaml up -d
+mkdir -p data
+docker compose -f compose.dev.yaml up
+```
+
+If you use [Mise](https://mise.jdx.dev/), you can also run:
+
+```bash
+mise run docker
 ```
 
 ### Volumes

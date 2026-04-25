@@ -40,3 +40,7 @@ run = "cargo fmt -- --check"
 [tasks.prod]
 description = "Production build of frontend and backend"
 run = "cd frontend && bun run build && cd ../backend && cargo build --release"
+
+[tasks.docker]
+description = "Build and run the development Docker compose"
+run = "mkdir -p data && docker compose -f compose.dev.yaml up"
