@@ -63,12 +63,5 @@ If you use [Mise](https://mise.jdx.dev/), you can also run:
 mise run docker
 ```
 
-### Volumes
-
-| Path | Purpose |
-|------|---------|
-| `/data` | State persistence (`state.json`, config cache). The container runs as UID `1000` and sets `HOME=/data`. |
-| `/mnt/files` (example) | Directories you want to scan. Mount as many as you need; the UI will let you browse any path visible inside the container. |
-
 ## Acknowledgments
 A huge thanks to [qarmin](https://github.com/qarmin) for creating and maintaining [czkawka](https://github.com/qarmin/czkawka). This project wouldn't be possible without the incredible work put into that amazing project.
