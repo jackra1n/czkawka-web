@@ -1,0 +1,10 @@
+services:
+  czkawka-web:
+    build: .
+    container_name: czkawka-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+      - ${SCAN_PATH:?error}:/mnt/files
+    restart: unless-stopped

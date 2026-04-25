@@ -1,0 +1,16 @@
+# Local environment
+.env
+
+# Build artifacts
+frontend/build/
+frontend/node_modules/
+frontend/.svelte-kit/
+backend/target/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
