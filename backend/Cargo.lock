@@ -743,6 +743,7 @@ dependencies = [
 [[package]]
 name = "czkawka_core"
 version = "11.0.1"
+source = "git+https://github.com/qarmin/czkawka.git?rev=b5b454af543f8f8ecb8e43c1db901766c200cbeb#b5b454af543f8f8ecb8e43c1db901766c200cbeb"
 dependencies = [
  "bincode",
  "bitflags 2.11.1",

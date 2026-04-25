@@ -1,11 +1,11 @@
 use czkawka_core::common::traits::Search;
-use czkawka_core::tools::temporary::Temporary;
+use czkawka_core::tools::temporary::{Temporary, TemporaryParameters};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
 pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
-    let mut finder = Temporary::new();
+    let mut finder = Temporary::new(TemporaryParameters::default());
     configure_common_data(&mut finder, &request);
 
     let stop_flag = make_stop_flag();
