@@ -71,7 +71,42 @@ pub struct ScanRequest {
     #[serde(default)]
     pub bad_name_restricted_charset: Option<bool>,
     #[serde(default)]
+    pub bad_name_allowed_chars: Option<String>,
+    #[serde(default)]
     pub bad_name_dedupe_non_alnum: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FixRequest {
+    pub tool_id: String,
+    pub files: Vec<String>,
+    // Bad names fix params
+    #[serde(default)]
+    pub bad_name_uppercase_extension: Option<bool>,
+    #[serde(default)]
+    pub bad_name_emoji: Option<bool>,
+    #[serde(default)]
+    pub bad_name_spaces: Option<bool>,
+    #[serde(default)]
+    pub bad_name_non_ascii: Option<bool>,
+    #[serde(default)]
+    pub bad_name_restricted_charset: Option<bool>,
+    #[serde(default)]
+    pub bad_name_allowed_chars: Option<String>,
+    #[serde(default)]
+    pub bad_name_dedupe_non_alnum: Option<bool>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FailedFix {
+    pub path: String,
+    pub error: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FixResponse {
+    pub fixed: Vec<String>,
+    pub failed: Vec<FailedFix>,
 }
 
 fn default_min_file_size() -> u64 {

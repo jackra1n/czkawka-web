@@ -334,6 +334,7 @@ dependencies = [
  "czkawka_core",
  "dirs",
  "env_logger",
+ "infer",
  "log",
  "mime_guess",
  "serde",

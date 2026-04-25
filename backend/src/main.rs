@@ -56,6 +56,7 @@ async fn main() {
         .route("/api/state/directories", post(handlers::state::update_directories))
         .route("/api/state/tools/{tool_id}", post(handlers::state::update_tool_state))
         .route("/api/delete", post(handlers::files::delete_files))
+        .route("/api/fix", post(handlers::fix::fix_files))
         .route("/api/defaults", get(handlers::state::get_defaults))
         .route("/api/directories", get(handlers::directories::list_directories))
         .route("/api/file", get(handlers::files::serve_file))
