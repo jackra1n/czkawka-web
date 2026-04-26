@@ -55,6 +55,12 @@
 	let modalOpen = $state(false);
 	let modalTarget: 'include' | 'exclude' = $state('include');
 
+	let selectedFileGroup = $derived(
+		selectedFile && scanResults
+			? scanResults.groups.find((g) => g.files.some((f) => f.path === selectedFile)) ?? null
+			: null
+	);
+
 	let intervalId: ReturnType<typeof setInterval>;
 	let dirsTimeout: ReturnType<typeof setTimeout>;
 	let checkedTimeout: ReturnType<typeof setTimeout>;
@@ -393,7 +399,7 @@
 			/>
 
 			{#if selectedFile}
-				<FilePreview {selectedFile} {selectedFileSize} onClose={closePreview} />
+				<FilePreview {selectedFile} {selectedFileSize} groupFiles={selectedFileGroup?.files ?? []} onClose={closePreview} />
 			{/if}
 		</div>
 	</div>

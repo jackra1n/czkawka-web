@@ -1,3 +1,14 @@
+export type PreviewType = 'image' | 'video' | 'audio' | 'text' | 'unknown';
+
+export function getPreviewType(path: string): PreviewType {
+	const ext = path.split('.').pop()?.toLowerCase() ?? '';
+	if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'ico', 'tiff', 'avif'].includes(ext)) return 'image';
+	if (['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(ext)) return 'video';
+	if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'].includes(ext)) return 'audio';
+	if (['txt', 'md', 'rs', 'py', 'js', 'ts', 'svelte', 'html', 'css', 'json', 'yaml', 'yml', 'toml', 'xml', 'csv', 'log', 'sh', 'c', 'cpp', 'h', 'hpp', 'java', 'go', 'rb', 'php', 'lua', 'swift', 'kt', 'scala', 'r', 'pl', 'sql'].includes(ext)) return 'text';
+	return 'unknown';
+}
+
 export function formatBytes(bytes: number): string {
 	if (bytes === 0) return '0 B';
 	const k = 1024;

@@ -1,28 +1,28 @@
 <script lang="ts">
-	import { X, File, Loader2 } from 'lucide-svelte';
-	import { formatBytes } from '$lib/utils';
+	import { X } from 'lucide-svelte';
+	import { formatBytes, getPreviewType } from '$lib/utils';
 	import { getFileUrl, fetchFileText } from '$lib/api';
+	import type { ScannedFile } from '$lib/api';
+	import ErrorIcon from './ErrorIcon.svelte';
+	import MediaPreview from './MediaPreview.svelte';
+	import CompareToolbar from './compare/CompareToolbar.svelte';
+	import SideBySideCompare from './compare/SideBySideCompare.svelte';
+	import SwipeCompare from './compare/SwipeCompare.svelte';
+	import OnionSkinCompare from './compare/OnionSkinCompare.svelte';
+
+	type CompareMode = 'single' | 'side-by-side' | 'swipe' | 'onion';
 
 	let {
 		selectedFile,
 		selectedFileSize,
+		groupFiles,
 		onClose
 	}: {
 		selectedFile: string;
 		selectedFileSize: number;
+		groupFiles: ScannedFile[];
 		onClose: () => void;
 	} = $props();
-
-	type PreviewType = 'image' | 'video' | 'audio' | 'text' | 'unknown';
-
-	function getPreviewType(path: string): PreviewType {
-		const ext = path.split('.').pop()?.toLowerCase() ?? '';
-		if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'ico', 'tiff', 'avif'].includes(ext)) return 'image';
-		if (['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(ext)) return 'video';
-		if (['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'].includes(ext)) return 'audio';
-		if (['txt', 'md', 'rs', 'py', 'js', 'ts', 'svelte', 'html', 'css', 'json', 'yaml', 'yml', 'toml', 'xml', 'csv', 'log', 'sh', 'c', 'cpp', 'h', 'hpp', 'java', 'go', 'rb', 'php', 'lua', 'swift', 'kt', 'scala', 'r', 'pl', 'sql'].includes(ext)) return 'text';
-		return 'unknown';
-	}
 
 	let textContent = $state('');
 	let textLoading = $state(false);
@@ -32,10 +32,62 @@
 	let previewType = $derived(getPreviewType(selectedFile));
 	let fileUrl = $derived(getFileUrl(selectedFile));
 
+	// Comparison state
+	const COMPARE_MODE_KEY = 'filePreviewCompareMode';
+	let compareMode = $state<CompareMode>('single');
+	let compareTarget = $state<string | null>(null);
+	let swipePercent = $state(50);
+	let onionOpacity = $state(0.5);
+
+	let imageSiblings = $derived(
+		groupFiles.filter((f) => getPreviewType(f.path) === 'image')
+	);
+
+	let compareUrl = $derived(compareTarget ? getFileUrl(compareTarget) : '');
+
+	let selectedFileDims = $derived(
+		groupFiles.find((f) => f.path === selectedFile)?.dimensions ?? ''
+	);
+	let compareFileDims = $derived(
+		compareTarget ? (groupFiles.find((f) => f.path === compareTarget)?.dimensions ?? '') : ''
+	);
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		const saved = localStorage.getItem(COMPARE_MODE_KEY);
+		if (saved && ['single', 'side-by-side', 'swipe', 'onion'].includes(saved)) {
+			compareMode = saved as CompareMode;
+		}
+	});
+
+	$effect(() => {
+		const siblings = imageSiblings;
+		const current = selectedFile;
+		if (siblings.length > 1) {
+			const firstOther = siblings.find((f) => f.path !== current);
+			compareTarget = firstOther?.path ?? siblings[0]?.path ?? null;
+		} else {
+			compareTarget = null;
+		}
+		swipePercent = 50;
+		onionOpacity = 0.5;
+	});
+
+	function setCompareMode(mode: CompareMode) {
+		compareMode = mode;
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(COMPARE_MODE_KEY, mode);
+		}
+	}
+
+	function setCompareTarget(path: string) {
+		compareTarget = path;
+	}
+
+	// Panel resize
 	const MIN_WIDTH = 200;
 	const MAX_WIDTH_FRACTION = 0.6;
 	const STORAGE_KEY = 'filePreviewWidth';
-
 	let panelWidth = $state(288);
 
 	$effect(() => {
@@ -74,6 +126,28 @@
 		window.addEventListener('mouseup', onMouseUp);
 	}
 
+	// Swipe drag
+	function startSwipeDrag(e: MouseEvent) {
+		e.preventDefault();
+		const container = (e.currentTarget as HTMLElement).parentElement;
+		if (!container) return;
+		const rect = container.getBoundingClientRect();
+
+		function onMove(e: MouseEvent) {
+			const x = e.clientX - rect.left;
+			swipePercent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+		}
+
+		function onUp() {
+			window.removeEventListener('mousemove', onMove);
+			window.removeEventListener('mouseup', onUp);
+		}
+
+		window.addEventListener('mousemove', onMove);
+		window.addEventListener('mouseup', onUp);
+	}
+
+	// Text loading
 	$effect(() => {
 		const file = selectedFile;
 		const type = previewType;
@@ -143,89 +217,75 @@
 	<div class="flex flex-1 flex-col min-h-0">
 		{#if previewType === 'image'}
 			{#if mediaError}
-				<div class="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-					<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border bg-bg">
-						<File class="h-12 w-12 text-text-muted opacity-40" />
-					</div>
-					<p class="text-xs text-text-muted">Failed to load image</p>
-				</div>
+				<ErrorIcon label="Failed to load image" />
 			{:else}
-				<div class="flex flex-1 items-center justify-center p-4 bg-bg">
-					<img
-						src={fileUrl}
-						alt="Preview"
-						class="max-h-full max-w-full object-contain rounded-md"
-						onerror={handleMediaError}
+				{#if imageSiblings.length > 1}
+					<CompareToolbar
+						{selectedFile}
+						imageSiblings={imageSiblings}
+						{compareMode}
+						{compareTarget}
+						{setCompareMode}
+						{setCompareTarget}
 					/>
-				</div>
-			{/if}
-		{:else if previewType === 'video'}
-			{#if mediaError}
-				<div class="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-					<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border bg-bg">
-						<File class="h-12 w-12 text-text-muted opacity-40" />
+				{/if}
+
+				{#if compareMode === 'single' || imageSiblings.length < 2}
+					<div class="flex flex-1 items-center justify-center p-4 bg-bg">
+						<img
+							src={fileUrl}
+							alt="Preview"
+							class="max-h-full max-w-full object-contain rounded-md"
+							onerror={handleMediaError}
+						/>
 					</div>
-					<p class="text-xs text-text-muted">Failed to load video</p>
-				</div>
-			{:else}
-				<div class="flex flex-1 items-center justify-center p-4 bg-bg">
-					<!-- svelte-ignore a11y_media_has_caption -->
-					<video
-						src={fileUrl}
-						controls
-						class="max-h-full max-w-full rounded-md"
-						onerror={handleMediaError}
-						onloadedmetadata={setDefaultVolume}
-					></video>
-				</div>
-			{/if}
-		{:else if previewType === 'audio'}
-			{#if mediaError}
-				<div class="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-					<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border bg-bg">
-						<File class="h-12 w-12 text-text-muted opacity-40" />
-					</div>
-					<p class="text-xs text-text-muted">Failed to load audio</p>
-				</div>
-			{:else}
-				<div class="flex flex-1 flex-col items-center justify-center gap-4 p-6 bg-bg">
-					<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border">
-						<File class="h-12 w-12 text-text-muted opacity-40" />
-					</div>
-					<audio
-						src={fileUrl}
-						controls
-						class="w-full"
-						onerror={handleMediaError}
-						onloadedmetadata={setDefaultVolume}
-					></audio>
-				</div>
-			{/if}
-		{:else if previewType === 'text'}
-			{#if textLoading}
-				<div class="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-					<Loader2 class="h-6 w-6 animate-spin text-text-muted" />
-					<p class="text-xs text-text-muted">Loading text...</p>
-				</div>
-			{:else if textError}
-				<div class="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-					<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border bg-bg">
-						<File class="h-12 w-12 text-text-muted opacity-40" />
-					</div>
-					<p class="text-xs text-danger">{textError}</p>
-				</div>
-			{:else}
-				<div class="flex-1 overflow-auto p-4 bg-bg">
-					<pre class="text-xs font-mono text-text whitespace-pre-wrap break-all">{textContent}</pre>
-				</div>
+				{:else if compareMode === 'side-by-side'}
+					<SideBySideCompare
+						{fileUrl}
+						selectedFile={selectedFile}
+						selectedFileSize={selectedFileSize}
+						selectedFileDims={selectedFileDims}
+						compareUrl={compareUrl}
+						compareTarget={compareTarget ?? ''}
+						compareFileDims={compareFileDims}
+						onMediaError={handleMediaError}
+					/>
+				{:else if compareMode === 'swipe'}
+					<SwipeCompare
+						{fileUrl}
+						selectedFile={selectedFile}
+						selectedFileSize={selectedFileSize}
+						selectedFileDims={selectedFileDims}
+						compareUrl={compareUrl}
+						compareTarget={compareTarget ?? ''}
+						compareFileDims={compareFileDims}
+						swipePercent={swipePercent}
+						onSwipeDrag={startSwipeDrag}
+					/>
+				{:else if compareMode === 'onion'}
+					<OnionSkinCompare
+						{fileUrl}
+						selectedFile={selectedFile}
+						selectedFileSize={selectedFileSize}
+						selectedFileDims={selectedFileDims}
+						compareUrl={compareUrl}
+						compareTarget={compareTarget ?? ''}
+						compareFileDims={compareFileDims}
+						onionOpacity={onionOpacity}
+					/>
+				{/if}
 			{/if}
 		{:else}
-			<div class="flex flex-1 flex-col items-center justify-center gap-3 p-6">
-				<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border bg-bg">
-					<File class="h-12 w-12 text-text-muted opacity-40" />
-				</div>
-				<p class="text-xs text-text-muted">No preview available</p>
-			</div>
+			<MediaPreview
+				{previewType}
+				{fileUrl}
+				{mediaError}
+				{textContent}
+				{textLoading}
+				{textError}
+				onMediaError={handleMediaError}
+				onDefaultVolume={setDefaultVolume}
+			/>
 		{/if}
 
 		<div class="shrink-0 border-t border-border p-4 space-y-3">
