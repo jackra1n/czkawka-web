@@ -46,7 +46,7 @@ COPY --from=backend-builder /app/backend/target/release/backend /app/backend/bac
 COPY --from=frontend-builder /app/frontend/build /app/frontend/build
 
 ENV HOME=/data
-ENV RUST_LOG=warn
+ENV RUST_LOG=warn,backend=info
 VOLUME ["/data"]
 EXPOSE 3000
 
