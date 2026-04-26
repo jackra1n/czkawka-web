@@ -11,7 +11,8 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
         space_at_start_or_end: request.bad_name_spaces.unwrap_or(true),
         non_ascii_graphical: request.bad_name_non_ascii.unwrap_or(true),
         restricted_charset_allowed: if request.bad_name_restricted_charset.unwrap_or(false) {
-            let chars: Vec<char> = request.bad_name_allowed_chars
+            let chars: Vec<char> = request
+                .bad_name_allowed_chars
                 .as_deref()
                 .unwrap_or("_- .")
                 .chars()

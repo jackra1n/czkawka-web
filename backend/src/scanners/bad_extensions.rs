@@ -31,7 +31,11 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
         };
         let similarity = Some(format!(
             "{} -> {}",
-            if entry.current_extension.is_empty() { "(none)" } else { &entry.current_extension },
+            if entry.current_extension.is_empty() {
+                "(none)"
+            } else {
+                &entry.current_extension
+            },
             entry.proper_extension
         ));
         groups.push(FileGroup {

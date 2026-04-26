@@ -28,14 +28,7 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
         MusicSimilarity::NONE
     };
 
-    let params = SameMusicParameters::new(
-        music_similarity,
-        true,
-        check_type,
-        5.0,
-        5.0,
-        true,
-    );
+    let params = SameMusicParameters::new(music_similarity, true, check_type, 5.0, 5.0, true);
 
     let mut finder = SameMusic::new(params);
     configure_common_data(&mut finder, &request);
@@ -63,7 +56,11 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
                 None
             };
             let similarity = if !entry.track_title.is_empty() || !entry.track_artist.is_empty() {
-                Some(format!("{} - {}", entry.track_title, entry.track_artist).trim_end_matches(" - ").to_string())
+                Some(
+                    format!("{} - {}", entry.track_title, entry.track_artist)
+                        .trim_end_matches(" - ")
+                        .to_string(),
+                )
             } else {
                 None
             };

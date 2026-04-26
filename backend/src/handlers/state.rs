@@ -6,9 +6,7 @@ use axum::{
     http::StatusCode,
 };
 
-use crate::models::{
-    AppState, DefaultsResponse, UpdateDirectoriesRequest, UpdateToolStateRequest,
-};
+use crate::models::{AppState, DefaultsResponse, UpdateDirectoriesRequest, UpdateToolStateRequest};
 use crate::state;
 use czkawka_core::common::items::{DEFAULT_EXCLUDED_DIRECTORIES, DEFAULT_EXCLUDED_ITEMS};
 
@@ -19,7 +17,10 @@ pub async fn get_state(State(state): State<Arc<AppState>>) -> Json<state::AppPer
 
 pub async fn get_defaults() -> Json<DefaultsResponse> {
     Json(DefaultsResponse {
-        excluded_directories: DEFAULT_EXCLUDED_DIRECTORIES.iter().map(|s| s.to_string()).collect(),
+        excluded_directories: DEFAULT_EXCLUDED_DIRECTORIES
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
         excluded_items: DEFAULT_EXCLUDED_ITEMS.to_string(),
     })
 }

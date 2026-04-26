@@ -39,7 +39,9 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
 
     let hash_size = request.hash_size.unwrap_or(16);
     if ![8, 16, 32, 64].contains(&hash_size) {
-        return Err(format!("Invalid hash size: {hash_size}. Must be 8, 16, 32, or 64."));
+        return Err(format!(
+            "Invalid hash size: {hash_size}. Must be 8, 16, 32, or 64."
+        ));
     }
 
     let image_filter = request
@@ -89,10 +91,7 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
             } else {
                 None
             };
-            let similarity = Some(get_string_from_similarity(
-                entry.difference,
-                hash_size,
-            ));
+            let similarity = Some(get_string_from_similarity(entry.difference, hash_size));
             files.push(ScannedFile {
                 path,
                 modified_date,
@@ -101,9 +100,10 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
             });
         }
         total_files += files.len();
-        let group_size = files.first().map(|f| {
-            std::fs::metadata(&f.path).map(|m| m.len()).unwrap_or(0)
-        }).unwrap_or(0);
+        let group_size = files
+            .first()
+            .map(|f| std::fs::metadata(&f.path).map(|m| m.len()).unwrap_or(0))
+            .unwrap_or(0);
         groups.push(FileGroup {
             size: group_size,
             hash: String::new(),

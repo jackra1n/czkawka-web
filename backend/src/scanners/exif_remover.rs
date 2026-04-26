@@ -25,7 +25,10 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
             None
         };
         let tag_count = entry.exif_tags.len();
-        let similarity = Some(format!("{tag_count} tag{}", if tag_count == 1 { "" } else { "s" }));
+        let similarity = Some(format!(
+            "{tag_count} tag{}",
+            if tag_count == 1 { "" } else { "s" }
+        ));
         groups.push(FileGroup {
             size: entry.size,
             hash: String::new(),

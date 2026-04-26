@@ -8,9 +8,7 @@ use axum::{
 use tokio::task::spawn_blocking;
 use uuid::Uuid;
 
-use crate::models::{
-    AppState, ScanResponse, ScanState, ScanStatusResponse,
-};
+use crate::models::{AppState, ScanResponse, ScanState, ScanStatusResponse};
 use crate::scan::run_scan;
 use crate::state;
 

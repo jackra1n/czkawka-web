@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
 
@@ -22,7 +22,11 @@ pub mod temporary;
 
 pub fn configure_common_data<T: CommonData>(tool: &mut T, request: &ScanRequest) {
     let included: Vec<PathBuf> = request.directories.iter().map(PathBuf::from).collect();
-    let excluded: Vec<PathBuf> = request.exclude_directories.iter().map(PathBuf::from).collect();
+    let excluded: Vec<PathBuf> = request
+        .exclude_directories
+        .iter()
+        .map(PathBuf::from)
+        .collect();
 
     tool.set_included_paths(included);
     tool.set_excluded_paths(excluded);

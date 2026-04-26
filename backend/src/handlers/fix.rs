@@ -1,17 +1,13 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use axum::{
-    Json,
-    extract::State,
-    http::StatusCode,
-};
+use axum::{Json, extract::State, http::StatusCode};
 
-use czkawka_core::tools::bad_names::core::check_and_generate_new_name;
 use czkawka_core::tools::bad_names::NameIssues;
+use czkawka_core::tools::bad_names::core::check_and_generate_new_name;
 use czkawka_core::tools::exif_remover::core::{clean_exif_tags, extract_exif_tags_public};
 
-use crate::models::{AppState, FixRequest, FixResponse, FailedFix};
+use crate::models::{AppState, FailedFix, FixRequest, FixResponse};
 
 pub async fn fix_files(
     State(_state): State<Arc<AppState>>,
@@ -25,7 +21,10 @@ pub async fn fix_files(
             for path in &request.files {
                 match fix_exif(path) {
                     Ok(()) => fixed.push(path.clone()),
-                    Err(e) => failed.push(FailedFix { path: path.clone(), error: e }),
+                    Err(e) => failed.push(FailedFix {
+                        path: path.clone(),
+                        error: e,
+                    }),
                 }
             }
         }
@@ -35,8 +34,10 @@ pub async fn fix_files(
                 emoji_used: request.bad_name_emoji.unwrap_or(true),
                 space_at_start_or_end: request.bad_name_spaces.unwrap_or(true),
                 non_ascii_graphical: request.bad_name_non_ascii.unwrap_or(true),
-                restricted_charset_allowed: if request.bad_name_restricted_charset.unwrap_or(false) {
-                    let chars: Vec<char> = request.bad_name_allowed_chars
+                restricted_charset_allowed: if request.bad_name_restricted_charset.unwrap_or(false)
+                {
+                    let chars: Vec<char> = request
+                        .bad_name_allowed_chars
                         .as_deref()
                         .unwrap_or("_- .")
                         .chars()
@@ -45,12 +46,17 @@ pub async fn fix_files(
                 } else {
                     None
                 },
-                remove_duplicated_non_alphanumeric: request.bad_name_dedupe_non_alnum.unwrap_or(false),
+                remove_duplicated_non_alphanumeric: request
+                    .bad_name_dedupe_non_alnum
+                    .unwrap_or(false),
             };
             for path in &request.files {
                 match fix_bad_name(path, &checked_issues) {
                     Ok(()) => fixed.push(path.clone()),
-                    Err(e) => failed.push(FailedFix { path: path.clone(), error: e }),
+                    Err(e) => failed.push(FailedFix {
+                        path: path.clone(),
+                        error: e,
+                    }),
                 }
             }
         }
@@ -58,7 +64,10 @@ pub async fn fix_files(
             for path in &request.files {
                 match fix_bad_extension(path) {
                     Ok(()) => fixed.push(path.clone()),
-                    Err(e) => failed.push(FailedFix { path: path.clone(), error: e }),
+                    Err(e) => failed.push(FailedFix {
+                        path: path.clone(),
+                        error: e,
+                    }),
                 }
             }
         }
@@ -96,7 +105,10 @@ fn fix_bad_name(path: &str, checked_issues: &NameIssues) -> Result<(), String> {
         .ok_or_else(|| "No name change needed".to_string())?;
     let new_path = Path::new(path).with_file_name(&new_name);
     if new_path.exists() {
-        return Err(format!("Target file already exists: {}", new_path.display()));
+        return Err(format!(
+            "Target file already exists: {}",
+            new_path.display()
+        ));
     }
     std::fs::rename(path, &new_path).map_err(|e| format!("Rename failed: {e}"))?;
     Ok(())
@@ -107,13 +119,19 @@ fn fix_bad_extension(path: &str) -> Result<(), String> {
         .map_err(|e| format!("Failed to read file: {e}"))?
         .ok_or_else(|| "Could not infer file type".to_string())?;
     let proper_ext = kind.extension();
-    let current_ext = Path::new(path).extension().and_then(|e| e.to_str()).unwrap_or("");
+    let current_ext = Path::new(path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("");
     if current_ext.eq_ignore_ascii_case(proper_ext) {
         return Ok(());
     }
     let new_path = Path::new(path).with_extension(proper_ext);
     if new_path.exists() {
-        return Err(format!("Target file already exists: {}", new_path.display()));
+        return Err(format!(
+            "Target file already exists: {}",
+            new_path.display()
+        ));
     }
     std::fs::rename(path, &new_path).map_err(|e| format!("Rename failed: {e}"))?;
     Ok(())

@@ -1,12 +1,6 @@
-use axum::{
-    Json,
-    extract::Query,
-    http::StatusCode,
-};
+use axum::{Json, extract::Query, http::StatusCode};
 
-use crate::models::{
-    DirectoryEntry, DirectoryListingResponse, DirectoryQuery,
-};
+use crate::models::{DirectoryEntry, DirectoryListingResponse, DirectoryQuery};
 
 pub async fn list_directories(
     Query(query): Query<DirectoryQuery>,
