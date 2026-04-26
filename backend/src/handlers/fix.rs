@@ -85,7 +85,7 @@ fn fix_exif(path: &str) -> Result<(), String> {
     if tags.is_empty() {
         return Ok(());
     }
-    let tags_to_remove: Vec<(u16, String)> = tags.into_iter().map(|(code, group)| (code, group)).collect();
+    let tags_to_remove: Vec<(u16, String)> = tags.into_iter().collect();
     clean_exif_tags(path, &tags_to_remove, true)
         .map_err(|e| format!("Failed to clean EXIF: {e}"))?;
     Ok(())
