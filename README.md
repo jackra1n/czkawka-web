@@ -4,9 +4,6 @@ A lightning-fast, minimalist web frontend for the [Czkawka](https://github.com/q
 
 I built this because I wanted to run Czkawka on my server, but I needed a good UI and easy Docker deployment for it.
 
-> [!IMPORTANT]
-> This project is still in early development. Expect bugs, missing features, and breaking changes.
-
 ![Czkawka Web Preview](docs/images/czkawka-web_preview.webp)
 
 ## Tech Stack
@@ -41,6 +38,7 @@ docker run -d \
 ### Docker Compose
 
 ```bash
+mkdir -p data
 docker compose up -d
 ```
 
