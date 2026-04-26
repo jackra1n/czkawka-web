@@ -6,13 +6,11 @@ I built this because I wanted to run Czkawka on my server, but I needed a good U
 
 ![Czkawka Web Preview](docs/images/czkawka-web_preview.webp)
 
-## Tech Stack
-This project is built with an emphasis on zero bloat and high performance.
+## Features
 
-* **Backend:** [Rust](https://www.rust-lang.org/) + [Axum](https://github.com/tokio-rs/axum)
-* **Frontend:** [SvelteKit](https://kit.svelte.dev/)
-* [Bun](https://bun.sh/)
-* [Mise](https://mise.jdx.dev/)
+* **All Czkawka scans:** Supports every scan type that Czkawka offers.
+* **Image comparisons:** Side-by-side, swipe, and onion skin comparison modes.
+* **Docker deployment:** Easy deployment on headless servers via Docker.
 
 ## Docker
 
@@ -44,7 +42,15 @@ docker compose up -d
 
 The included `compose.yaml` maps port `3000` and creates a named volume for state persistence. Mount any directories you want to scan as additional volumes.
 
-### Development / Local Build
+## Tech Stack
+This project is built with an emphasis on zero bloat and high performance.
+
+* **Backend:** [Rust](https://www.rust-lang.org/) + [Axum](https://github.com/tokio-rs/axum)
+* **Frontend:** [SvelteKit](https://kit.svelte.dev/)
+* [Bun](https://bun.sh/)
+* [Mise](https://mise.jdx.dev/)
+
+## Development / Local Build
 
 If you want to build the image locally from source instead of using the pre-built one, use the development compose file:
 
