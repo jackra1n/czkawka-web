@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
-	import { api, type ScanResults as ScanResultsType, type AppState, type ToolConfig } from '$lib/api';
+	import {
+		api,
+		type ScanResults as ScanResultsType,
+		type AppState,
+		type ToolConfig
+	} from '$lib/api';
 	import DirectoryBrowserModal from '$lib/components/DirectoryBrowserModal.svelte';
 	import ToolSidebar from '$lib/components/ToolSidebar.svelte';
 	import ScanConfig from '$lib/components/ScanConfig.svelte';
@@ -33,7 +38,12 @@
 		'empty-files': {},
 		'empty-folders': {},
 		'big-files': { number_of_files: 50, search_mode: 'biggest' },
-		'similar-images': { hash_alg: 'Gradient', hash_size: 16, resize_filter: 'Lanczos3', similarity: 5 },
+		'similar-images': {
+			hash_alg: 'Gradient',
+			hash_size: 16,
+			resize_filter: 'Lanczos3',
+			similarity: 5
+		},
 		'similar-videos': { tolerance: 5, vid_hash_duration: 10, crop_detect: 'Letterbox' },
 		'same-music': { music_check_type: 'tags' },
 		'invalid-symlinks': {},
@@ -57,7 +67,7 @@
 
 	let selectedFileGroup = $derived(
 		selectedFile && scanResults
-			? scanResults.groups.find((g) => g.files.some((f) => f.path === selectedFile)) ?? null
+			? (scanResults.groups.find((g) => g.files.some((f) => f.path === selectedFile)) ?? null)
 			: null
 	);
 
@@ -66,18 +76,31 @@
 	let checkedTimeout: ReturnType<typeof setTimeout>;
 
 	const SINGLE_FILE_TOOLS = new Set([
-		'empty-folders', 'big-files', 'empty-files', 'temporary',
-		'invalid-symlinks', 'broken-files', 'bad-extensions', 'exif-remover', 'bad-names'
+		'empty-folders',
+		'big-files',
+		'empty-files',
+		'temporary',
+		'invalid-symlinks',
+		'broken-files',
+		'bad-extensions',
+		'exif-remover',
+		'bad-names'
 	]);
 
 	// ---- Effects ----
-	$effect(() => { loadState(); });
-	$effect(() => { saveUiState({ activeTool, selectedFile }); });
+	$effect(() => {
+		loadState();
+	});
+	$effect(() => {
+		saveUiState({ activeTool, selectedFile });
+	});
 	$effect(() => {
 		if (!stateLoaded) return;
 		clearTimeout(dirsTimeout);
 		dirsTimeout = setTimeout(() => {
-			api.updateDirectories([...includedDirs], [...excludedDirs], excludedItems).catch(console.error);
+			api
+				.updateDirectories([...includedDirs], [...excludedDirs], excludedItems)
+				.catch(console.error);
 		}, 500);
 		return () => clearTimeout(dirsTimeout);
 	});
@@ -116,14 +139,20 @@
 		scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
 		scanResults.total_groups = scanResults.groups.length;
 		scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
-		scanResults.wasted_bytes = scanResults.groups.reduce((sum, g) => sum + g.size * (g.files.length - 1), 0);
+		scanResults.wasted_bytes = scanResults.groups.reduce(
+			(sum, g) => sum + g.size * (g.files.length - 1),
+			0
+		);
 	}
 
 	function buildPayload(): Parameters<typeof api.startScan>[0] {
 		const cfg = toolConfigs[activeTool];
 		const base: Parameters<typeof api.startScan>[0] = {
 			directories: includedDirs.map((s) => s.trim()).filter(Boolean),
-			exclude_directories: excludedDirs.map((s) => s.trim()).filter(Boolean).length > 0 ? excludedDirs.map((s) => s.trim()).filter(Boolean) : undefined,
+			exclude_directories:
+				excludedDirs.map((s) => s.trim()).filter(Boolean).length > 0
+					? excludedDirs.map((s) => s.trim()).filter(Boolean)
+					: undefined,
 			excluded_items: excludedItems.trim() || undefined,
 			min_file_size: 8192,
 			tool_id: activeTool
@@ -133,9 +162,20 @@
 			case 'big-files':
 				return { ...base, number_of_files: cfg?.number_of_files, search_mode: cfg?.search_mode };
 			case 'similar-videos':
-				return { ...base, tolerance: cfg?.tolerance, vid_hash_duration: cfg?.vid_hash_duration, crop_detect: cfg?.crop_detect };
+				return {
+					...base,
+					tolerance: cfg?.tolerance,
+					vid_hash_duration: cfg?.vid_hash_duration,
+					crop_detect: cfg?.crop_detect
+				};
 			case 'similar-images':
-				return { ...base, hash_alg: cfg?.hash_alg, hash_size: cfg?.hash_size, resize_filter: cfg?.resize_filter, similarity: cfg?.similarity };
+				return {
+					...base,
+					hash_alg: cfg?.hash_alg,
+					hash_size: cfg?.hash_size,
+					resize_filter: cfg?.resize_filter,
+					similarity: cfg?.similarity
+				};
 			case 'same-music':
 				return { ...base, music_check_type: cfg?.music_check_type };
 			case 'broken-files':
@@ -372,7 +412,7 @@
 <div class="flex h-full w-full">
 	<ToolSidebar {activeTool} onChangeTool={switchTool} />
 
-	<div class="flex flex-1 flex-col min-h-0 overflow-hidden bg-bg">
+	<div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-bg">
 		<ScanConfig
 			bind:includedDirs
 			bind:excludedDirs
@@ -381,25 +421,30 @@
 			bind:toolConfig={toolConfigs[activeTool]}
 			{scanState}
 			{scanResults}
-			checkedFiles={checkedFiles}
+			{checkedFiles}
 			onStartScan={startScan}
 			onAddDir={openModal}
 			onDelete={handleDelete}
 			onFix={handleFix}
 		/>
 
-		<div class="flex flex-1 min-h-0 overflow-hidden">
+		<div class="flex min-h-0 flex-1 overflow-hidden">
 			<ScanResults
 				{scanState}
 				{scanError}
 				{scanResults}
 				onSelectFile={selectFile}
-				checkedFiles={checkedFiles}
+				{checkedFiles}
 				{activeTool}
 			/>
 
 			{#if selectedFile}
-				<FilePreview {selectedFile} {selectedFileSize} groupFiles={selectedFileGroup?.files ?? []} onClose={closePreview} />
+				<FilePreview
+					{selectedFile}
+					{selectedFileSize}
+					groupFiles={selectedFileGroup?.files ?? []}
+					onClose={closePreview}
+				/>
 			{/if}
 		</div>
 	</div>

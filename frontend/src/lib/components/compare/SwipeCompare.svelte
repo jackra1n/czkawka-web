@@ -25,35 +25,41 @@
 	} = $props();
 </script>
 
-<div class="flex flex-1 min-h-0 flex-col">
-	<div class="flex shrink-0 gap-2 px-2 pt-2 mb-2">
-		<div class="flex-1 min-w-0 truncate text-xs text-text-muted" title={selectedFile}>Selected: {selectedFile}</div>
-		<div class="flex-1 min-w-0 truncate text-xs text-text-muted text-right" title={compareTarget}>Compare: {compareTarget}</div>
+<div class="flex min-h-0 flex-1 flex-col">
+	<div class="mb-2 flex shrink-0 gap-2 px-2 pt-2">
+		<div class="min-w-0 flex-1 truncate text-xs text-text-muted" title={selectedFile}>
+			Selected: {selectedFile}
+		</div>
+		<div class="min-w-0 flex-1 truncate text-right text-xs text-text-muted" title={compareTarget}>
+			Compare: {compareTarget}
+		</div>
 	</div>
-	<div class="relative flex-1 min-h-0 bg-bg flex items-center justify-center">
+	<div class="relative flex min-h-0 flex-1 items-center justify-center bg-bg">
 		<img src={compareUrl} alt="Compare" class="max-h-full max-w-full object-contain" />
 		<div
-			class="absolute inset-0 flex items-center justify-center pointer-events-none"
+			class="pointer-events-none absolute inset-0 flex items-center justify-center"
 			style="clip-path: inset(0 {100 - swipePercent}% 0 0)"
 		>
 			<img src={fileUrl} alt="Selected" class="max-h-full max-w-full object-contain" />
 		</div>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="absolute top-0 bottom-0 w-0.5 bg-white/80 shadow cursor-ew-resize z-10"
+			class="absolute top-0 bottom-0 z-10 w-0.5 cursor-ew-resize bg-white/80 shadow"
 			style="left: {swipePercent}%"
 			onmousedown={onSwipeDrag}
 		>
-			<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white shadow flex items-center justify-center">
+			<div
+				class="absolute top-1/2 left-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow"
+			>
 				<MoveHorizontal class="h-3 w-3 text-text" />
 			</div>
 		</div>
 	</div>
-	<div class="flex shrink-0 gap-2 px-2 pb-2 mt-2">
-		<div class="flex-1 min-w-0 truncate text-xs text-text-muted">
+	<div class="mt-2 flex shrink-0 gap-2 px-2 pb-2">
+		<div class="min-w-0 flex-1 truncate text-xs text-text-muted">
 			{formatBytes(selectedFileSize)}{selectedFileDims ? ` • ${selectedFileDims}` : ''}
 		</div>
-		<div class="flex-1 min-w-0 truncate text-xs text-text-muted text-right">
+		<div class="min-w-0 flex-1 truncate text-right text-xs text-text-muted">
 			{formatBytes(selectedFileSize)}{compareFileDims ? ` • ${compareFileDims}` : ''}
 		</div>
 	</div>

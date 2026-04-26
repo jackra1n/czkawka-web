@@ -39,9 +39,7 @@
 	let swipePercent = $state(50);
 	let onionOpacity = $state(0.5);
 
-	let imageSiblings = $derived(
-		groupFiles.filter((f) => getPreviewType(f.path) === 'image')
-	);
+	let imageSiblings = $derived(groupFiles.filter((f) => getPreviewType(f.path) === 'image'));
 
 	let compareUrl = $derived(compareTarget ? getFileUrl(compareTarget) : '');
 
@@ -188,19 +186,24 @@
 	}
 </script>
 
-<aside class="relative flex shrink-0 flex-col border-l border-border bg-surface" style:width="{panelWidth}px">
+<aside
+	class="relative flex shrink-0 flex-col border-l border-border bg-surface"
+	style:width="{panelWidth}px"
+>
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
-		class="absolute left-0 top-0 bottom-0 w-4 cursor-col-resize z-20 flex items-center justify-center group"
+		class="group absolute top-0 bottom-0 left-0 z-20 flex w-4 cursor-col-resize items-center justify-center"
 		onmousedown={startResize}
 		role="separator"
 		aria-label="Resize preview panel"
 		aria-orientation="vertical"
 	>
-		<div class="h-10 w-1.5 rounded-full bg-border flex flex-col items-center justify-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-			<div class="w-px h-1 bg-text-muted rounded-full"></div>
-			<div class="w-px h-1 bg-text-muted rounded-full"></div>
-			<div class="w-px h-1 bg-text-muted rounded-full"></div>
+		<div
+			class="flex h-10 w-1.5 flex-col items-center justify-center gap-0.5 rounded-full bg-border opacity-60 transition-opacity group-hover:opacity-100"
+		>
+			<div class="h-1 w-px rounded-full bg-text-muted"></div>
+			<div class="h-1 w-px rounded-full bg-text-muted"></div>
+			<div class="h-1 w-px rounded-full bg-text-muted"></div>
 		</div>
 	</div>
 
@@ -214,7 +217,7 @@
 		</button>
 	</div>
 
-	<div class="flex flex-1 flex-col min-h-0">
+	<div class="flex min-h-0 flex-1 flex-col">
 		{#if previewType === 'image'}
 			{#if mediaError}
 				<ErrorIcon label="Failed to load image" />
@@ -222,7 +225,7 @@
 				{#if imageSiblings.length > 1}
 					<CompareToolbar
 						{selectedFile}
-						imageSiblings={imageSiblings}
+						{imageSiblings}
 						{compareMode}
 						{compareTarget}
 						{setCompareMode}
@@ -231,47 +234,47 @@
 				{/if}
 
 				{#if compareMode === 'single' || imageSiblings.length < 2}
-					<div class="flex flex-1 items-center justify-center p-4 bg-bg">
+					<div class="flex flex-1 items-center justify-center bg-bg p-4">
 						<img
 							src={fileUrl}
 							alt="Preview"
-							class="max-h-full max-w-full object-contain rounded-md"
+							class="max-h-full max-w-full rounded-md object-contain"
 							onerror={handleMediaError}
 						/>
 					</div>
 				{:else if compareMode === 'side-by-side'}
 					<SideBySideCompare
 						{fileUrl}
-						selectedFile={selectedFile}
-						selectedFileSize={selectedFileSize}
-						selectedFileDims={selectedFileDims}
-						compareUrl={compareUrl}
+						{selectedFile}
+						{selectedFileSize}
+						{selectedFileDims}
+						{compareUrl}
 						compareTarget={compareTarget ?? ''}
-						compareFileDims={compareFileDims}
+						{compareFileDims}
 						onMediaError={handleMediaError}
 					/>
 				{:else if compareMode === 'swipe'}
 					<SwipeCompare
 						{fileUrl}
-						selectedFile={selectedFile}
-						selectedFileSize={selectedFileSize}
-						selectedFileDims={selectedFileDims}
-						compareUrl={compareUrl}
+						{selectedFile}
+						{selectedFileSize}
+						{selectedFileDims}
+						{compareUrl}
 						compareTarget={compareTarget ?? ''}
-						compareFileDims={compareFileDims}
-						swipePercent={swipePercent}
+						{compareFileDims}
+						{swipePercent}
 						onSwipeDrag={startSwipeDrag}
 					/>
 				{:else if compareMode === 'onion'}
 					<OnionSkinCompare
 						{fileUrl}
-						selectedFile={selectedFile}
-						selectedFileSize={selectedFileSize}
-						selectedFileDims={selectedFileDims}
-						compareUrl={compareUrl}
+						{selectedFile}
+						{selectedFileSize}
+						{selectedFileDims}
+						{compareUrl}
 						compareTarget={compareTarget ?? ''}
-						compareFileDims={compareFileDims}
-						onionOpacity={onionOpacity}
+						{compareFileDims}
+						{onionOpacity}
 					/>
 				{/if}
 			{/if}
@@ -288,10 +291,10 @@
 			/>
 		{/if}
 
-		<div class="shrink-0 border-t border-border p-4 space-y-3">
+		<div class="shrink-0 space-y-3 border-t border-border p-4">
 			<div>
 				<p class="mb-1 text-xs font-medium text-text-muted">Path</p>
-				<p class="break-all text-xs font-mono leading-relaxed text-text">{selectedFile}</p>
+				<p class="font-mono text-xs leading-relaxed break-all text-text">{selectedFile}</p>
 			</div>
 			<div>
 				<p class="mb-1 text-xs font-medium text-text-muted">Size</p>

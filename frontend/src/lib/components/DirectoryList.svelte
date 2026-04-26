@@ -28,9 +28,13 @@
 			Add
 		</button>
 	</div>
-	<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
+	<div
+		class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5"
+	>
 		{#if dirs.length === 0}
-			<div class="flex items-center justify-center py-2 text-sm text-text-muted">No directories added</div>
+			<div class="flex items-center justify-center py-2 text-sm text-text-muted">
+				No directories added
+			</div>
 		{:else}
 			{#each dirs as dir, i (i)}
 				<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">

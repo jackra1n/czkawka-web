@@ -27,7 +27,7 @@
 	{#if mediaError}
 		<ErrorIcon label="Failed to load video" />
 	{:else}
-		<div class="flex flex-1 items-center justify-center p-4 bg-bg">
+		<div class="flex flex-1 items-center justify-center bg-bg p-4">
 			<!-- svelte-ignore a11y_media_has_caption -->
 			<video
 				src={fileUrl}
@@ -42,7 +42,7 @@
 	{#if mediaError}
 		<ErrorIcon label="Failed to load audio" />
 	{:else}
-		<div class="flex flex-1 flex-col items-center justify-center gap-4 p-6 bg-bg">
+		<div class="flex flex-1 flex-col items-center justify-center gap-4 bg-bg p-6">
 			<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border">
 				<File class="h-12 w-12 text-text-muted opacity-40" />
 			</div>
@@ -64,8 +64,8 @@
 	{:else if textError}
 		<ErrorIcon label={textError} isDanger={true} />
 	{:else}
-		<div class="flex-1 overflow-auto p-4 bg-bg">
-			<pre class="text-xs font-mono text-text whitespace-pre-wrap break-all">{textContent}</pre>
+		<div class="flex-1 overflow-auto bg-bg p-4">
+			<pre class="font-mono text-xs break-all whitespace-pre-wrap text-text">{textContent}</pre>
 		</div>
 	{/if}
 {:else}

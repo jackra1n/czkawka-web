@@ -28,12 +28,8 @@
 	const showFixButton = $derived(
 		activeTool === 'exif-remover' || activeTool === 'bad-names' || activeTool === 'bad-extensions'
 	);
-	const fixLabel = $derived(
-		activeTool === 'exif-remover' ? 'Clean' : 'Rename'
-	);
-	const FixIcon = $derived(
-		activeTool === 'exif-remover' ? Sparkles : Pencil
-	);
+	const fixLabel = $derived(activeTool === 'exif-remover' ? 'Clean' : 'Rename');
+	const FixIcon = $derived(activeTool === 'exif-remover' ? Sparkles : Pencil);
 	const fixConfirmTitle = $derived(
 		activeTool === 'exif-remover' ? 'Clean EXIF Data' : 'Rename Files'
 	);
@@ -171,9 +167,7 @@
 		closeDropdown();
 	}
 
-	type SelectOption =
-		| { type: 'item'; label: string; action: () => void }
-		| { type: 'separator' };
+	type SelectOption = { type: 'item'; label: string; action: () => void } | { type: 'separator' };
 
 	const selectOptions: SelectOption[] = [
 		{ type: 'item', label: 'Select all', action: selectAll },
@@ -194,13 +188,15 @@
 			type="button"
 			onclick={() => (selectOpen = !selectOpen)}
 			disabled={!hasResults}
-			class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
+			class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			Select
 			<ChevronDown class="h-4 w-4 text-text-muted" />
 		</button>
 		{#if selectOpen}
-			<div class="absolute right-0 mt-1 w-60 overflow-hidden rounded-md border border-border bg-surface shadow-lg z-20">
+			<div
+				class="absolute right-0 z-20 mt-1 w-60 overflow-hidden rounded-md border border-border bg-surface shadow-lg"
+			>
 				{#each selectOptions as option, i (option.type === 'separator' ? `sep-${i}` : option.label)}
 					{#if option.type === 'separator'}
 						<div class="my-1 h-px bg-border"></div>
@@ -223,7 +219,7 @@
 			type="button"
 			onclick={() => (showFixConfirm = true)}
 			disabled={!hasChecked}
-			class="inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+			class="inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			<FixIcon class="h-4 w-4" />
 			{fixLabel}
@@ -234,7 +230,7 @@
 		type="button"
 		onclick={() => (showDeleteConfirm = true)}
 		disabled={!hasChecked}
-		class="inline-flex items-center gap-1.5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/20 disabled:opacity-50 disabled:cursor-not-allowed"
+		class="inline-flex items-center gap-1.5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-50"
 	>
 		<Trash2 class="h-4 w-4" />
 		Delete

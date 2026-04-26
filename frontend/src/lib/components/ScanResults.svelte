@@ -31,33 +31,33 @@
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'empty-files': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'filename', label: 'Filename', width: 300, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 400, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'empty-folders': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'filename', label: 'Folder', width: 300, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 400, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'big-files': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		temporary: [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'similar-images': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -66,7 +66,7 @@
 			{ key: 'similarity', label: 'Similarity', width: 100, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'similar-videos': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -75,7 +75,7 @@
 			{ key: 'similarity', label: 'Duration', width: 100, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'same-music': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -83,7 +83,7 @@
 			{ key: 'similarity', label: 'Track', width: 180, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'invalid-symlinks': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -91,7 +91,7 @@
 			{ key: 'similarity', label: 'Destination', width: 240, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'broken-files': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -99,7 +99,7 @@
 			{ key: 'similarity', label: 'Error', width: 240, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'bad-extensions': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -107,7 +107,7 @@
 			{ key: 'similarity', label: 'Extension', width: 200, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'exif-remover': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -115,7 +115,7 @@
 			{ key: 'similarity', label: 'EXIF Tags', width: 120, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 220, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
 		],
 		'bad-names': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -123,8 +123,8 @@
 			{ key: 'similarity', label: 'New Name', width: 220, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
-		],
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+		]
 	};
 
 	let colDefs = $derived(TOOL_COLS[activeTool] ?? TOOL_COLS.duplicates);
@@ -135,14 +135,21 @@
 		selectedIndex = -1;
 	});
 
-	type ListItem =
-		| { type: 'file'; file: ScannedFile; size: number }
-		| { type: 'separator' };
+	type ListItem = { type: 'file'; file: ScannedFile; size: number } | { type: 'separator' };
 
 	function buildListItems(results: ScanResults | null): ListItem[] {
 		if (!results) return [];
 		const items: ListItem[] = [];
-		const showSeparators = activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names';
+		const showSeparators =
+			activeTool !== 'empty-folders' &&
+			activeTool !== 'big-files' &&
+			activeTool !== 'empty-files' &&
+			activeTool !== 'temporary' &&
+			activeTool !== 'invalid-symlinks' &&
+			activeTool !== 'broken-files' &&
+			activeTool !== 'bad-extensions' &&
+			activeTool !== 'exif-remover' &&
+			activeTool !== 'bad-names';
 		for (let gi = 0; gi < results.groups.length; gi++) {
 			const group = results.groups[gi];
 			for (const file of group.files) {
@@ -255,12 +262,24 @@
 		'empty-files': { scanning: 'Scanning for empty files…', empty: 'No empty files found.' },
 		'empty-folders': { scanning: 'Scanning for empty folders…', empty: 'No empty folders found.' },
 		'big-files': { scanning: 'Scanning for big files…', empty: 'No big files found.' },
-		'similar-images': { scanning: 'Scanning for similar images…', empty: 'No similar images found.' },
-		'similar-videos': { scanning: 'Scanning for similar videos…', empty: 'No similar videos found.' },
+		'similar-images': {
+			scanning: 'Scanning for similar images…',
+			empty: 'No similar images found.'
+		},
+		'similar-videos': {
+			scanning: 'Scanning for similar videos…',
+			empty: 'No similar videos found.'
+		},
 		'same-music': { scanning: 'Scanning for same music…', empty: 'No same music found.' },
-		'invalid-symlinks': { scanning: 'Scanning for invalid symlinks…', empty: 'No invalid symlinks found.' },
+		'invalid-symlinks': {
+			scanning: 'Scanning for invalid symlinks…',
+			empty: 'No invalid symlinks found.'
+		},
 		'broken-files': { scanning: 'Scanning for broken files…', empty: 'No broken files found.' },
-		'bad-extensions': { scanning: 'Scanning for bad extensions…', empty: 'No bad extensions found.' },
+		'bad-extensions': {
+			scanning: 'Scanning for bad extensions…',
+			empty: 'No bad extensions found.'
+		},
 		'exif-remover': { scanning: 'Scanning for EXIF data…', empty: 'No files with EXIF found.' },
 		'bad-names': { scanning: 'Scanning for bad names…', empty: 'No bad names found.' },
 		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' }
@@ -271,7 +290,7 @@
 
 <div
 	bind:this={containerEl}
-	class="flex flex-1 flex-col min-h-0 overflow-auto outline-none"
+	class="flex min-h-0 flex-1 flex-col overflow-auto outline-none"
 	tabindex="0"
 	role="listbox"
 	aria-label="Scan results"
@@ -290,7 +309,7 @@
 	{:else if scanState === 'error'}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 p-8">
 			<div
-				class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger max-w-md w-full text-center"
+				class="w-full max-w-md rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-center text-sm text-danger"
 			>
 				{scanError}
 			</div>
@@ -301,9 +320,14 @@
 			<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
 			<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
 			{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names'}
-				<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span>
+				<span
+					>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span
+				>
 			{/if}
-			<span>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong></span>
+			<span
+				>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong
+				></span
+			>
 		</div>
 
 		{#if scanResults.groups.length === 0}
@@ -312,9 +336,9 @@
 			</div>
 		{:else}
 			<!-- Table -->
-			<div class="flex flex-col min-w-full">
+			<div class="flex min-w-full flex-col">
 				<div
-					class="grid gap-3 border-b border-border px-4 py-2 text-xs font-medium text-text-muted uppercase tracking-wider"
+					class="grid gap-3 border-b border-border px-4 py-2 text-xs font-medium tracking-wider text-text-muted uppercase"
 					style="grid-template-columns: {gridCols()};"
 				>
 					{#each colDefs as col, ci (col.key)}
@@ -322,7 +346,7 @@
 							{col.label}
 							{#if ci < colDefs.length - 1}
 								<div
-									class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize z-10 hover:bg-accent/20"
+									class="absolute top-0 right-0 bottom-0 z-10 w-2 cursor-col-resize hover:bg-accent/20"
 									role="button"
 									tabindex="-1"
 									aria-label="Resize column"
@@ -334,20 +358,23 @@
 				</div>
 				{#each listItems as item, i (item.type === 'file' ? item.file.path : `sep-${i}`)}
 					{#if item.type === 'separator'}
-					<div
-						id="scan-item-{i}"
-						class="h-4 cursor-default {selectedIndex === i ? 'bg-surface-raised/30' : ''}"
-						role="option"
-						tabindex="-1"
-						aria-selected={selectedIndex === i}
-						onclick={() => handleSelect(i)}
-						onkeydown={() => {}}
-					></div>
+						<div
+							id="scan-item-{i}"
+							class="h-4 cursor-default {selectedIndex === i ? 'bg-surface-raised/30' : ''}"
+							role="option"
+							tabindex="-1"
+							aria-selected={selectedIndex === i}
+							onclick={() => handleSelect(i)}
+							onkeydown={() => {}}
+						></div>
 					{:else}
 						{@const { name, dir } = splitPath(item.file.path)}
 						<div
 							id="scan-item-{i}"
-							class="grid gap-3 px-4 py-2 text-sm cursor-pointer transition-colors {selectedIndex === i ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'}"
+							class="grid cursor-pointer gap-3 px-4 py-2 text-sm transition-colors {selectedIndex ===
+							i
+								? 'bg-surface-raised'
+								: 'hover:bg-surface-raised/50'}"
 							style="grid-template-columns: {gridCols()};"
 							role="option"
 							tabindex="-1"
@@ -369,17 +396,26 @@
 										/>
 									</div>
 								{:else if col.key === 'size'}
-									<div class="flex items-center text-text font-medium">{formatBytes(item.size)}</div>
+									<div class="flex items-center font-medium text-text">
+										{formatBytes(item.size)}
+									</div>
 								{:else if col.key === 'dimensions'}
-									<div class="flex items-center text-text font-medium">{item.file.dimensions ?? ''}</div>
+									<div class="flex items-center font-medium text-text">
+										{item.file.dimensions ?? ''}
+									</div>
 								{:else if col.key === 'similarity'}
-									<div class="flex items-center text-text font-medium">{item.file.similarity ?? ''}</div>
+									<div class="flex items-center font-medium text-text">
+										{item.file.similarity ?? ''}
+									</div>
 								{:else if col.key === 'filename'}
-									<div class="flex items-center min-w-0" title={name}>
+									<div class="flex min-w-0 items-center" title={name}>
 										<span class="truncate text-text">{name}</span>
 									</div>
 								{:else if col.key === 'path'}
-									<div class="flex items-center min-w-0 font-mono text-xs text-text-muted" title={dir}>
+									<div
+										class="flex min-w-0 items-center font-mono text-xs text-text-muted"
+										title={dir}
+									>
 										<span class="truncate">{dir}</span>
 									</div>
 								{:else if col.key === 'modified'}

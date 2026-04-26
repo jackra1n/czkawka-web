@@ -161,7 +161,15 @@ export interface BadNamesConfig {
 	bad_name_dedupe_non_alnum: boolean;
 }
 
-export type ToolConfig = Partial<BigFilesConfig & SimilarVideosConfig & SimilarImagesConfig & SameMusicConfig & BrokenFilesConfig & BadExtensionsConfig & BadNamesConfig>;
+export type ToolConfig = Partial<
+	BigFilesConfig &
+		SimilarVideosConfig &
+		SimilarImagesConfig &
+		SameMusicConfig &
+		BrokenFilesConfig &
+		BadExtensionsConfig &
+		BadNamesConfig
+>;
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetch(`${API_BASE}${url}`, {

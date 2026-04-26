@@ -32,7 +32,8 @@
 		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera, disabled: false }
 	];
 
-	let { activeTool, onChangeTool }: { activeTool: string; onChangeTool: (toolId: string) => void } = $props();
+	let { activeTool, onChangeTool }: { activeTool: string; onChangeTool: (toolId: string) => void } =
+		$props();
 </script>
 
 <aside class="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface">

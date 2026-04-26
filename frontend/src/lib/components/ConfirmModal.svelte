@@ -23,7 +23,9 @@
 {#if open}
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-		onclick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+		onclick={(e) => {
+			if (e.target === e.currentTarget) onCancel();
+		}}
 		role="presentation"
 	>
 		<div
@@ -33,7 +35,7 @@
 			tabindex="-1"
 		>
 			<h3 class="mb-2 text-lg font-semibold text-text">{title}</h3>
-			<p class="mb-6 text-sm text-text-muted leading-relaxed">{message}</p>
+			<p class="mb-6 text-sm leading-relaxed text-text-muted">{message}</p>
 			<div class="flex justify-end gap-3">
 				<button
 					type="button"

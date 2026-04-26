@@ -25,18 +25,47 @@
 	let rightImgWidth = $state(0);
 </script>
 
-<div class="flex flex-1 min-h-0 gap-2 p-2 bg-bg items-center justify-center">
-	<div class="flex flex-col items-center max-h-full">
-		<div class="text-xs text-text-muted mb-1 break-all text-center leading-tight" style:max-width="{leftImgWidth || undefined}px" title={selectedFile}>{selectedFile}</div>
-		<img bind:clientWidth={leftImgWidth} src={fileUrl} alt="Selected" class="max-h-full max-w-full object-contain rounded-md" onerror={onMediaError} />
-		<div class="text-xs text-text-muted mt-1 break-all text-center leading-tight" style:max-width="{leftImgWidth || undefined}px">
+<div class="flex min-h-0 flex-1 items-center justify-center gap-2 bg-bg p-2">
+	<div class="flex max-h-full flex-col items-center">
+		<div
+			class="mb-1 text-center text-xs leading-tight break-all text-text-muted"
+			style:max-width="{leftImgWidth || undefined}px"
+			title={selectedFile}
+		>
+			{selectedFile}
+		</div>
+		<img
+			bind:clientWidth={leftImgWidth}
+			src={fileUrl}
+			alt="Selected"
+			class="max-h-full max-w-full rounded-md object-contain"
+			onerror={onMediaError}
+		/>
+		<div
+			class="mt-1 text-center text-xs leading-tight break-all text-text-muted"
+			style:max-width="{leftImgWidth || undefined}px"
+		>
 			{formatBytes(selectedFileSize)}{selectedFileDims ? ` • ${selectedFileDims}` : ''}
 		</div>
 	</div>
-	<div class="flex flex-col items-center max-h-full">
-		<div class="text-xs text-text-muted mb-1 break-all text-center leading-tight" style:max-width="{rightImgWidth || undefined}px" title={compareTarget}>{compareTarget}</div>
-		<img bind:clientWidth={rightImgWidth} src={compareUrl} alt="Compare" class="max-h-full max-w-full object-contain rounded-md" />
-		<div class="text-xs text-text-muted mt-1 break-all text-center leading-tight" style:max-width="{rightImgWidth || undefined}px">
+	<div class="flex max-h-full flex-col items-center">
+		<div
+			class="mb-1 text-center text-xs leading-tight break-all text-text-muted"
+			style:max-width="{rightImgWidth || undefined}px"
+			title={compareTarget}
+		>
+			{compareTarget}
+		</div>
+		<img
+			bind:clientWidth={rightImgWidth}
+			src={compareUrl}
+			alt="Compare"
+			class="max-h-full max-w-full rounded-md object-contain"
+		/>
+		<div
+			class="mt-1 text-center text-xs leading-tight break-all text-text-muted"
+			style:max-width="{rightImgWidth || undefined}px"
+		>
 			{formatBytes(selectedFileSize)}{compareFileDims ? ` • ${compareFileDims}` : ''}
 		</div>
 	</div>
