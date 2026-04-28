@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { Search } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { ScanResults, ScannedFile } from '$lib/api';
+	import type { ScanResults, ScannedFile, ScanProgress } from '$lib/api';
 	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
 
 	let {
 		scanState,
 		scanError,
 		scanResults,
+		scanProgress,
 		onSelectFile,
 		checkedFiles,
 		activeTool
@@ -15,6 +16,7 @@
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		scanError: string;
 		scanResults: ScanResults | null;
+		scanProgress: ScanProgress | null;
 		onSelectFile: (file: string | null, size: number) => void;
 		checkedFiles: SvelteSet<string>;
 		activeTool: string;
@@ -286,6 +288,26 @@
 	};
 	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');
 	let emptyText = $derived(SCAN_TEXTS[activeTool]?.empty ?? 'Nothing found.');
+
+	function progressPercent(p: ScanProgress): number {
+		if (p.entries_to_check > 0) {
+			return Math.min(99, Math.round((p.entries_checked / p.entries_to_check) * 100));
+		}
+		if (p.max_stage_idx > 0) {
+			return Math.min(99, Math.round((p.current_stage_idx / (p.max_stage_idx + 1)) * 100));
+		}
+		return 0;
+	}
+
+	function progressDetail(p: ScanProgress): string {
+		if (p.entries_to_check > 0) {
+			return `${p.entries_checked.toLocaleString()} / ${p.entries_to_check.toLocaleString()}`;
+		}
+		if (p.entries_checked > 0) {
+			return `${p.entries_checked.toLocaleString()} found`;
+		}
+		return '';
+	}
 </script>
 
 <div
@@ -302,9 +324,32 @@
 			<p class="text-sm">Enter directories and click Search to begin</p>
 		</div>
 	{:else if scanState === 'running'}
-		<div class="flex flex-1 flex-col items-center justify-center gap-4">
-			<div class="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent"></div>
-			<p class="text-sm text-text-muted">{scanningText}</p>
+		<div class="flex flex-1 flex-col items-center justify-center gap-4 px-8">
+			{#if scanProgress}
+				<div class="w-full max-w-md space-y-3">
+					<div class="flex items-center justify-between text-sm">
+						<span class="text-text">{scanProgress.stage_label}</span>
+						{#if scanProgress.max_stage_idx > 0}
+							<span class="text-xs text-text-muted">
+								Stage {scanProgress.current_stage_idx + 1} / {scanProgress.max_stage_idx + 1}
+							</span>
+						{/if}
+					</div>
+					<div class="h-2 w-full overflow-hidden rounded-full bg-surface-raised">
+						<div
+							class="h-full rounded-full bg-accent transition-all duration-300 ease-out"
+							style="width: {progressPercent(scanProgress)}%"
+						></div>
+					</div>
+					<div class="flex items-center justify-between text-xs text-text-muted">
+						<span>{progressDetail(scanProgress)}</span>
+						<span>{progressPercent(scanProgress)}%</span>
+					</div>
+				</div>
+			{:else}
+				<div class="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent"></div>
+				<p class="text-sm text-text-muted">{scanningText}</p>
+			{/if}
 		</div>
 	{:else if scanState === 'error'}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 p-8">
