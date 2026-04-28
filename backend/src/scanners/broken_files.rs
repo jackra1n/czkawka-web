@@ -1,10 +1,12 @@
+use crossbeam_channel::Sender;
+use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::tools::broken_files::{BrokenFiles, BrokenFilesParameters, CheckedTypes};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
+pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
     let mut checked_types = CheckedTypes::NONE;
 
     if let Some(ref types) = request.broken_file_types {
@@ -34,7 +36,7 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
     configure_common_data(&mut finder, &request);
 
     let stop_flag = make_stop_flag();
-    finder.search(&stop_flag, None);
+    finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();
     let broken_files = finder.get_broken_files();

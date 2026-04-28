@@ -1,3 +1,5 @@
+use crossbeam_channel::Sender;
+use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::tool_data::CommonData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::tools::bad_extensions::{BadExtensions, BadExtensionsParameters};
@@ -5,7 +7,7 @@ use czkawka_core::tools::bad_extensions::{BadExtensions, BadExtensionsParameters
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
+pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
     let params = BadExtensionsParameters {
         include_files_without_extension: request.include_files_without_extension.unwrap_or(false),
     };
@@ -14,7 +16,7 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
     configure_common_data(&mut finder, &request);
 
     let stop_flag = make_stop_flag();
-    finder.search(&stop_flag, None);
+    finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();
     let bad_files = finder.get_bad_extensions_files();

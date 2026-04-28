@@ -1,3 +1,5 @@
+use crossbeam_channel::Sender;
+use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::re_exported::{FilterType, HashAlg};
 use czkawka_core::tools::similar_images::core::get_string_from_similarity;
@@ -29,7 +31,7 @@ fn parse_filter_type(s: &str) -> Result<FilterType, String> {
     }
 }
 
-pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
+pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
     let hash_alg = request
         .hash_alg
         .as_deref()
@@ -66,7 +68,7 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
     configure_common_data(&mut finder, &request);
 
     let stop_flag = make_stop_flag();
-    finder.search(&stop_flag, None);
+    finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();
     let similar_vectors = finder.get_similar_images();

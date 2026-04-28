@@ -1,3 +1,5 @@
+use crossbeam_channel::Sender;
+use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::tool_data::CommonData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::tools::big_file::{BigFile, BigFileParameters, SearchMode};
@@ -5,7 +7,7 @@ use czkawka_core::tools::big_file::{BigFile, BigFileParameters, SearchMode};
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
+pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
     let number_of_files = request.number_of_files.unwrap_or(50).max(1) as usize;
     let search_mode = match request.search_mode.as_deref() {
         Some("smallest") => SearchMode::SmallestFiles,
@@ -17,7 +19,7 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
     configure_common_data(&mut finder, &request);
 
     let stop_flag = make_stop_flag();
-    finder.search(&stop_flag, None);
+    finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();
     let big_files = finder.get_big_files();

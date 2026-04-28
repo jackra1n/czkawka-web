@@ -1,11 +1,13 @@
+use crossbeam_channel::Sender;
 use czkawka_core::common::model::{CheckingMethod, HashType};
+use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::tools::duplicate::{DuplicateFinder, DuplicateFinderParameters};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
+pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
     let params = DuplicateFinderParameters::new(
         CheckingMethod::Hash,
         HashType::Blake3,
@@ -19,7 +21,7 @@ pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
     configure_common_data(&mut finder, &request);
 
     let stop_flag = make_stop_flag();
-    finder.search(&stop_flag, None);
+    finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();
     let groups = finder.get_files_sorted_by_hash();

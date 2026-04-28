@@ -1,15 +1,17 @@
+use crossbeam_channel::Sender;
+use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::tools::empty_files::EmptyFiles;
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest) -> Result<ScanResults, String> {
+pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
     let mut finder = EmptyFiles::new();
     configure_common_data(&mut finder, &request);
 
     let stop_flag = make_stop_flag();
-    finder.search(&stop_flag, None);
+    finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();
     let empty_list = finder.get_empty_files();
