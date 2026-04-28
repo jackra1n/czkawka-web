@@ -6,7 +6,10 @@ use czkawka_core::tools::bad_names::{BadNames, BadNamesParameters, NameIssues};
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
+pub fn run(
+    request: ScanRequest,
+    progress_sender: &Sender<ProgressData>,
+) -> Result<ScanResults, String> {
     let checked_issues = NameIssues {
         uppercase_extension: request.bad_name_uppercase_extension.unwrap_or(true),
         emoji_used: request.bad_name_emoji.unwrap_or(true),

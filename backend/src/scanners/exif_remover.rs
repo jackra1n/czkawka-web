@@ -6,7 +6,10 @@ use czkawka_core::tools::exif_remover::ExifRemover;
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
+pub fn run(
+    request: ScanRequest,
+    progress_sender: &Sender<ProgressData>,
+) -> Result<ScanResults, String> {
     let mut finder = ExifRemover::new(Default::default());
     configure_common_data(&mut finder, &request);
 

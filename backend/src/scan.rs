@@ -4,7 +4,10 @@ use czkawka_core::common::progress_data::ProgressData;
 use crate::models::{ScanRequest, ScanResults, SharedProgress};
 use crate::scanners::spawn_progress_reader;
 
-pub fn run_scan(request: ScanRequest, shared_progress: SharedProgress) -> Result<ScanResults, String> {
+pub fn run_scan(
+    request: ScanRequest,
+    shared_progress: SharedProgress,
+) -> Result<ScanResults, String> {
     let (sender, receiver) = unbounded::<ProgressData>();
 
     let reader_handle = spawn_progress_reader(receiver, shared_progress);

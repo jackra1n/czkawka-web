@@ -31,7 +31,10 @@ fn parse_filter_type(s: &str) -> Result<FilterType, String> {
     }
 }
 
-pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
+pub fn run(
+    request: ScanRequest,
+    progress_sender: &Sender<ProgressData>,
+) -> Result<ScanResults, String> {
     let hash_alg = request
         .hash_alg
         .as_deref()

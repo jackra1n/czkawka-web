@@ -7,7 +7,10 @@ use czkawka_core::tools::same_music::{MusicSimilarity, SameMusic, SameMusicParam
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
+pub fn run(
+    request: ScanRequest,
+    progress_sender: &Sender<ProgressData>,
+) -> Result<ScanResults, String> {
     let check_type = request
         .music_check_type
         .as_deref()

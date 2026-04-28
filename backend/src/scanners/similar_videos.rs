@@ -8,7 +8,10 @@ use czkawka_core::tools::similar_videos::{
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
+pub fn run(
+    request: ScanRequest,
+    progress_sender: &Sender<ProgressData>,
+) -> Result<ScanResults, String> {
     let tolerance = request.tolerance.unwrap_or(5).clamp(0, 20);
     let duration = request.vid_hash_duration.unwrap_or(10).clamp(2, 60);
     let crop_detect = request

@@ -7,7 +7,10 @@ use czkawka_core::tools::bad_extensions::{BadExtensions, BadExtensionsParameters
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::{configure_common_data, make_stop_flag};
 
-pub fn run(request: ScanRequest, progress_sender: &Sender<ProgressData>) -> Result<ScanResults, String> {
+pub fn run(
+    request: ScanRequest,
+    progress_sender: &Sender<ProgressData>,
+) -> Result<ScanResults, String> {
     let params = BadExtensionsParameters {
         include_files_without_extension: request.include_files_without_extension.unwrap_or(false),
     };
