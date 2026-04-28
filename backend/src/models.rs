@@ -12,10 +12,25 @@ pub struct AppState {
     pub state_path: PathBuf,
 }
 
+pub type SharedProgress = Arc<Mutex<Option<ScanProgress>>>;
+
 pub enum ScanState {
-    Running,
+    Running {
+        progress: SharedProgress,
+    },
     Completed(ScanResults),
     Error(String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanProgress {
+    pub stage_label: String,
+    pub current_stage_idx: u8,
+    pub max_stage_idx: u8,
+    pub entries_checked: usize,
+    pub entries_to_check: usize,
+    pub bytes_checked: u64,
+    pub bytes_to_check: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -127,6 +142,8 @@ pub struct ScanResponse {
 pub struct ScanStatusResponse {
     pub id: String,
     pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub progress: Option<ScanProgress>,
     pub results: Option<ScanResults>,
     pub error: Option<String>,
 }
