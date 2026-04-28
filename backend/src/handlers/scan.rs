@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::sync::Mutex;
 
 use axum::{
     Json,
@@ -19,9 +20,16 @@ pub async fn start_scan(
     let scan_id = Uuid::new_v4().to_string();
     let tool_id = request.tool_id.clone();
 
+    let shared_progress = Arc::new(Mutex::new(None));
+
     {
         let mut scans = state.scans.lock().unwrap();
-        scans.insert(scan_id.clone(), ScanState::Running);
+        scans.insert(
+            scan_id.clone(),
+            ScanState::Running {
+                progress: Arc::clone(&shared_progress),
+            },
+        );
     }
 
     {
@@ -41,7 +49,7 @@ pub async fn start_scan(
 
     spawn_blocking(move || {
         log::info!("Starting scan {scan_id_clone} for tool {tool_id}");
-        let result = run_scan(request);
+        let result = run_scan(request, shared_progress);
         let mut scans = state_clone.scans.lock().unwrap();
         match result {
             Ok(results) => {
@@ -94,20 +102,25 @@ pub async fn get_scan_status(
     let scans = state.scans.lock().unwrap();
 
     match scans.get(&scan_id) {
-        Some(ScanState::Running) => (
-            StatusCode::OK,
-            Json(ScanStatusResponse {
-                id: scan_id,
-                status: "running".to_string(),
-                results: None,
-                error: None,
-            }),
-        ),
+        Some(ScanState::Running { progress }) => {
+            let progress_data = progress.lock().unwrap().clone();
+            (
+                StatusCode::OK,
+                Json(ScanStatusResponse {
+                    id: scan_id,
+                    status: "running".to_string(),
+                    progress: progress_data,
+                    results: None,
+                    error: None,
+                }),
+            )
+        }
         Some(ScanState::Completed(results)) => (
             StatusCode::OK,
             Json(ScanStatusResponse {
                 id: scan_id,
                 status: "completed".to_string(),
+                progress: None,
                 results: Some(results.clone()),
                 error: None,
             }),
@@ -117,6 +130,7 @@ pub async fn get_scan_status(
             Json(ScanStatusResponse {
                 id: scan_id,
                 status: "error".to_string(),
+                progress: None,
                 results: None,
                 error: Some(err.clone()),
             }),
@@ -126,6 +140,7 @@ pub async fn get_scan_status(
             Json(ScanStatusResponse {
                 id: scan_id,
                 status: "not_found".to_string(),
+                progress: None,
                 results: None,
                 error: None,
             }),
