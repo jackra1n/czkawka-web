@@ -4,7 +4,8 @@
 		api,
 		type ScanResults as ScanResultsType,
 		type AppState,
-		type ToolConfig
+		type ToolConfig,
+		type ScanProgress
 	} from '$lib/api';
 	import DirectoryBrowserModal from '$lib/components/DirectoryBrowserModal.svelte';
 	import ToolSidebar from '$lib/components/ToolSidebar.svelte';
@@ -29,6 +30,7 @@
 	let scanState = $state<'idle' | 'running' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
 	let scanResults = $state<ScanResultsType | null>(null);
+	let scanProgress = $state<ScanProgress | null>(null);
 	let scanId = $state('');
 	let checkedFiles = $state<SvelteSet<string>>(new SvelteSet());
 	let selectedFileSize = $state(0);
@@ -231,6 +233,7 @@
 		if (!tool) {
 			scanState = 'idle';
 			scanResults = null;
+			scanProgress = null;
 			scanError = '';
 			scanId = '';
 			checkedFiles = new SvelteSet();
@@ -239,6 +242,7 @@
 		}
 		scanState = tool.status as typeof scanState;
 		scanResults = tool.results ?? null;
+		scanProgress = null;
 		scanError = tool.error ?? '';
 		scanId = tool.scan_id ?? '';
 		checkedFiles = new SvelteSet(tool.checked_files ?? []);
@@ -308,22 +312,28 @@
 			scanError = '';
 			if (res.status === 'completed') {
 				scanState = 'completed';
+				scanProgress = null;
 				scanResults = res.results ?? null;
 				updateBackendTool();
 				clearInterval(intervalId);
 			} else if (res.status === 'error') {
 				scanState = 'error';
+				scanProgress = null;
 				scanError = res.error ?? 'Unknown error';
 				updateBackendTool();
 				clearInterval(intervalId);
 			} else if (res.status === 'not_found') {
 				scanState = 'error';
+				scanProgress = null;
 				scanError = 'Scan not found';
 				updateBackendTool();
 				clearInterval(intervalId);
+			} else if (res.status === 'running') {
+				scanProgress = res.progress ?? null;
 			}
 		} catch (err) {
 			scanState = 'error';
+			scanProgress = null;
 			scanError = err instanceof Error ? err.message : 'Failed to fetch status';
 			updateBackendTool();
 			clearInterval(intervalId);
@@ -393,6 +403,7 @@
 		scanState = 'running';
 		scanError = '';
 		scanResults = null;
+		scanProgress = null;
 		selectedFile = null;
 		selectedFileSize = 0;
 		try {
@@ -433,6 +444,7 @@
 				{scanState}
 				{scanError}
 				{scanResults}
+				{scanProgress}
 				onSelectFile={selectFile}
 				{checkedFiles}
 				{activeTool}
