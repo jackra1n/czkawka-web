@@ -331,6 +331,7 @@ name = "backend"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "crossbeam-channel",
  "czkawka_core",
  "dirs",
  "env_logger",
