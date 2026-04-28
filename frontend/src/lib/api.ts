@@ -82,9 +82,20 @@ export interface ScanResults {
 	groups: FileGroup[];
 }
 
+export interface ScanProgress {
+	stage_label: string;
+	current_stage_idx: number;
+	max_stage_idx: number;
+	entries_checked: number;
+	entries_to_check: number;
+	bytes_checked: number;
+	bytes_to_check: number;
+}
+
 export interface ScanStatusResponse {
 	id: string;
 	status: string;
+	progress?: ScanProgress;
 	results?: ScanResults;
 	error?: string;
 }
