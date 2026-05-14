@@ -168,36 +168,38 @@
 				</select>
 			</div>
 		</div>
-		<div class="flex flex-col gap-1.5">
-			<label for="resize-filter" class="text-xs font-medium text-text-muted">Resize Algorithm</label
-			>
-			<select
-				id="resize-filter"
-				value={toolConfig.resize_filter ?? 'Lanczos3'}
-				onchange={(e) => u({ resize_filter: e.currentTarget.value })}
-				class={IN}
-			>
-				{#each RESIZE_FILTERS as f (f)}<option value={f}>{f}</option>{/each}
-			</select>
-		</div>
-		<div class="flex flex-col gap-1.5">
-			<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
-			<div class="flex items-center gap-3">
-				<span class="w-14 shrink-0 text-right text-xs text-text-muted">Very high</span>
-				<input
-					id="similarity"
-					type="range"
-					min="0"
-					max="40"
-					step="1"
-					value={toolConfig.similarity ?? 5}
-					oninput={(e) => u({ similarity: Number(e.currentTarget.value) })}
-					class="flex-1 accent-accent"
-				/>
-				<span class="w-6 text-center text-xs font-medium text-text"
-					>{toolConfig.similarity ?? 5}</span
+		<div class="flex flex-col gap-4 md:flex-row">
+			<div class="flex flex-1 flex-col gap-1.5">
+				<label for="resize-filter" class="text-xs font-medium text-text-muted">Resize Algorithm</label
 				>
-				<span class="w-12 shrink-0 text-xs text-text-muted">Minimal</span>
+				<select
+					id="resize-filter"
+					value={toolConfig.resize_filter ?? 'Lanczos3'}
+					onchange={(e) => u({ resize_filter: e.currentTarget.value })}
+					class={IN}
+				>
+					{#each RESIZE_FILTERS as f (f)}<option value={f}>{f}</option>{/each}
+				</select>
+			</div>
+			<div class="flex flex-1 flex-col gap-1.5">
+				<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
+				<div class="flex items-center gap-3">
+					<span class="w-14 shrink-0 text-right text-xs text-text-muted">Very high</span>
+					<input
+						id="similarity"
+						type="range"
+						min="0"
+						max="40"
+						step="1"
+						value={toolConfig.similarity ?? 5}
+						oninput={(e) => u({ similarity: Number(e.currentTarget.value) })}
+						class="flex-1 accent-accent"
+					/>
+					<span class="w-6 text-center text-xs font-medium text-text"
+						>{toolConfig.similarity ?? 5}</span
+					>
+					<span class="w-12 shrink-0 text-xs text-text-muted">Minimal</span>
+				</div>
 			</div>
 		</div>
 	</div>
