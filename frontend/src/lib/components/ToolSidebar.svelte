@@ -47,12 +47,12 @@
 	} = $props();
 </script>
 
-<aside class="flex shrink-0 flex-col overflow-y-auto border-r border-border bg-surface transition-all duration-200" class:w-max={!collapsed} class:w-14={collapsed}>
-	<div class="flex flex-1 flex-col gap-0.5 p-2">
+<aside class="flex shrink-0 flex-col overflow-y-auto border-r border-border bg-surface" class:w-max={!collapsed} class:w-14={collapsed}>
+	<div class="flex flex-col gap-px p-2">
 		{#each tools as tool (tool.id)}
 			<button
 				type="button"
-				class="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors whitespace-nowrap {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'} {!tool.disabled ? 'hover:bg-surface-raised hover:text-text' : ''} {tool.disabled ? 'opacity-40 cursor-not-allowed' : ''}"
+				class="flex h-9 items-center gap-2.5 rounded-md px-3 text-left text-sm transition-colors whitespace-nowrap {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'} {!tool.disabled ? 'hover:bg-surface-raised hover:text-text' : ''} {tool.disabled ? 'opacity-40 cursor-not-allowed' : ''}"
 				disabled={tool.disabled}
 				onclick={() => {
 					if (!tool.disabled && tool.id !== activeTool) onChangeTool(tool.id);
@@ -64,23 +64,23 @@
 					<tool.icon class="h-4 w-4 shrink-0" />
 				{/if}
 				{#if !collapsed}
-					<span class="truncate">{tool.label}</span>
+					<span class="truncate leading-none">{tool.label}</span>
 				{/if}
 			</button>
 		{/each}
 	</div>
-	<div class="p-2">
+	<div class="mt-auto p-2">
 		<button
 			type="button"
 			onclick={onToggleCollapse}
 			title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-			class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+			class="flex h-9 items-center gap-2.5 rounded-md px-3 text-left text-sm whitespace-nowrap text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
 		>
 			{#if collapsed}
 				<PanelLeft class="h-4 w-4 shrink-0" />
 			{:else}
 				<PanelLeftClose class="h-4 w-4 shrink-0" />
-				<span class="truncate">Collapse</span>
+				<span class="truncate leading-none">Collapse</span>
 			{/if}
 		</button>
 	</div>
