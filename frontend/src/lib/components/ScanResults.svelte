@@ -383,16 +383,18 @@
 					style="grid-template-columns: {gridCols()};"
 				>
 					{#each colDefs as col, ci (col.key)}
-						<div class="relative flex items-center">
-							{col.label}
+						<div class="relative flex min-w-0 items-center">
+							<span class="truncate">{col.label}</span>
 							{#if ci < colDefs.length - 1}
 								<div
-									class="absolute top-0 right-0 bottom-0 z-10 w-2 cursor-col-resize hover:bg-accent/20"
+									class="group absolute top-0 right-0 bottom-0 z-10 flex w-3 cursor-col-resize items-center justify-center"
 									role="button"
 									tabindex="-1"
 									aria-label="Resize column"
 									onmousedown={(e) => startResize(e, ci)}
-								></div>
+								>
+									<div class="h-6 w-px rounded-full bg-border transition-colors group-hover:bg-text-muted"></div>
+								</div>
 							{/if}
 						</div>
 					{/each}
@@ -446,18 +448,18 @@
 											}}
 										/>
 									</div>
-								{:else if col.key === 'size'}
-									<div class="flex items-center font-medium text-text">
-										{formatBytes(item.size)}
-									</div>
-								{:else if col.key === 'dimensions'}
-									<div class="flex items-center font-medium text-text">
-										{item.file.dimensions ?? ''}
-									</div>
-								{:else if col.key === 'similarity'}
-									<div class="flex items-center font-medium text-text">
-										{item.file.similarity ?? ''}
-									</div>
+							{:else if col.key === 'size'}
+								<div class="truncate text-text">
+									{formatBytes(item.size)}
+								</div>
+							{:else if col.key === 'dimensions'}
+								<div class="truncate text-text">
+									{item.file.dimensions ?? ''}
+								</div>
+							{:else if col.key === 'similarity'}
+								<div class="truncate text-text">
+									{item.file.similarity ?? ''}
+								</div>
 								{:else if col.key === 'filename'}
 									<div class="flex min-w-0 items-center" title={name}>
 										<span class="truncate text-text">{name}</span>
@@ -469,10 +471,10 @@
 									>
 										<span class="truncate">{dir}</span>
 									</div>
-								{:else if col.key === 'modified'}
-									<div class="flex items-center text-xs text-text-muted">
-										{formatDate(item.file.modified_date)}
-									</div>
+							{:else if col.key === 'modified'}
+								<div class="truncate text-xs text-text-muted">
+									{formatDate(item.file.modified_date)}
+								</div>
 								{/if}
 							{/each}
 						</div>
