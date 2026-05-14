@@ -124,7 +124,7 @@
 		<div class="flex flex-col gap-1.5">
 			<label for="tolerance" class="text-xs font-medium text-text-muted">Tolerance</label>
 			<div class="flex items-center gap-3">
-				<span class="w-14 shrink-0 text-right text-[10px] text-text-muted">Strict</span>
+				<span class="w-14 shrink-0 text-right text-xs text-text-muted">Strict</span>
 				<input
 					id="tolerance"
 					type="range"
@@ -138,7 +138,7 @@
 				<span class="w-6 text-center text-xs font-medium text-text"
 					>{toolConfig.tolerance ?? 5}</span
 				>
-				<span class="w-12 shrink-0 text-[10px] text-text-muted">Loose</span>
+				<span class="w-12 shrink-0 text-xs text-text-muted">Loose</span>
 			</div>
 		</div>
 	</div>
@@ -183,7 +183,7 @@
 		<div class="flex flex-col gap-1.5">
 			<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
 			<div class="flex items-center gap-3">
-				<span class="w-14 shrink-0 text-right text-[10px] text-text-muted">Very high</span>
+				<span class="w-14 shrink-0 text-right text-xs text-text-muted">Very high</span>
 				<input
 					id="similarity"
 					type="range"
@@ -197,7 +197,7 @@
 				<span class="w-6 text-center text-xs font-medium text-text"
 					>{toolConfig.similarity ?? 5}</span
 				>
-				<span class="w-12 shrink-0 text-[10px] text-text-muted">Minimal</span>
+				<span class="w-12 shrink-0 text-xs text-text-muted">Minimal</span>
 			</div>
 		</div>
 	</div>
