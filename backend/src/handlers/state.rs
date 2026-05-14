@@ -16,12 +16,14 @@ pub async fn get_state(State(state): State<Arc<AppState>>) -> Json<state::AppPer
 }
 
 pub async fn get_defaults() -> Json<DefaultsResponse> {
+    let default_directory = std::env::var("DEFAULT_SCAN_PATH").ok();
     Json(DefaultsResponse {
         excluded_directories: DEFAULT_EXCLUDED_DIRECTORIES
             .iter()
             .map(|s| s.to_string())
             .collect(),
         excluded_items: DEFAULT_EXCLUDED_ITEMS.to_string(),
+        default_directory,
     })
 }
 

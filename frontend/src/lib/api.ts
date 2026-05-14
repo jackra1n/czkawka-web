@@ -121,6 +121,7 @@ export interface ToolState {
 export interface DefaultsResponse {
 	excluded_directories: string[];
 	excluded_items: string;
+	default_directory?: string;
 }
 
 export interface FailedDeletion {

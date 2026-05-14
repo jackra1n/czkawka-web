@@ -179,6 +179,8 @@ pub struct FileGroup {
 pub struct DefaultsResponse {
     pub excluded_directories: Vec<String>,
     pub excluded_items: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_directory: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
