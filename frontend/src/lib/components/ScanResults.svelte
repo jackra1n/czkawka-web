@@ -360,28 +360,24 @@
 			</div>
 		</div>
 	{:else if scanResults}
-		<!-- Stats bar -->
-		<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
-			<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
-			<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
-			{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names'}
+		<div class="sticky top-0 z-10 bg-surface">
+			<!-- Stats bar -->
+			<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
+				<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
+				<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
+				{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names'}
+					<span
+						>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span
+					>
+				{/if}
 				<span
-					>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span
+					>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong
+					></span
 				>
-			{/if}
-			<span
-				>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong
-				></span
-			>
-		</div>
-
-		{#if scanResults.groups.length === 0}
-			<div class="flex flex-1 flex-col items-center justify-center text-sm text-text-muted">
-				{emptyText}
 			</div>
-		{:else}
-			<!-- Table -->
-			<div class="flex min-w-full flex-col">
+
+			{#if scanResults.groups.length > 0}
+				<!-- Table header -->
 				<div
 					class="grid gap-3 border-b border-border px-4 py-2 text-xs font-medium tracking-wider text-text-muted uppercase"
 					style="grid-template-columns: {gridCols()};"
@@ -401,6 +397,16 @@
 						</div>
 					{/each}
 				</div>
+			{/if}
+		</div>
+
+		{#if scanResults.groups.length === 0}
+			<div class="flex flex-1 flex-col items-center justify-center text-sm text-text-muted">
+				{emptyText}
+			</div>
+		{:else}
+			<!-- Table rows -->
+			<div class="flex min-w-full flex-col">
 				{#each listItems as item, i (item.type === 'file' ? item.file.path : `sep-${i}`)}
 					{#if item.type === 'separator'}
 						<div
