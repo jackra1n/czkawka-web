@@ -49,6 +49,7 @@ pub fn run(
                         modified_date,
                         dimensions: None,
                         similarity: None,
+                        size: Some(entry.size),
                     });
                     if hash.is_empty() {
                         hash = entry.hash.clone();

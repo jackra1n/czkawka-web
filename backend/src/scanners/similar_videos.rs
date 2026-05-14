@@ -71,11 +71,13 @@ pub fn run(
                     format!("00:{:02}", seconds)
                 }
             });
+            let size = std::fs::metadata(&path).map(|m| m.len()).ok();
             files.push(ScannedFile {
                 path,
                 modified_date,
                 dimensions,
                 similarity,
+                size,
             });
         }
         total_files += files.len();

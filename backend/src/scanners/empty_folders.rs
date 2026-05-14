@@ -36,6 +36,7 @@ pub fn run(
                 modified_date,
                 dimensions: None,
                 similarity: None,
+                size: Some(0),
             }],
         });
     }

@@ -63,6 +63,7 @@ pub fn run(
                 modified_date,
                 dimensions: None,
                 similarity,
+                size: Some(entry.size),
             }],
         });
         total_files += 1;

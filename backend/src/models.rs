@@ -163,6 +163,8 @@ pub struct ScannedFile {
     pub dimensions: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub similarity: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub size: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

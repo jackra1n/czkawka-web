@@ -97,11 +97,13 @@ pub fn run(
                 None
             };
             let similarity = Some(get_string_from_similarity(entry.difference, hash_size));
+            let size = std::fs::metadata(&path).map(|m| m.len()).ok();
             files.push(ScannedFile {
                 path,
                 modified_date,
                 dimensions,
                 similarity,
+                size,
             });
         }
         total_files += files.len();
