@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, Maximize2, Minimize2 } from 'lucide-svelte';
+	import { X, Maximize2, Minimize2, GripVertical } from 'lucide-svelte';
 	import { formatBytes, getPreviewType } from '$lib/utils';
 	import { getFileUrl, fetchFileText } from '$lib/api';
 	import type { ScannedFile } from '$lib/api';
@@ -207,18 +207,14 @@
 	{#if !isMaximized}
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
-			class="group absolute top-0 bottom-0 left-0 z-20 flex w-4 cursor-col-resize items-center justify-center"
+			class="group absolute top-0 bottom-0 -left-2 z-20 flex w-4 cursor-col-resize items-center justify-center"
 			onmousedown={startResize}
 			role="separator"
 			aria-label="Resize preview panel"
 			aria-orientation="vertical"
 		>
-			<div
-				class="flex h-10 w-1.5 flex-col items-center justify-center gap-0.5 rounded-full bg-border opacity-60 transition-opacity group-hover:opacity-100"
-			>
-				<div class="h-1 w-px rounded-full bg-text-muted"></div>
-				<div class="h-1 w-px rounded-full bg-text-muted"></div>
-				<div class="h-1 w-px rounded-full bg-text-muted"></div>
+			<div class="flex h-8 w-5 items-center justify-center rounded-full bg-black/50 transition-colors group-hover:bg-black/70">
+				<GripVertical class="h-4 w-4 text-text-muted opacity-75 transition-opacity group-hover:opacity-100" />
 			</div>
 		</div>
 	{/if}
