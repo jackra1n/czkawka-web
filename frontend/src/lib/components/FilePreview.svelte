@@ -321,9 +321,17 @@
 				<p class="mb-1 text-xs font-medium text-text-muted">Path</p>
 				<p class="font-mono text-xs leading-relaxed break-all text-text">{selectedFile}</p>
 			</div>
-			<div>
-				<p class="mb-1 text-xs font-medium text-text-muted">Size</p>
-				<p class="text-sm text-text">{formatBytes(selectedFileSize)}</p>
+			<div class="flex gap-4">
+				<div class="flex-1">
+					<p class="mb-1 text-xs font-medium text-text-muted">Size</p>
+					<p class="text-sm text-text">{formatBytes(selectedFileSize)}</p>
+				</div>
+				{#if selectedFileDims}
+					<div class="flex-1">
+						<p class="mb-1 text-xs font-medium text-text-muted">Dimensions</p>
+						<p class="text-sm text-text">{selectedFileDims}</p>
+					</div>
+				{/if}
 			</div>
 		</div>
 	</div>
