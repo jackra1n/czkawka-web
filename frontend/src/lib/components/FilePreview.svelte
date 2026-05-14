@@ -259,7 +259,7 @@
 				{/if}
 
 				{#if compareMode === 'single' || imageSiblings.length < 2}
-					<div class="flex flex-1 items-center justify-center bg-bg p-4">
+					<div class="flex min-h-0 flex-1 items-center justify-center bg-bg p-4">
 						<img
 							src={fileUrl}
 							alt="Preview"
