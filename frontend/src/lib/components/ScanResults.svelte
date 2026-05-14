@@ -413,7 +413,7 @@
 					{#if item.type === 'separator'}
 						<div
 							id="scan-item-{i}"
-							class="h-4 cursor-default {selectedIndex === i ? 'bg-surface-raised/30' : ''}"
+							class="h-4 cursor-default {selectedIndex === i ? 'bg-accent/10' : ''}"
 							role="option"
 							tabindex="-1"
 							aria-selected={selectedIndex === i}
@@ -424,10 +424,10 @@
 						{@const { name, dir } = splitPath(item.file.path)}
 						<div
 							id="scan-item-{i}"
-							class="grid cursor-pointer gap-3 px-4 py-2 text-sm transition-colors {selectedIndex ===
-							i
-								? 'bg-surface-raised'
-								: 'hover:bg-surface-raised/50'}"
+						class="grid cursor-pointer gap-3 px-4 py-2 text-sm transition-colors {selectedIndex ===
+						i
+							? 'bg-accent/15'
+							: 'hover:bg-accent/10'}"
 							style="grid-template-columns: {gridCols()};"
 							role="option"
 							tabindex="-1"
