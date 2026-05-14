@@ -183,7 +183,7 @@
 			</div>
 			<div class="flex flex-1 flex-col gap-1.5">
 				<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
-				<div class="flex items-center gap-3">
+				<div class="flex items-center gap-3 py-2">
 					<span class="w-14 shrink-0 text-right text-xs text-text-muted">Very high</span>
 					<input
 						id="similarity"
