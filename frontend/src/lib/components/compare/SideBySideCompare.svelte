@@ -39,20 +39,20 @@
 			Comparing: {compareTarget}
 		</div>
 	</div>
-	<div class="flex min-h-0 flex-1 items-center justify-center gap-0 bg-bg">
-		<div class="flex h-full w-1/2 items-center justify-center overflow-hidden">
+	<div class="flex min-h-0 flex-1 bg-bg">
+		<div class="h-full w-1/2 overflow-hidden">
 			<img
 				src={fileUrl}
 				alt="Selected"
-				class="max-h-full max-w-full rounded-md object-contain object-right {colorCodingEnabled ? 'border-t-2 border-blue-500' : ''}"
+				class="h-full w-full object-contain object-right {colorCodingEnabled ? 'border-t-2 border-blue-500' : ''}"
 				onerror={onMediaError}
 			/>
 		</div>
-		<div class="flex h-full w-1/2 items-center justify-center overflow-hidden">
+		<div class="h-full w-1/2 overflow-hidden">
 			<img
 				src={compareUrl}
 				alt="Comparing"
-				class="max-h-full max-w-full rounded-md object-contain object-left {colorCodingEnabled ? 'border-t-2 border-amber-500' : ''}"
+				class="h-full w-full object-contain object-left {colorCodingEnabled ? 'border-t-2 border-amber-500' : ''}"
 			/>
 		</div>
 	</div>
