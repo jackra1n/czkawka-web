@@ -66,6 +66,7 @@ export interface ScannedFile {
 	modified_date?: number;
 	dimensions?: string;
 	similarity?: string;
+	size?: number;
 }
 
 export interface FileGroup {

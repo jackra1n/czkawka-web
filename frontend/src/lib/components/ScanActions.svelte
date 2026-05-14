@@ -43,6 +43,13 @@
 		selectOpen = false;
 	}
 
+	function getPixelCount(dimensions?: string): number {
+		if (!dimensions) return 0;
+		const match = dimensions.match(/^(\d+)x(\d+)$/);
+		if (!match) return 0;
+		return parseInt(match[1], 10) * parseInt(match[2], 10);
+	}
+
 	$effect(() => {
 		if (selectOpen) {
 			const handler = (e: MouseEvent) => {
@@ -127,6 +134,70 @@
 		closeDropdown();
 	}
 
+	function selectAllExceptBiggest() {
+		if (!scanResults) return;
+		for (const group of scanResults.groups) {
+			let biggest: ScannedFile | null = null;
+			for (const file of group.files) {
+				if (!biggest) {
+					biggest = file;
+					continue;
+				}
+				const filePixels = getPixelCount(file.dimensions);
+				const biggestPixels = getPixelCount(biggest.dimensions);
+				if (filePixels > biggestPixels) {
+					biggest = file;
+				} else if (filePixels === biggestPixels) {
+					const fileSize = file.size ?? 0;
+					const biggestSize = biggest.size ?? 0;
+					if (fileSize > biggestSize) {
+						biggest = file;
+					}
+				}
+			}
+			for (const file of group.files) {
+				if (file !== biggest) {
+					checkedFiles.add(file.path);
+				} else {
+					checkedFiles.delete(file.path);
+				}
+			}
+		}
+		closeDropdown();
+	}
+
+	function selectAllExceptSmallest() {
+		if (!scanResults) return;
+		for (const group of scanResults.groups) {
+			let smallest: ScannedFile | null = null;
+			for (const file of group.files) {
+				if (!smallest) {
+					smallest = file;
+					continue;
+				}
+				const filePixels = getPixelCount(file.dimensions);
+				const smallestPixels = getPixelCount(smallest.dimensions);
+				if (filePixels < smallestPixels) {
+					smallest = file;
+				} else if (filePixels === smallestPixels) {
+					const fileSize = file.size ?? 0;
+					const smallestSize = smallest.size ?? 0;
+					if (fileSize < smallestSize) {
+						smallest = file;
+					}
+				}
+			}
+			for (const file of group.files) {
+				if (file !== smallest) {
+					checkedFiles.add(file.path);
+				} else {
+					checkedFiles.delete(file.path);
+				}
+			}
+		}
+		closeDropdown();
+	}
+
 	function selectAllExceptShortestPath() {
 		if (!scanResults) return;
 		for (const group of scanResults.groups) {
@@ -176,6 +247,9 @@
 		{ type: 'separator' },
 		{ type: 'item', label: 'Select all except oldest', action: selectAllExceptOldest },
 		{ type: 'item', label: 'Select all except newest', action: selectAllExceptNewest },
+		{ type: 'separator' },
+		{ type: 'item', label: 'Select all except biggest', action: selectAllExceptBiggest },
+		{ type: 'item', label: 'Select all except smallest', action: selectAllExceptSmallest },
 		{ type: 'separator' },
 		{ type: 'item', label: 'Select all except shortest path', action: selectAllExceptShortestPath },
 		{ type: 'item', label: 'Select all except longest path', action: selectAllExceptLongestPath }
