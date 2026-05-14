@@ -35,10 +35,12 @@
 
 	// Comparison state
 	const COMPARE_MODE_KEY = 'filePreviewCompareMode';
+	const COLOR_CODING_KEY = 'filePreviewColorCoding';
 	let compareMode = $state<CompareMode>('single');
 	let compareTarget = $state<string | null>(null);
 	let swipePercent = $state(50);
 	let onionOpacity = $state(0.5);
+	let colorCodingEnabled = $state(false);
 
 	let imageSiblings = $derived(groupFiles.filter((f) => getPreviewType(f.path) === 'image'));
 
@@ -56,6 +58,10 @@
 		const saved = localStorage.getItem(COMPARE_MODE_KEY);
 		if (saved && ['single', 'side-by-side', 'swipe', 'onion'].includes(saved)) {
 			compareMode = saved as CompareMode;
+		}
+		const savedColor = localStorage.getItem(COLOR_CODING_KEY);
+		if (savedColor !== null) {
+			colorCodingEnabled = savedColor === 'true';
 		}
 	});
 
@@ -81,6 +87,13 @@
 
 	function setCompareTarget(path: string) {
 		compareTarget = path;
+	}
+
+	function toggleColorCoding() {
+		colorCodingEnabled = !colorCodingEnabled;
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(COLOR_CODING_KEY, String(colorCodingEnabled));
+		}
 	}
 
 	function toggleMaximize() {
@@ -253,8 +266,10 @@
 						{imageSiblings}
 						{compareMode}
 						{compareTarget}
+						{colorCodingEnabled}
 						{setCompareMode}
 						{setCompareTarget}
+						toggleColorCoding={toggleColorCoding}
 					/>
 				{/if}
 
@@ -276,6 +291,7 @@
 						{compareUrl}
 						compareTarget={compareTarget ?? ''}
 						{compareFileDims}
+						{colorCodingEnabled}
 						onMediaError={handleMediaError}
 					/>
 				{:else if compareMode === 'swipe'}
@@ -300,6 +316,7 @@
 						compareTarget={compareTarget ?? ''}
 						{compareFileDims}
 						{onionOpacity}
+						{colorCodingEnabled}
 					/>
 				{/if}
 			{/if}

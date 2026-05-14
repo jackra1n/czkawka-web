@@ -31,11 +31,11 @@
 			Selected: {selectedFile}
 		</div>
 		<div class="min-w-0 flex-1 truncate text-right text-xs text-text-muted" title={compareTarget}>
-			Compare: {compareTarget}
+			Comparing: {compareTarget}
 		</div>
 	</div>
 	<div class="relative flex min-h-0 flex-1 items-center justify-center bg-bg">
-		<img src={compareUrl} alt="Compare" class="max-h-full max-w-full object-contain" />
+		<img src={compareUrl} alt="Comparing" class="max-h-full max-w-full object-contain" />
 		<div
 			class="pointer-events-none absolute inset-0 flex items-center justify-center"
 			style="clip-path: inset(0 {100 - swipePercent}% 0 0)"

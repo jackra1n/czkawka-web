@@ -9,6 +9,7 @@
 		compareUrl,
 		compareTarget,
 		compareFileDims,
+		colorCodingEnabled,
 		onMediaError
 	}: {
 		fileUrl: string;
@@ -18,6 +19,7 @@
 		compareUrl: string;
 		compareTarget: string;
 		compareFileDims: string;
+		colorCodingEnabled: boolean;
 		onMediaError: () => void;
 	} = $props();
 
@@ -28,17 +30,17 @@
 <div class="flex min-h-0 flex-1 items-center justify-center gap-2 bg-bg p-2">
 	<div class="flex max-h-full flex-col items-center">
 		<div
-			class="mb-1 text-center text-xs leading-tight break-all text-text-muted"
+			class="mb-1 text-center text-xs leading-tight break-all {colorCodingEnabled ? 'text-blue-400' : 'text-text-muted'}"
 			style:max-width="{leftImgWidth || undefined}px"
 			title={selectedFile}
 		>
-			{selectedFile}
+			Selected: {selectedFile}
 		</div>
 		<img
 			bind:clientWidth={leftImgWidth}
 			src={fileUrl}
 			alt="Selected"
-			class="max-h-full max-w-full rounded-md object-contain"
+			class="max-h-full max-w-full rounded-md object-contain {colorCodingEnabled ? 'border-t-2 border-blue-500' : ''}"
 			onerror={onMediaError}
 		/>
 		<div
@@ -50,17 +52,17 @@
 	</div>
 	<div class="flex max-h-full flex-col items-center">
 		<div
-			class="mb-1 text-center text-xs leading-tight break-all text-text-muted"
+			class="mb-1 text-center text-xs leading-tight break-all {colorCodingEnabled ? 'text-amber-400' : 'text-text-muted'}"
 			style:max-width="{rightImgWidth || undefined}px"
 			title={compareTarget}
 		>
-			{compareTarget}
+			Comparing: {compareTarget}
 		</div>
 		<img
 			bind:clientWidth={rightImgWidth}
 			src={compareUrl}
-			alt="Compare"
-			class="max-h-full max-w-full rounded-md object-contain"
+			alt="Comparing"
+			class="max-h-full max-w-full rounded-md object-contain {colorCodingEnabled ? 'border-t-2 border-amber-500' : ''}"
 		/>
 		<div
 			class="mt-1 text-center text-xs leading-tight break-all text-text-muted"
