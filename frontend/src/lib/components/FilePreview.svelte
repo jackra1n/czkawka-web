@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import { X, Maximize2, Minimize2 } from 'lucide-svelte';
 	import { formatBytes, getPreviewType } from '$lib/utils';
 	import { getFileUrl, fetchFileText } from '$lib/api';
 	import type { ScannedFile } from '$lib/api';
@@ -28,6 +28,7 @@
 	let textLoading = $state(false);
 	let textError = $state('');
 	let mediaError = $state(false);
+	let isMaximized = $state(false);
 
 	let previewType = $derived(getPreviewType(selectedFile));
 	let fileUrl = $derived(getFileUrl(selectedFile));
@@ -80,6 +81,10 @@
 
 	function setCompareTarget(path: string) {
 		compareTarget = path;
+	}
+
+	function toggleMaximize() {
+		isMaximized = !isMaximized;
 	}
 
 	// Panel resize
@@ -176,6 +181,15 @@
 		};
 	});
 
+	$effect(() => {
+		if (!isMaximized) return;
+		function onKey(e: KeyboardEvent) {
+			if (e.key === 'Escape') isMaximized = false;
+		}
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	});
+
 	function handleMediaError() {
 		mediaError = true;
 	}
@@ -187,34 +201,49 @@
 </script>
 
 <aside
-	class="relative flex shrink-0 flex-col border-l border-border bg-surface"
-	style:width="{panelWidth}px"
+	class="{isMaximized ? 'fixed inset-0 z-50' : 'relative shrink-0'} flex flex-col border-l border-border bg-surface"
+	style:width={isMaximized ? undefined : `${panelWidth}px`}
 >
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div
-		class="group absolute top-0 bottom-0 left-0 z-20 flex w-4 cursor-col-resize items-center justify-center"
-		onmousedown={startResize}
-		role="separator"
-		aria-label="Resize preview panel"
-		aria-orientation="vertical"
-	>
+	{#if !isMaximized}
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
-			class="flex h-10 w-1.5 flex-col items-center justify-center gap-0.5 rounded-full bg-border opacity-60 transition-opacity group-hover:opacity-100"
+			class="group absolute top-0 bottom-0 left-0 z-20 flex w-4 cursor-col-resize items-center justify-center"
+			onmousedown={startResize}
+			role="separator"
+			aria-label="Resize preview panel"
+			aria-orientation="vertical"
 		>
-			<div class="h-1 w-px rounded-full bg-text-muted"></div>
-			<div class="h-1 w-px rounded-full bg-text-muted"></div>
-			<div class="h-1 w-px rounded-full bg-text-muted"></div>
+			<div
+				class="flex h-10 w-1.5 flex-col items-center justify-center gap-0.5 rounded-full bg-border opacity-60 transition-opacity group-hover:opacity-100"
+			>
+				<div class="h-1 w-px rounded-full bg-text-muted"></div>
+				<div class="h-1 w-px rounded-full bg-text-muted"></div>
+				<div class="h-1 w-px rounded-full bg-text-muted"></div>
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<div class="flex items-center justify-between border-b border-border px-4 py-3">
 		<span class="text-sm font-medium">Preview</span>
-		<button
-			onclick={onClose}
-			class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-		>
-			<X class="h-4 w-4" />
-		</button>
+		<div class="flex items-center gap-1">
+			<button
+				onclick={toggleMaximize}
+				title={isMaximized ? 'Minimize' : 'Maximize'}
+				class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+			>
+				{#if isMaximized}
+					<Minimize2 class="h-4 w-4" />
+				{:else}
+					<Maximize2 class="h-4 w-4" />
+				{/if}
+			</button>
+			<button
+				onclick={onClose}
+				class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+			>
+				<X class="h-4 w-4" />
+			</button>
+		</div>
 	</div>
 
 	<div class="flex min-h-0 flex-1 flex-col">
