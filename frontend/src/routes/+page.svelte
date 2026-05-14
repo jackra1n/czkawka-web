@@ -26,6 +26,7 @@
 	let uiState = $state<UiState>(loadUiState());
 	let activeTool = $state(uiState.activeTool);
 	let selectedFile = $state<string | null>(uiState.selectedFile);
+	let sidebarCollapsed = $state(uiState.sidebarCollapsed);
 
 	let scanState = $state<'idle' | 'running' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
@@ -94,7 +95,7 @@
 		loadState();
 	});
 	$effect(() => {
-		saveUiState({ activeTool, selectedFile });
+		saveUiState({ activeTool, selectedFile, sidebarCollapsed });
 	});
 	$effect(() => {
 		if (!stateLoaded) return;
@@ -418,10 +419,14 @@
 			updateBackendTool();
 		}
 	}
+
+	function toggleSidebar() {
+		sidebarCollapsed = !sidebarCollapsed;
+	}
 </script>
 
 <div class="flex h-full w-full">
-	<ToolSidebar {activeTool} onChangeTool={switchTool} />
+	<ToolSidebar {activeTool} collapsed={sidebarCollapsed} onChangeTool={switchTool} onToggleCollapse={toggleSidebar} />
 
 	<div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-bg">
 		<ScanConfig

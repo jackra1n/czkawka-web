@@ -13,7 +13,9 @@
 		FileCode,
 		Camera,
 		Type,
-		Lock
+		Lock,
+		PanelLeft,
+		PanelLeftClose
 	} from 'lucide-svelte';
 
 	const tools = [
@@ -32,22 +34,25 @@
 		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera, disabled: false }
 	];
 
-	let { activeTool, onChangeTool }: { activeTool: string; onChangeTool: (toolId: string) => void } =
-		$props();
+	let {
+		activeTool,
+		collapsed,
+		onChangeTool,
+		onToggleCollapse
+	}: {
+		activeTool: string;
+		collapsed: boolean;
+		onChangeTool: (toolId: string) => void;
+		onToggleCollapse: () => void;
+	} = $props();
 </script>
 
-<aside class="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface">
-	<div class="flex flex-col gap-0.5 p-2">
+<aside class="flex shrink-0 flex-col overflow-y-auto border-r border-border bg-surface transition-all duration-200" class:w-max={!collapsed} class:w-14={collapsed}>
+	<div class="flex flex-1 flex-col gap-0.5 p-2">
 		{#each tools as tool (tool.id)}
 			<button
-				class="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors"
-				class:bg-surface-raised={tool.id === activeTool}
-				class:text-text={tool.id === activeTool}
-				class:text-text-muted={tool.id !== activeTool}
-				class:hover:bg-surface-raised={!tool.disabled}
-				class:hover:text-text={!tool.disabled}
-				class:opacity-40={tool.disabled}
-				class:cursor-not-allowed={tool.disabled}
+				type="button"
+				class="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors whitespace-nowrap {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'} {!tool.disabled ? 'hover:bg-surface-raised hover:text-text' : ''} {tool.disabled ? 'opacity-40 cursor-not-allowed' : ''}"
 				disabled={tool.disabled}
 				onclick={() => {
 					if (!tool.disabled && tool.id !== activeTool) onChangeTool(tool.id);
@@ -58,8 +63,25 @@
 				{:else}
 					<tool.icon class="h-4 w-4 shrink-0" />
 				{/if}
-				<span class="truncate">{tool.label}</span>
+				{#if !collapsed}
+					<span class="truncate">{tool.label}</span>
+				{/if}
 			</button>
 		{/each}
+	</div>
+	<div class="p-2">
+		<button
+			type="button"
+			onclick={onToggleCollapse}
+			title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+			class="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+		>
+			{#if collapsed}
+				<PanelLeft class="h-4 w-4 shrink-0" />
+			{:else}
+				<PanelLeftClose class="h-4 w-4 shrink-0" />
+				<span class="truncate">Collapse</span>
+			{/if}
+		</button>
 	</div>
 </aside>
