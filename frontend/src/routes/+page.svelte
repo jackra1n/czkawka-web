@@ -100,19 +100,22 @@
 	});
 	$effect(() => {
 		if (!stateLoaded) return;
+		const included = [...includedDirs];
+		const excluded = [...excludedDirs];
+		const items = excludedItems;
 		clearTimeout(dirsTimeout);
 		dirsTimeout = setTimeout(() => {
-			api
-				.updateDirectories([...includedDirs], [...excludedDirs], excludedItems)
-				.catch(console.error);
+			api.updateDirectories(included, excluded, items).catch(console.error);
 		}, 500);
 		return () => clearTimeout(dirsTimeout);
 	});
 	$effect(() => {
 		if (!stateLoaded) return;
+		const toolId = activeTool;
+		const files = Array.from(checkedFiles);
 		clearTimeout(checkedTimeout);
 		checkedTimeout = setTimeout(() => {
-			api.updateToolState(activeTool, Array.from(checkedFiles)).catch(console.error);
+			api.updateToolState(toolId, files).catch(console.error);
 		}, 500);
 		return () => clearTimeout(checkedTimeout);
 	});
