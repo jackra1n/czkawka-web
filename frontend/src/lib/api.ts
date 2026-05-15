@@ -199,6 +199,20 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	return res.json();
 }
 
+async function fetchVoid(url: string, options?: RequestInit): Promise<void> {
+	const res = await fetch(`${API_BASE}${url}`, {
+		...options,
+		headers: {
+			'Content-Type': 'application/json',
+			...options?.headers
+		}
+	});
+	if (!res.ok) {
+		const text = await res.text().catch(() => 'Unknown error');
+		throw new Error(`HTTP ${res.status}: ${text}`);
+	}
+}
+
 export function getFileUrl(path: string): string {
 	return `${API_BASE}/api/file?path=${encodeURIComponent(path)}`;
 }
@@ -234,7 +248,7 @@ export const api = {
 	},
 
 	updateDirectories(included: string[], excluded: string[], excluded_items: string): Promise<void> {
-		return fetchJson('/api/state/directories', {
+		return fetchVoid('/api/state/directories', {
 			method: 'POST',
 			body: JSON.stringify({ included, excluded, excluded_items })
 		});
@@ -245,7 +259,7 @@ export const api = {
 	},
 
 	updateToolState(toolId: string, checkedFiles: string[]): Promise<void> {
-		return fetchJson(`/api/state/tools/${toolId}`, {
+		return fetchVoid(`/api/state/tools/${toolId}`, {
 			method: 'POST',
 			body: JSON.stringify({ checked_files: checkedFiles })
 		});
