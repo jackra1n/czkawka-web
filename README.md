@@ -14,12 +14,10 @@ I built this because I wanted to run Czkawka on my server, but I needed a good U
 
 ## Docker
 
-You can build and run the entire stack in a single container.
-
-### Build
+Pull the pre-built image from GitHub Container Registry:
 
 ```bash
-docker build -t czkawka-web .
+docker pull ghcr.io/jackra1n/czkawka-web
 ```
 
 ### Run
@@ -35,12 +33,25 @@ docker run -d \
 
 ### Docker Compose
 
-```bash
-mkdir -p data
-docker compose up -d
+```yaml
+services:
+  czkawka-web:
+    image: ghcr.io/jackra1n/czkawka-web
+    container_name: czkawka-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+      # Mount directories you want to scan:
+      # - /path/on/host/to/files:/mnt/files
+    restart: unless-stopped
 ```
 
-The included `compose.yaml` maps port `3000` and creates a named volume for state persistence. Mount any directories you want to scan as additional volumes.
+Then start it:
+
+```bash
+docker compose up -d
+```
 
 ## Tech Stack
 This project is built with an emphasis on zero bloat and high performance.
