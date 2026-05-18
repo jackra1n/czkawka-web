@@ -31,6 +31,7 @@ FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    gosu \
     libssl3 \
     libchromaprint1 \
     && rm -rf /var/lib/apt/lists/*
@@ -38,8 +39,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd -g 1000 czkawka && \
     useradd -u 1000 -g czkawka -d /data -m czkawka
 
-USER czkawka
 WORKDIR /app
+
+COPY scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 RUN mkdir -p /app/backend
 COPY --from=backend-builder /app/backend/target/release/backend /app/backend/backend
@@ -51,4 +54,5 @@ ENV RUST_LOG=warn,backend=info
 VOLUME ["/data"]
 EXPOSE 3000
 
-ENTRYPOINT ["/app/backend/backend"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/app/backend/backend"]
