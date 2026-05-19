@@ -61,9 +61,17 @@ async fn main() {
             "/api/state/tools/{tool_id}",
             post(handlers::state::update_tool_state),
         )
+        .route(
+            "/api/state/last-browser-directory",
+            post(handlers::state::update_last_browser_directory),
+        )
         .route("/api/delete", post(handlers::files::delete_files))
         .route("/api/fix", post(handlers::fix::fix_files))
         .route("/api/defaults", get(handlers::state::get_defaults))
+        .route(
+            "/api/browser-directory",
+            get(handlers::state::get_browser_directory),
+        )
         .route(
             "/api/directories",
             get(handlers::directories::list_directories),

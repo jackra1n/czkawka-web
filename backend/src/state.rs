@@ -13,6 +13,8 @@ pub struct AppPersistentState {
     pub directories: Directories,
     #[serde(default)]
     pub tools: HashMap<String, ToolState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_browser_directory: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

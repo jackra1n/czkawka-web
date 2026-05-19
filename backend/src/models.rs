@@ -195,6 +195,11 @@ pub struct DirectoryListingResponse {
     pub directories: Vec<DirectoryEntry>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BrowserDirectoryResponse {
+    pub path: String,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct DeleteRequest {
     pub tool_id: String,
@@ -227,6 +232,11 @@ pub struct UpdateDirectoriesRequest {
 pub struct UpdateToolStateRequest {
     #[serde(default)]
     pub checked_files: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateLastBrowserDirectoryRequest {
+    pub path: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
