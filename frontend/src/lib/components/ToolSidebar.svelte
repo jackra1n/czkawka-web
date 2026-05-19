@@ -13,25 +13,24 @@
 		FileCode,
 		Camera,
 		Type,
-		Lock,
 		PanelLeft,
 		PanelLeftClose
 	} from 'lucide-svelte';
 
 	const tools = [
-		{ id: 'duplicates', label: 'Duplicate Files', icon: Copy, disabled: false },
-		{ id: 'empty-folders', label: 'Empty Folders', icon: FolderOpen, disabled: false },
-		{ id: 'big-files', label: 'Big Files', icon: BarChart3, disabled: false },
-		{ id: 'empty-files', label: 'Empty Files', icon: FileX, disabled: false },
-		{ id: 'temporary', label: 'Temporary Files', icon: Clock, disabled: false },
-		{ id: 'similar-images', label: 'Similar Images', icon: Images, disabled: false },
-		{ id: 'similar-videos', label: 'Similar Videos', icon: Video, disabled: false },
-		{ id: 'same-music', label: 'Music Duplicates', icon: Music, disabled: false },
-		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link, disabled: false },
-		{ id: 'broken-files', label: 'Broken Files', icon: AlertTriangle, disabled: false },
-		{ id: 'bad-extensions', label: 'Bad Extensions', icon: FileCode, disabled: false },
-		{ id: 'bad-names', label: 'Bad Names', icon: Type, disabled: false },
-		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera, disabled: false }
+		{ id: 'duplicates', label: 'Duplicate Files', icon: Copy },
+		{ id: 'empty-folders', label: 'Empty Folders', icon: FolderOpen },
+		{ id: 'big-files', label: 'Big Files', icon: BarChart3 },
+		{ id: 'empty-files', label: 'Empty Files', icon: FileX },
+		{ id: 'temporary', label: 'Temporary Files', icon: Clock },
+		{ id: 'similar-images', label: 'Similar Images', icon: Images },
+		{ id: 'similar-videos', label: 'Similar Videos', icon: Video },
+		{ id: 'same-music', label: 'Music Duplicates', icon: Music },
+		{ id: 'invalid-symlinks', label: 'Invalid Symlinks', icon: Link },
+		{ id: 'broken-files', label: 'Broken Files', icon: AlertTriangle },
+		{ id: 'bad-extensions', label: 'Bad Extensions', icon: FileCode },
+		{ id: 'bad-names', label: 'Bad Names', icon: Type },
+		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera }
 	];
 
 	let {
@@ -52,17 +51,12 @@
 		{#each tools as tool (tool.id)}
 			<button
 				type="button"
-				class="flex h-9 items-center gap-2.5 rounded-md px-3 text-left text-sm transition-colors whitespace-nowrap {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'} {!tool.disabled ? 'hover:bg-surface-raised hover:text-text' : ''} {tool.disabled ? 'opacity-40 cursor-not-allowed' : ''}"
-				disabled={tool.disabled}
+				class="flex h-9 items-center gap-2.5 rounded-md px-3 text-left text-sm transition-colors whitespace-nowrap hover:bg-surface-raised hover:text-text {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'}"
 				onclick={() => {
-					if (!tool.disabled && tool.id !== activeTool) onChangeTool(tool.id);
+					if (tool.id !== activeTool) onChangeTool(tool.id);
 				}}
 			>
-				{#if tool.disabled}
-					<Lock class="h-3.5 w-3.5 shrink-0 opacity-60" />
-				{:else}
-					<tool.icon class="h-4 w-4 shrink-0" />
-				{/if}
+				<tool.icon class="h-4 w-4 shrink-0" />
 				{#if !collapsed}
 					<span class="truncate leading-none">{tool.label}</span>
 				{/if}
