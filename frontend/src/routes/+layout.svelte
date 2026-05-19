@@ -56,7 +56,7 @@
 				</svg>
 				<span>Source Code</span>
 			</a>
-			<Tooltip content={healthy ? 'Backend connected' : 'Backend disconnected'}>
+			<Tooltip position="bottom" content={healthy ? 'Backend connected' : 'Backend disconnected'}>
 				<div
 					class="h-2 w-2 rounded-full transition-colors duration-300"
 					class:bg-success={healthy}
