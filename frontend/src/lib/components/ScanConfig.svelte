@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { Search, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import { Search, ChevronDown, ChevronUp, RotateCcw } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults, ToolConfig } from '$lib/api';
 	import DirectoryList from './DirectoryList.svelte';
 	import ScanActions from './ScanActions.svelte';
 	import ToolSettings from './ToolSettings.svelte';
+	import Tooltip from './ui/Tooltip.svelte';
+	import { DEFAULT_TOOL_CONFIGS } from '$lib/defaults';
 
 	let {
 		includedDirs = $bindable<string[]>(),
@@ -60,6 +62,26 @@
 			collapsed = true;
 		}
 	});
+
+	const hasChanges = $derived.by(() => {
+		const def = DEFAULT_TOOL_CONFIGS[activeTool];
+		if (!def) return false;
+		for (const key of Object.keys(def) as Array<keyof ToolConfig>) {
+			const val = toolConfig[key];
+			const defVal = def[key];
+			if (val !== undefined && val !== defVal) {
+				return true;
+			}
+		}
+		return false;
+	});
+
+	function resetSettings() {
+		const def = DEFAULT_TOOL_CONFIGS[activeTool];
+		if (def) {
+			toolConfig = { ...toolConfig, ...def };
+		}
+	}
 </script>
 
 <div class="shrink-0 border-b border-border bg-surface p-4">
@@ -82,23 +104,38 @@
 		class:grid-rows-[1fr]={!collapsed}
 	>
 		<div class="overflow-hidden">
-			<div class="mb-3 flex border-b border-border pt-3">
-				{#each [{ k: 'directories', l: 'Directories' }, { k: 'items', l: 'Items' }, { k: 'settings', l: 'Settings' }] as t (t.k)}
-					{#if t.k !== 'settings' || SETTINGS_TOOLS.has(activeTool)}
+			<div class="mb-3 flex items-center justify-between border-b border-border pt-3">
+				<div class="flex">
+					{#each [{ k: 'directories', l: 'Directories' }, { k: 'items', l: 'Items' }, { k: 'settings', l: 'Settings' }] as t (t.k)}
+						{#if t.k !== 'settings' || SETTINGS_TOOLS.has(activeTool)}
+							<button
+								type="button"
+								onclick={() => (activeTab = t.k as typeof activeTab)}
+								class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === t.k
+									? 'text-accent'
+									: 'text-text-muted hover:text-text'}"
+							>
+								{t.l}
+								{#if activeTab === t.k}
+									<span class="absolute right-0 bottom-0 left-0 h-0.5 rounded-t-sm bg-accent"></span>
+								{/if}
+							</button>
+						{/if}
+					{/each}
+				</div>
+
+				{#if activeTab === 'settings' && hasChanges}
+					<Tooltip content="Reset settings to defaults">
 						<button
 							type="button"
-							onclick={() => (activeTab = t.k as typeof activeTab)}
-							class="relative px-3 py-2 text-xs font-medium transition-colors {activeTab === t.k
-								? 'text-accent'
-								: 'text-text-muted hover:text-text'}"
+							onclick={resetSettings}
+							class="mb-1 flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
 						>
-							{t.l}
-							{#if activeTab === t.k}
-								<span class="absolute right-0 bottom-0 left-0 h-0.5 rounded-t-sm bg-accent"></span>
-							{/if}
+							<RotateCcw class="h-3.5 w-3.5" />
+							Reset settings
 						</button>
-					{/if}
-				{/each}
+					</Tooltip>
+				{/if}
 			</div>
 
 			{#if activeTab === 'directories'}

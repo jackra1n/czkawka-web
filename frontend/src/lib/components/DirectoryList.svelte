@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, X, Eye, EyeOff } from 'lucide-svelte';
+	import { Plus, X, Eye, EyeOff, RotateCcw } from 'lucide-svelte';
 	import Tooltip from './ui/Tooltip.svelte';
 
 	let {
@@ -23,6 +23,17 @@
 	function remove(value: string) {
 		dirs = dirs.filter((d) => d !== value);
 	}
+
+	const hasChanges = $derived.by(() => {
+		if (defaultDirs.length === 0) return false;
+		if (dirs.length !== defaultDirs.length) return true;
+		const defaultSet = new Set(defaultDirs);
+		return !dirs.every((d) => defaultSet.has(d));
+	});
+
+	function resetToDefaults() {
+		dirs = [...defaultDirs];
+	}
 </script>
 
 <div class="flex flex-1 flex-col">
@@ -30,6 +41,18 @@
 		<span class="text-xs font-medium text-text-muted">{label}</span>
 		<div class="flex items-center gap-1">
 			{#if defaultDirs.length > 0}
+				{#if hasChanges}
+					<Tooltip content="Reset to default directories">
+						<button
+							type="button"
+							onclick={resetToDefaults}
+							class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
+						>
+							<RotateCcw class="h-3.5 w-3.5" />
+							Reset
+						</button>
+					</Tooltip>
+				{/if}
 				<Tooltip content={showDefaults ? 'Hide default directories' : 'Show default directories'}>
 					<button
 						type="button"
