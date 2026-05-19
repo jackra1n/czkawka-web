@@ -1,6 +1,5 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { api } from '$lib/api';
 	import { onMount } from 'svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
@@ -23,7 +22,6 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
 	<title>czkawka-web</title>
 </svelte:head>
 
