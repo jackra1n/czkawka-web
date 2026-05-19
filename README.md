@@ -1,5 +1,9 @@
 # czkawka-web
 
+[![CI](https://github.com/jackra1n/czkawka-web/actions/workflows/ci.yml/badge.svg)](https://github.com/jackra1n/czkawka-web/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/v/release/jackra1n/czkawka-web)](https://github.com/jackra1n/czkawka-web/releases)
+[![License](https://img.shields.io/github/license/jackra1n/czkawka-web)](LICENSE)
+
 A lightning-fast, minimalist web frontend for the [Czkawka](https://github.com/qarmin/czkawka) duplicate file finder.
 
 I built this because I wanted to run Czkawka on my server, but I needed a good UI and easy Docker deployment for it.
