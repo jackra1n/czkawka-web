@@ -24,7 +24,7 @@
 	}
 </script>
 
-<div class="flex flex-1 flex-col gap-2">
+<div class="flex flex-1 flex-col">
 	<div class="flex items-center justify-between">
 		<span class="text-xs font-medium text-text-muted">{label}</span>
 		<div class="flex items-center gap-1">
