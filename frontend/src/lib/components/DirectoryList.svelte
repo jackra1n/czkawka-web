@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Plus, X, Eye, EyeOff } from 'lucide-svelte';
+	import Tooltip from './ui/Tooltip.svelte';
 
 	let {
 		label,
@@ -29,19 +30,20 @@
 		<span class="text-xs font-medium text-text-muted">{label}</span>
 		<div class="flex items-center gap-1">
 			{#if defaultDirs.length > 0}
-				<button
-					type="button"
-					onclick={() => (showDefaults = !showDefaults)}
-					title={showDefaults ? 'Hide default directories' : 'Show default directories'}
-					class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
-				>
-					{#if showDefaults}
-						<EyeOff class="h-3.5 w-3.5" />
-					{:else}
-						<Eye class="h-3.5 w-3.5" />
-					{/if}
-					Defaults
-				</button>
+				<Tooltip content={showDefaults ? 'Hide default directories' : 'Show default directories'}>
+					<button
+						type="button"
+						onclick={() => (showDefaults = !showDefaults)}
+						class="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:text-accent"
+					>
+						{#if showDefaults}
+							<EyeOff class="h-3.5 w-3.5" />
+						{:else}
+							<Eye class="h-3.5 w-3.5" />
+						{/if}
+						Defaults
+					</button>
+				</Tooltip>
 			{/if}
 			<button
 				type="button"
@@ -64,15 +66,18 @@
 			{#each dirs as dir (dir)}
 				{#if showDefaults || !defaultDirs.includes(dir)}
 					<div class="flex items-center gap-1 rounded-sm px-2 py-1 hover:bg-surface">
-						<span class="min-w-0 flex-1 truncate text-sm text-text" title={dir}>{dir}</span>
-						<button
-							type="button"
-							onclick={() => remove(dir)}
-							class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
-							title="Remove"
-						>
+						<Tooltip class="flex min-w-0 flex-1" content={dir}>
+							<span class="min-w-0 flex-1 truncate text-sm text-text">{dir}</span>
+						</Tooltip>
+						<Tooltip class="inline-flex shrink-0" content="Remove">
+							<button
+								type="button"
+								onclick={() => remove(dir)}
+								class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
+							>
 							<X class="h-3.5 w-3.5" />
 						</button>
+						</Tooltip>
 					</div>
 				{/if}
 			{/each}

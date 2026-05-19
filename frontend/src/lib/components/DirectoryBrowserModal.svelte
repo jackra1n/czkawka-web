@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { X, Folder, ChevronRight, Loader, Eye, EyeOff } from 'lucide-svelte';
+	import Tooltip from './ui/Tooltip.svelte';
 
 	interface Props {
 		open: boolean;
@@ -180,12 +181,12 @@
 			</div>
 
 			<div class="flex items-center justify-between gap-3 border-t border-border px-5 py-4">
+				<Tooltip content={showHidden ? 'Hide hidden folders' : 'Show hidden folders'}>
 				<button
 					onclick={() => (showHidden = !showHidden)}
 					class="flex items-center gap-1.5 rounded border border-border px-3 py-2 text-xs font-medium transition-colors {showHidden
 						? 'bg-surface-raised text-accent'
 						: 'text-text-muted hover:bg-surface-raised hover:text-text'}"
-					title={showHidden ? 'Hide hidden folders' : 'Show hidden folders'}
 				>
 					{#if showHidden}
 						<Eye class="h-3.5 w-3.5" />
@@ -194,9 +195,10 @@
 					{/if}
 					<span>Hidden</span>
 				</button>
-				<div class="flex items-center gap-3">
-					<button
-						onclick={onClose}
+			</Tooltip>
+			<div class="flex items-center gap-3">
+				<button
+					onclick={onClose}
 						class="rounded-md border border-border px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
 					>
 						Cancel

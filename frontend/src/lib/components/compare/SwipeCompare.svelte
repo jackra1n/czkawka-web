@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { MoveHorizontal } from 'lucide-svelte';
 	import { formatBytes } from '$lib/utils';
+	import Tooltip from '../ui/Tooltip.svelte';
 
 	let {
 		fileUrl,
@@ -27,12 +28,16 @@
 
 <div class="flex min-h-0 flex-1 flex-col">
 	<div class="mb-2 flex shrink-0 gap-2 px-2 pt-2">
-		<div class="min-w-0 flex-1 truncate text-xs text-text-muted" title={selectedFile}>
-			Selected: {selectedFile}
-		</div>
-		<div class="min-w-0 flex-1 truncate text-right text-xs text-text-muted" title={compareTarget}>
-			Comparing: {compareTarget}
-		</div>
+		<Tooltip class="flex min-w-0 flex-1" content={selectedFile}>
+			<div class="min-w-0 flex-1 truncate text-xs text-text-muted">
+				Selected: {selectedFile}
+			</div>
+		</Tooltip>
+		<Tooltip class="flex min-w-0 flex-1" content={compareTarget}>
+			<div class="min-w-0 flex-1 truncate text-right text-xs text-text-muted">
+				Comparing: {compareTarget}
+			</div>
+		</Tooltip>
 	</div>
 	<div class="relative flex min-h-0 flex-1 items-center justify-center bg-bg">
 		<img src={compareUrl} alt="Comparing" class="max-h-full max-w-full object-contain" />

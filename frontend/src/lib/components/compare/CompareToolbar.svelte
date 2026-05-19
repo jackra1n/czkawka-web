@@ -2,6 +2,7 @@
 	import { Columns2, MoveHorizontal, Layers, Image, Settings, Check } from 'lucide-svelte';
 	import { getFileUrl } from '$lib/api';
 	import type { ScannedFile } from '$lib/api';
+	import Tooltip from '../ui/Tooltip.svelte';
 
 	type CompareMode = 'single' | 'side-by-side' | 'swipe' | 'onion';
 
@@ -31,57 +32,62 @@
 <div class="shrink-0 space-y-2 border-b border-border px-4 py-2">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-1">
-			<button
-				onclick={() => setCompareMode('single')}
-				class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
-				'single'
-					? 'bg-surface-raised text-text'
-					: ''}"
-				title="Single"
-			>
-				<Image class="h-3.5 w-3.5" />
-			</button>
-			<button
-				onclick={() => setCompareMode('side-by-side')}
-				class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
-				'side-by-side'
-					? 'bg-surface-raised text-text'
-					: ''}"
-				title="Side by side"
-			>
-				<Columns2 class="h-3.5 w-3.5" />
-			</button>
-			<button
-				onclick={() => setCompareMode('swipe')}
-				class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
-				'swipe'
-					? 'bg-surface-raised text-text'
-					: ''}"
-				title="Swipe"
-			>
-				<MoveHorizontal class="h-3.5 w-3.5" />
-			</button>
-			<button
-				onclick={() => setCompareMode('onion')}
-				class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
-				'onion'
-					? 'bg-surface-raised text-text'
-					: ''}"
-				title="Onion skin"
-			>
-				<Layers class="h-3.5 w-3.5" />
-			</button>
+			<Tooltip content="Single">
+				<button
+					onclick={() => setCompareMode('single')}
+					class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
+					'single'
+						? 'bg-surface-raised text-text'
+						: ''}"
+				>
+					<Image class="h-3.5 w-3.5" />
+				</button>
+			</Tooltip>
+			<Tooltip content="Side by side">
+				<button
+					onclick={() => setCompareMode('side-by-side')}
+					class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
+					'side-by-side'
+						? 'bg-surface-raised text-text'
+						: ''}"
+				>
+					<Columns2 class="h-3.5 w-3.5" />
+				</button>
+			</Tooltip>
+			<Tooltip content="Swipe">
+				<button
+					onclick={() => setCompareMode('swipe')}
+					class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
+					'swipe'
+						? 'bg-surface-raised text-text'
+						: ''}"
+				>
+					<MoveHorizontal class="h-3.5 w-3.5" />
+				</button>
+			</Tooltip>
+			<Tooltip content="Onion skin">
+				<button
+					onclick={() => setCompareMode('onion')}
+					class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {compareMode ===
+					'onion'
+						? 'bg-surface-raised text-text'
+						: ''}"
+				>
+					<Layers class="h-3.5 w-3.5" />
+				</button>
+			</Tooltip>
 		</div>
 		<div class="relative">
-			<button
-				onclick={() => (settingsOpen = !settingsOpen)}
-				title="Settings"
-				class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {settingsOpen
-					? 'bg-surface-raised text-text'
-					: ''}"
-			>
-				<Settings class="h-3.5 w-3.5" />
-			</button>
+			<Tooltip content="Settings">
+				<button
+					onclick={() => (settingsOpen = !settingsOpen)}
+					class="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text {settingsOpen
+						? 'bg-surface-raised text-text'
+						: ''}"
+				>
+					<Settings class="h-3.5 w-3.5" />
+				</button>
+			</Tooltip>
 			{#if settingsOpen}
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
@@ -109,28 +115,29 @@
 	{#if compareMode !== 'single'}
 		<div class="flex items-center gap-2 overflow-x-auto">
 			{#each imageSiblings as sibling (sibling.path)}
-				<button
-					onclick={() => {
-						if (sibling.path !== selectedFile) setCompareTarget(sibling.path);
-					}}
-					class="relative shrink-0 overflow-hidden rounded border {sibling.path === selectedFile
-						? colorCodingEnabled
-							? 'border-blue-500 ring-1 ring-blue-500'
-							: 'border-primary'
-						: sibling.path === compareTarget
+				<Tooltip content={sibling.path}>
+					<button
+						onclick={() => {
+							if (sibling.path !== selectedFile) setCompareTarget(sibling.path);
+						}}
+						class="relative shrink-0 overflow-hidden rounded border {sibling.path === selectedFile
 							? colorCodingEnabled
-								? 'border-amber-500 ring-1 ring-amber-500'
-								: 'border-primary ring-primary ring-1'
-							: 'border-border'}"
-					title={sibling.path}
-				>
-					<img
-						src={getFileUrl(sibling.path)}
-						alt=""
-						class="h-8 w-8 object-cover"
-						draggable="false"
-					/>
-				</button>
+								? 'border-blue-500 ring-1 ring-blue-500'
+								: 'border-primary'
+							: sibling.path === compareTarget
+								? colorCodingEnabled
+									? 'border-amber-500 ring-1 ring-amber-500'
+									: 'border-primary ring-primary ring-1'
+								: 'border-border'}"
+					>
+						<img
+							src={getFileUrl(sibling.path)}
+							alt=""
+							class="h-8 w-8 object-cover"
+							draggable="false"
+						/>
+					</button>
+				</Tooltip>
 			{/each}
 		</div>
 	{/if}

@@ -3,6 +3,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults, ScannedFile, ScanProgress } from '$lib/api';
 	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
+	import Tooltip from './ui/Tooltip.svelte';
 
 	let {
 		scanState,
@@ -461,16 +462,17 @@
 									{item.file.similarity ?? ''}
 								</div>
 								{:else if col.key === 'filename'}
-									<div class="flex min-w-0 items-center" title={name}>
-										<span class="truncate text-text">{name}</span>
-									</div>
+									<Tooltip class="flex min-w-0" content={name}>
+										<div class="flex min-w-0 items-center">
+											<span class="truncate text-text">{name}</span>
+										</div>
+									</Tooltip>
 								{:else if col.key === 'path'}
-									<div
-										class="flex min-w-0 items-center font-mono text-xs text-text-muted"
-										title={dir}
-									>
-										<span class="truncate">{dir}</span>
-									</div>
+									<Tooltip class="flex min-w-0" content={dir}>
+										<div class="flex min-w-0 items-center font-mono text-xs text-text-muted">
+											<span class="truncate">{dir}</span>
+										</div>
+									</Tooltip>
 							{:else if col.key === 'modified'}
 								<div class="truncate text-xs text-text-muted">
 									{formatDate(item.file.modified_date)}

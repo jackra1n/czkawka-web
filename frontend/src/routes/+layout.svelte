@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { api } from '$lib/api';
 	import { onMount } from 'svelte';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 
 	let { children } = $props();
 
@@ -55,12 +56,13 @@
 				</svg>
 				<span>Source Code</span>
 			</a>
-			<div
-				title={healthy ? 'Backend connected' : 'Backend disconnected'}
-				class="h-2 w-2 rounded-full transition-colors duration-300"
-				class:bg-success={healthy}
-				class:bg-danger={!healthy}
-			></div>
+			<Tooltip content={healthy ? 'Backend connected' : 'Backend disconnected'}>
+				<div
+					class="h-2 w-2 rounded-full transition-colors duration-300"
+					class:bg-success={healthy}
+					class:bg-danger={!healthy}
+				></div>
+			</Tooltip>
 		</div>
 	</header>
 

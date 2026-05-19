@@ -5,6 +5,7 @@
 	import type { ScannedFile } from '$lib/api';
 	import ErrorIcon from './ErrorIcon.svelte';
 	import MediaPreview from './MediaPreview.svelte';
+	import Tooltip from './ui/Tooltip.svelte';
 	import CompareToolbar from './compare/CompareToolbar.svelte';
 	import SideBySideCompare from './compare/SideBySideCompare.svelte';
 	import SwipeCompare from './compare/SwipeCompare.svelte';
@@ -235,17 +236,18 @@
 	<div class="flex items-center justify-between border-b border-border px-4 py-3">
 		<span class="text-sm font-medium">Preview</span>
 		<div class="flex items-center gap-1">
-			<button
-				onclick={toggleMaximize}
-				title={isMaximized ? 'Minimize' : 'Maximize'}
-				class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-			>
+			<Tooltip content={isMaximized ? 'Minimize' : 'Maximize'}>
+				<button
+					onclick={toggleMaximize}
+					class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+				>
 				{#if isMaximized}
 					<Minimize2 class="h-4 w-4" />
 				{:else}
 					<Maximize2 class="h-4 w-4" />
 				{/if}
 			</button>
+			</Tooltip>
 			<button
 				onclick={onClose}
 				class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
