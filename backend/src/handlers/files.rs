@@ -2,12 +2,13 @@ use std::sync::Arc;
 
 use axum::{
     Json,
-    body::Body,
-    extract::{Query, State},
+    extract::{Query, State, Request},
     http::StatusCode,
-    response::Response,
+    response::IntoResponse,
 };
 use std::path::PathBuf;
+use tower::ServiceExt;
+use tower_http::services::ServeFile;
 
 use crate::models::{AppState, DeleteRequest, DeleteResponse, FailedDeletion, FileQuery};
 use crate::state;
@@ -77,30 +78,25 @@ pub async fn delete_files(
     (StatusCode::OK, Json(DeleteResponse { deleted, failed }))
 }
 
-pub async fn serve_file(Query(query): Query<FileQuery>) -> Result<Response, (StatusCode, String)> {
+pub async fn serve_file(
+    Query(query): Query<FileQuery>,
+    req: Request,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
     let path = PathBuf::from(&query.path);
 
     if !path.is_file() {
         return Err((StatusCode::NOT_FOUND, "File not found".to_string()));
     }
 
-    let content = match tokio::fs::read(&path).await {
-        Ok(data) => data,
-        Err(e) => {
-            log::warn!("Failed to read file {}: {}", query.path, e);
-            return Err((
+    let service = ServeFile::new(path);
+    match service.oneshot(req).await {
+        Ok(res) => Ok(res.into_response()),
+        Err(err) => {
+            log::error!("Failed to serve file: {:?}", err);
+            Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to read file".to_string(),
-            ));
+                "Failed to serve file".to_string(),
+            ))
         }
-    };
-
-    let content_type = mime_guess::from_path(&path)
-        .first_or_octet_stream()
-        .to_string();
-
-    Ok(Response::builder()
-        .header("Content-Type", content_type)
-        .body(Body::from(content))
-        .unwrap())
+    }
 }
