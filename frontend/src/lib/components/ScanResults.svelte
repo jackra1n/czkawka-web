@@ -516,9 +516,9 @@
 							<span class="truncate">{col.label}</span>
 							{#if sortKey === col.key}
 								{#if sortDesc}
-									<ArrowDown class="ml-1 h-3 w-3 flex-shrink-0" />
+									<ArrowDown class="ml-1 h-3 w-3 shrink-0" />
 								{:else}
-									<ArrowUp class="ml-1 h-3 w-3 flex-shrink-0" />
+									<ArrowUp class="ml-1 h-3 w-3 shrink-0" />
 								{/if}
 							{/if}
 							{#if ci < colDefs.length - 1}
