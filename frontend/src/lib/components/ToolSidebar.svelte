@@ -74,7 +74,7 @@
 			type="button"
 			onclick={onToggleCollapse}
 			title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-			class="flex h-9 items-center gap-2.5 rounded-md px-3 text-left text-sm whitespace-nowrap text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+			class="flex h-9 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm whitespace-nowrap text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
 		>
 			{#if collapsed}
 				<PanelLeft class="h-4 w-4 shrink-0" />
