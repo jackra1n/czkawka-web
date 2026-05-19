@@ -30,10 +30,10 @@ pub async fn get_defaults() -> Json<DefaultsResponse> {
 pub async fn get_browser_directory(State(state): State<Arc<AppState>>) -> Json<BrowserDirectoryResponse> {
     let mut persistent = state.persistent.lock().unwrap();
 
-    if let Some(ref stored) = persistent.last_browser_directory {
-        if std::path::Path::new(stored).is_dir() {
-            return Json(BrowserDirectoryResponse { path: stored.clone() });
-        }
+    if let Some(ref stored) = persistent.last_browser_directory
+        && std::path::Path::new(stored).is_dir()
+    {
+        return Json(BrowserDirectoryResponse { path: stored.clone() });
     }
 
     let resolved = std::env::var("DEFAULT_SCAN_PATH")
