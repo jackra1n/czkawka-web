@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{
     Json,
-    extract::{Query, State, Request},
+    extract::{Query, Request, State},
     http::StatusCode,
     response::IntoResponse,
 };
