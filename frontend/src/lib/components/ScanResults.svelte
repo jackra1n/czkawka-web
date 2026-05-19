@@ -4,6 +4,7 @@
 	import type { ScanResults, ScannedFile, ScanProgress } from '$lib/api';
 	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
 	import Tooltip from './ui/Tooltip.svelte';
+	import Checkbox from './ui/Checkbox.svelte';
 
 	let {
 		scanState,
@@ -438,12 +439,11 @@
 						>
 							{#each colDefs as col (col.key)}
 								{#if col.key === 'checkbox'}
-									<div class="flex items-center justify-center">
-										<input
-											type="checkbox"
+									<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+									<div class="flex items-center justify-center" onclick={(e) => e.stopPropagation()}>
+										<Checkbox
 											checked={checkedFiles.has(item.file.path)}
-											onclick={(e) => {
-												e.stopPropagation();
+											onchange={() => {
 												toggleCheck(item.file.path);
 												handleSelect(i);
 											}}

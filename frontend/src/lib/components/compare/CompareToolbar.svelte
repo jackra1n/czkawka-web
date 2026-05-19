@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { Columns2, MoveHorizontal, Layers, Image, Settings, Check } from 'lucide-svelte';
+	import { Columns2, MoveHorizontal, Layers, Image, Settings } from 'lucide-svelte';
 	import { getFileUrl } from '$lib/api';
 	import type { ScannedFile } from '$lib/api';
 	import Tooltip from '../ui/Tooltip.svelte';
+	import Checkbox from '../ui/Checkbox.svelte';
 
 	type CompareMode = 'single' | 'side-by-side' | 'swipe' | 'onion';
 
@@ -94,20 +95,19 @@
 					class="absolute right-0 z-30 mt-1 w-40 rounded-md border border-border bg-surface shadow-lg"
 					onmouseleave={() => (settingsOpen = false)}
 				>
-					<button
-						onclick={() => {
-							toggleColorCoding();
-							settingsOpen = false;
-						}}
-						class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs text-text transition-colors hover:bg-surface-raised"
-					>
-						Color code
-						<span class="flex h-3.5 w-3.5 items-center justify-center rounded border border-text-muted">
-							{#if colorCodingEnabled}
-								<Check class="h-3 w-3" />
-							{/if}
-						</span>
-					</button>
+					<div class="w-full">
+						<Checkbox
+							checked={colorCodingEnabled}
+							onchange={() => {
+								toggleColorCoding();
+								settingsOpen = false;
+							}}
+							reverse={true}
+							class="w-full justify-between px-3 py-2 text-xs hover:bg-surface-raised"
+						>
+							Color code
+						</Checkbox>
+					</div>
 				</div>
 			{/if}
 		</div>
