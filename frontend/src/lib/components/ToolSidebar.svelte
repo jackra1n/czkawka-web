@@ -51,7 +51,7 @@
 		{#each tools as tool (tool.id)}
 			<button
 				type="button"
-				class="flex h-9 items-center gap-2.5 rounded-md px-3 text-left text-sm transition-colors whitespace-nowrap hover:bg-surface-raised hover:text-text {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'}"
+				class="flex h-9 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm transition-colors whitespace-nowrap hover:bg-surface-raised hover:text-text {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'}"
 				onclick={() => {
 					if (tool.id !== activeTool) onChangeTool(tool.id);
 				}}
