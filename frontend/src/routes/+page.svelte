@@ -13,7 +13,6 @@
 	import ScanResults from '$lib/components/ScanResults.svelte';
 	import FilePreview from '$lib/components/FilePreview.svelte';
 	import { loadUiState, saveUiState, type UiState } from '$lib/stores/uiState';
-	import { setLastDirectory } from '$lib/stores/lastDirectory.svelte';
 	import { onDestroy } from 'svelte';
 
 	// ---- State ----
@@ -219,12 +218,6 @@
 				if (excludedDirs.length === 0 && excludedItems === '') {
 					excludedDirs = defaults.excluded_directories;
 					excludedItems = defaults.excluded_items;
-				}
-				if (defaults.default_directory) {
-					const stored = localStorage.getItem('czkawka-last-directory');
-					if (!stored || stored === '~' || stored === '~/') {
-						setLastDirectory(defaults.default_directory);
-					}
 				}
 			} catch (e) {
 				console.error('Failed to load defaults:', e);

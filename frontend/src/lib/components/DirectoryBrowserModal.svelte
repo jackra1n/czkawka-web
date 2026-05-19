@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { X, Folder, ChevronRight, Loader, Eye, EyeOff } from 'lucide-svelte';
-	import { getLastDirectory, setLastDirectory } from '$lib/stores/lastDirectory.svelte';
 
 	interface Props {
 		open: boolean;
@@ -29,6 +28,14 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let showHidden = $state(false);
+
+	async function persistBrowserDirectory(path: string) {
+		fetch('/api/state/last-browser-directory', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ path })
+		}).catch(() => {});
+	}
 
 	async function fetchDirs(path: string, includeHidden: boolean) {
 		loading = true;
@@ -66,15 +73,21 @@
 	}
 
 	function selectFolder() {
-		setLastDirectory(getParentPath(displayPath));
+		persistBrowserDirectory(getParentPath(displayPath));
 		onSelect(displayPath);
 		onClose();
 	}
 
 	$effect(() => {
 		if (open) {
-			const stored = getLastDirectory();
-			fetchPath = stored && stored !== '~' && stored !== '~/' ? stored : '~';
+			fetch('/api/browser-directory')
+				.then((r) => r.json())
+				.then((data: { path: string }) => {
+					fetchPath = data.path;
+				})
+				.catch(() => {
+					fetchPath = '~';
+				});
 		}
 	});
 

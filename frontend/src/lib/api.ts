@@ -108,6 +108,7 @@ export interface AppState {
 		excluded_items: string;
 	};
 	tools: Record<string, ToolState>;
+	last_browser_directory?: string | null;
 }
 
 export interface ToolState {
@@ -256,6 +257,10 @@ export const api = {
 
 	getDefaults(): Promise<DefaultsResponse> {
 		return fetchJson('/api/defaults');
+	},
+
+	getBrowserDirectory(): Promise<{ path: string }> {
+		return fetchJson('/api/browser-directory');
 	},
 
 	updateToolState(toolId: string, checkedFiles: string[]): Promise<void> {
