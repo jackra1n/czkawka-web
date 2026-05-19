@@ -94,8 +94,8 @@
 	</div>
 {:else if activeTool === 'similar-videos'}
 	<div class="flex flex-col gap-4">
-		<div class="flex gap-4">
-			<div class="flex flex-1 flex-col gap-1.5">
+		<div class="flex flex-wrap gap-4">
+			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
 				<label for="crop-detect" class="text-xs font-medium text-text-muted">Crop Detect</label>
 				<select
 					id="crop-detect"
@@ -106,7 +106,7 @@
 					{#each CROP_DETECTS as cd (cd)}<option value={cd}>{cd}</option>{/each}
 				</select>
 			</div>
-			<div class="flex flex-1 flex-col gap-1.5">
+			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
 				<label for="vid-hash-duration" class="text-xs font-medium text-text-muted"
 					>Hash Duration (s)</label
 				>
@@ -120,32 +120,32 @@
 					class={IN}
 				/>
 			</div>
-		</div>
-		<div class="flex flex-col gap-1.5">
-			<label for="tolerance" class="text-xs font-medium text-text-muted">Tolerance</label>
-			<div class="flex items-center gap-3">
-				<span class="w-14 shrink-0 text-right text-xs text-text-muted">Strict</span>
-				<input
-					id="tolerance"
-					type="range"
-					min="0"
-					max="20"
-					step="1"
-					value={toolConfig.tolerance ?? 5}
-					oninput={(e) => u({ tolerance: Number(e.currentTarget.value) })}
-					class="flex-1 accent-accent"
-				/>
-				<span class="w-6 text-center text-xs font-medium text-text"
-					>{toolConfig.tolerance ?? 5}</span
-				>
-				<span class="w-12 shrink-0 text-xs text-text-muted">Loose</span>
+			<div class="flex flex-2 flex-col gap-1.5 min-w-60">
+				<label for="tolerance" class="text-xs font-medium text-text-muted">Tolerance</label>
+				<div class="flex items-center gap-3 py-2">
+					<span class="shrink-0 text-xs text-text-muted">Strict</span>
+					<input
+						id="tolerance"
+						type="range"
+						min="0"
+						max="20"
+						step="1"
+						value={toolConfig.tolerance ?? 5}
+						oninput={(e) => u({ tolerance: Number(e.currentTarget.value) })}
+						class="flex-1 accent-accent"
+					/>
+					<span class="shrink-0 text-xs font-medium text-text"
+						>{toolConfig.tolerance ?? 5}</span
+					>
+					<span class="shrink-0 text-xs text-text-muted">Loose</span>
+				</div>
 			</div>
 		</div>
 	</div>
 {:else if activeTool === 'similar-images'}
 	<div class="flex flex-col gap-4">
-		<div class="flex gap-4">
-			<div class="flex flex-1 flex-col gap-1.5">
+		<div class="flex flex-wrap gap-4">
+			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
 				<label for="hash-alg" class="text-xs font-medium text-text-muted">Hash Algorithm</label>
 				<select
 					id="hash-alg"
@@ -156,7 +156,7 @@
 					{#each HASH_ALGS as a (a)}<option value={a}>{a}</option>{/each}
 				</select>
 			</div>
-			<div class="flex flex-1 flex-col gap-1.5">
+			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
 				<label for="hash-size" class="text-xs font-medium text-text-muted">Hash Size</label>
 				<select
 					id="hash-size"
@@ -167,9 +167,7 @@
 					{#each HASH_SIZES as s (s)}<option value={s}>{s}</option>{/each}
 				</select>
 			</div>
-		</div>
-		<div class="flex flex-col gap-4 md:flex-row">
-			<div class="flex flex-1 flex-col gap-1.5">
+			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
 				<label for="resize-filter" class="text-xs font-medium text-text-muted">Resize Algorithm</label
 				>
 				<select
@@ -181,10 +179,10 @@
 					{#each RESIZE_FILTERS as f (f)}<option value={f}>{f}</option>{/each}
 				</select>
 			</div>
-			<div class="flex flex-1 flex-col gap-1.5">
+			<div class="flex flex-2 flex-col gap-1.5 min-w-60">
 				<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
 				<div class="flex items-center gap-3 py-2">
-					<span class="w-14 shrink-0 text-right text-xs text-text-muted">Very high</span>
+					<span class="shrink-0 text-xs text-text-muted">High</span>
 					<input
 						id="similarity"
 						type="range"
@@ -195,10 +193,10 @@
 						oninput={(e) => u({ similarity: Number(e.currentTarget.value) })}
 						class="flex-1 accent-accent"
 					/>
-					<span class="w-6 text-center text-xs font-medium text-text"
+					<span class="shrink-0 text-xs font-medium text-text"
 						>{toolConfig.similarity ?? 5}</span
 					>
-					<span class="w-12 shrink-0 text-xs text-text-muted">Minimal</span>
+					<span class="shrink-0 text-xs text-text-muted">Minimal</span>
 				</div>
 			</div>
 		</div>
