@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { File, Loader2 } from 'lucide-svelte';
+	import { File, LoaderCircle } from 'lucide-svelte';
 	import ErrorIcon from './ErrorIcon.svelte';
 
 	let {
@@ -58,7 +58,7 @@
 {:else if previewType === 'text'}
 	{#if textLoading}
 		<div class="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6">
-			<Loader2 class="h-6 w-6 animate-spin text-text-muted" />
+			<LoaderCircle class="h-6 w-6 animate-spin text-text-muted" />
 			<p class="text-xs text-text-muted">Loading text...</p>
 		</div>
 	{:else if textError}
