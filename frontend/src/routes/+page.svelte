@@ -21,6 +21,7 @@
 
 	let includedDirs = $state<string[]>([]);
 	let excludedDirs = $state<string[]>([]);
+	let defaultExcludedDirs = $state<string[]>([]);
 	let excludedItems = $state<string>('');
 
 	let uiState = $state<UiState>(loadUiState());
@@ -215,6 +216,7 @@
 
 			try {
 				const defaults = await api.getDefaults();
+				defaultExcludedDirs = defaults.excluded_directories;
 				if (excludedDirs.length === 0 && excludedItems === '') {
 					excludedDirs = defaults.excluded_directories;
 					excludedItems = defaults.excluded_items;
@@ -438,6 +440,7 @@
 			bind:excludedItems
 			bind:activeTool
 			bind:toolConfig={toolConfigs[activeTool]}
+			{defaultExcludedDirs}
 			{scanState}
 			{scanResults}
 			{checkedFiles}

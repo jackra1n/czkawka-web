@@ -12,6 +12,7 @@
 		excludedItems = $bindable<string>(),
 		activeTool = $bindable<string>(),
 		toolConfig = $bindable<ToolConfig>({}),
+		defaultExcludedDirs = [],
 		scanState,
 		scanResults,
 		checkedFiles,
@@ -25,6 +26,7 @@
 		excludedItems: string;
 		activeTool: string;
 		toolConfig: ToolConfig;
+		defaultExcludedDirs?: string[];
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		scanResults: ScanResults | null;
 		checkedFiles: SvelteSet<string>;
@@ -106,11 +108,12 @@
 						bind:dirs={includedDirs}
 						onAdd={() => onAddDir('include')}
 					/>
-					<DirectoryList
-						label="Excluded directories"
-						bind:dirs={excludedDirs}
-						onAdd={() => onAddDir('exclude')}
-					/>
+				<DirectoryList
+					label="Excluded directories"
+					bind:dirs={excludedDirs}
+					onAdd={() => onAddDir('exclude')}
+					defaultDirs={defaultExcludedDirs}
+				/>
 				</div>
 			{:else if activeTab === 'items'}
 				<div class="flex flex-col gap-1.5">
