@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Search } from 'lucide-svelte';
+	import { Search, ArrowUp, ArrowDown } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults, ScannedFile, ScanProgress } from '$lib/api';
 	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
@@ -26,6 +26,9 @@
 
 	let containerEl = $state<HTMLDivElement | null>(null);
 	let selectedIndex = $state(-1);
+	let sortKey = $state<string | null>(null);
+	let sortDesc = $state(false);
+	let selectedPath = $state<string | null>(null);
 
 	type ColDef = { key: string; label: string; width: number; minWidth: number };
 
@@ -137,9 +140,109 @@
 	$effect(() => {
 		colWidths = colDefs.map((c) => c.width);
 		selectedIndex = -1;
+		selectedPath = null;
+	});
+
+	$effect(() => {
+		if (activeTool || scanState === 'running') {
+			sortKey = null;
+			sortDesc = false;
+		}
 	});
 
 	type ListItem = { type: 'file'; file: ScannedFile; size: number } | { type: 'separator' };
+
+	function getPixelCount(dimensions?: string): number {
+		if (!dimensions) return 0;
+		const match = dimensions.match(/^(\d+)x(\d+)$/);
+		if (!match) return 0;
+		return parseInt(match[1], 10) * parseInt(match[2], 10);
+	}
+
+	function compareValues(a: unknown, b: unknown): number {
+		if (a === b) return 0;
+		if (a == null) return 1;
+		if (b == null) return -1;
+
+		const aNum = typeof a === 'number' ? a : (typeof a === 'string' && a.trim() !== '' ? Number(a.replace(/%$/, '')) : NaN);
+		const bNum = typeof b === 'number' ? b : (typeof b === 'string' && b.trim() !== '' ? Number(b.replace(/%$/, '')) : NaN);
+
+		if (!isNaN(aNum) && !isNaN(bNum)) {
+			return aNum - bNum;
+		}
+
+		return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+	}
+
+	function getSortValue(file: ScannedFile, group: { size: number }, key: string): string | number {
+		switch (key) {
+			case 'size':
+				return file.size ?? group.size ?? 0;
+			case 'filename':
+				return splitPath(file.path).name.toLowerCase();
+			case 'path':
+				return splitPath(file.path).dir.toLowerCase();
+			case 'modified':
+				return file.modified_date ?? 0;
+			case 'dimensions':
+				return getPixelCount(file.dimensions);
+			case 'similarity':
+				return file.similarity ?? '';
+			default:
+				return '';
+		}
+	}
+
+	function sortScanResults(results: ScanResults | null, key: string | null, desc: boolean): ScanResults | null {
+		if (!results || !key) return results;
+
+		const sortedGroups = results.groups.map((group) => {
+			const files = [...group.files];
+			files.sort((a, b) => {
+				const valA = getSortValue(a, group, key);
+				const valB = getSortValue(b, group, key);
+				const cmp = compareValues(valA, valB);
+				return desc ? -cmp : cmp;
+			});
+			return {
+				...group,
+				files
+			};
+		});
+
+		sortedGroups.sort((gA, gB) => {
+			const fileA = gA.files[0];
+			const fileB = gB.files[0];
+
+			if (!fileA && !fileB) return 0;
+			if (!fileA) return desc ? -1 : 1;
+			if (!fileB) return desc ? 1 : -1;
+
+			const valA = getSortValue(fileA, gA, key);
+			const valB = getSortValue(fileB, gB, key);
+			const cmp = compareValues(valA, valB);
+			return desc ? -cmp : cmp;
+		});
+
+		return {
+			...results,
+			groups: sortedGroups
+		};
+	}
+
+	function toggleSort(key: string) {
+		if (sortKey === key) {
+			if (!sortDesc) {
+				sortDesc = true;
+			} else {
+				sortKey = null;
+				sortDesc = false;
+			}
+		} else {
+			sortKey = key;
+			sortDesc = false;
+		}
+	}
 
 	function buildListItems(results: ScanResults | null): ListItem[] {
 		if (!results) return [];
@@ -166,12 +269,26 @@
 		return items;
 	}
 
-	let listItems = $derived(buildListItems(scanResults));
+	let sortedResults = $derived(sortScanResults(scanResults, sortKey, sortDesc));
+	let listItems = $derived(buildListItems(sortedResults));
 
 	$effect(() => {
 		if (scanState === 'running') {
 			selectedIndex = -1;
+			selectedPath = null;
 			checkedFiles.clear();
+		}
+	});
+
+	$effect(() => {
+		if (selectedPath) {
+			const idx = listItems.findIndex((item) => item.type === 'file' && item.file.path === selectedPath);
+			if (idx !== -1) {
+				selectedIndex = idx;
+			} else {
+				selectedIndex = -1;
+				selectedPath = null;
+			}
 		}
 	});
 
@@ -187,9 +304,11 @@
 		selectedIndex = index;
 		containerEl?.focus();
 		const item = listItems[index];
-		if (item.type === 'file') {
+		if (item && item.type === 'file') {
+			selectedPath = item.file.path;
 			onSelectFile(item.file.path, item.size);
 		} else {
+			selectedPath = null;
 			onSelectFile(null, 0);
 		}
 	}
@@ -385,15 +504,34 @@
 					style="grid-template-columns: {gridCols()};"
 				>
 					{#each colDefs as col, ci (col.key)}
-						<div class="relative flex min-w-0 items-center">
+						<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+						<div
+							class="relative flex min-w-0 items-center select-none {col.key !== 'checkbox' ? 'cursor-pointer hover:text-text' : ''}"
+							onclick={() => {
+								if (col.key !== 'checkbox') {
+									toggleSort(col.key);
+								}
+							}}
+						>
 							<span class="truncate">{col.label}</span>
+							{#if sortKey === col.key}
+								{#if sortDesc}
+									<ArrowDown class="ml-1 h-3 w-3 flex-shrink-0" />
+								{:else}
+									<ArrowUp class="ml-1 h-3 w-3 flex-shrink-0" />
+								{/if}
+							{/if}
 							{#if ci < colDefs.length - 1}
 								<div
 									class="group absolute top-0 right-0 bottom-0 z-10 flex w-3 cursor-col-resize items-center justify-center"
 									role="button"
 									tabindex="-1"
 									aria-label="Resize column"
-									onmousedown={(e) => startResize(e, ci)}
+									onmousedown={(e) => {
+										e.stopPropagation();
+										startResize(e, ci);
+									}}
+									onclick={(e) => e.stopPropagation()}
 								>
 									<div class="h-6 w-px rounded-full bg-border transition-colors group-hover:bg-text-muted"></div>
 								</div>
