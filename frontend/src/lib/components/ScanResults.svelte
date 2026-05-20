@@ -3,6 +3,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults, ScannedFile, ScanProgress } from '$lib/api';
 	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
+	import { computeVirtualLayout, findVisibleRange } from '$lib/virtualList';
 	import Tooltip from './ui/Tooltip.svelte';
 	import Checkbox from './ui/Checkbox.svelte';
 
@@ -272,6 +273,43 @@
 	let sortedResults = $derived(sortScanResults(scanResults, sortKey, sortDesc));
 	let listItems = $derived(buildListItems(sortedResults));
 
+	let layout = $derived(computeVirtualLayout(listItems, (item) => (item.type === 'separator' ? 16 : 36)));
+
+	let scrollTop = $state(0);
+	let clientHeight = $state(0);
+
+	function handleScroll() {
+		if (containerEl) {
+			scrollTop = containerEl.scrollTop;
+		}
+	}
+
+	$effect(() => {
+		if (containerEl) {
+			scrollTop = containerEl.scrollTop;
+			clientHeight = containerEl.clientHeight;
+
+			const resizeObserver = new ResizeObserver(() => {
+				if (containerEl) {
+					clientHeight = containerEl.clientHeight;
+				}
+			});
+			resizeObserver.observe(containerEl);
+
+			return () => {
+				resizeObserver.disconnect();
+			};
+		}
+	});
+
+	let visibleRange = $derived.by(() => {
+		const viewTop = Math.max(0, scrollTop - 1000);
+		const viewBottom = scrollTop + clientHeight + 1000;
+		return findVisibleRange(layout.items, viewTop, viewBottom);
+	});
+
+	let visibleItems = $derived(layout.items.slice(visibleRange.start, visibleRange.end + 1));
+
 	$effect(() => {
 		if (scanState === 'running') {
 			selectedIndex = -1;
@@ -337,10 +375,32 @@
 		}
 	}
 
+	function getHeaderHeight(): number {
+		const header = containerEl?.querySelector('.sticky');
+		return header ? header.getBoundingClientRect().height : 0;
+	}
+
 	function scrollToIndex(index: number) {
-		const el = document.getElementById(`scan-item-${index}`);
-		if (el) {
-			el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		if (!containerEl || index < 0 || index >= layout.items.length) return;
+		const item = layout.items[index];
+		const headerHeight = getHeaderHeight();
+		const currentScroll = containerEl.scrollTop;
+		const viewportTop = currentScroll + headerHeight;
+		const viewportBottom = currentScroll + clientHeight;
+
+		const itemTop = item.top + headerHeight;
+		const itemBottom = itemTop + item.height;
+
+		if (itemTop < viewportTop) {
+			containerEl.scrollTo({
+				top: item.top,
+				behavior: 'smooth'
+			});
+		} else if (itemBottom > viewportBottom) {
+			containerEl.scrollTo({
+				top: item.top + item.height + headerHeight - clientHeight,
+				behavior: 'smooth'
+			});
 		}
 	}
 
@@ -438,6 +498,7 @@
 	role="listbox"
 	aria-label="Scan results"
 	onkeydown={handleKeyDown}
+	onscroll={handleScroll}
 >
 	{#if scanState === 'idle' && !scanResults}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 text-text-muted">
@@ -548,77 +609,80 @@
 			</div>
 		{:else}
 			<!-- Table rows -->
-			<div class="flex min-w-full flex-col">
-				{#each listItems as item, i (item.type === 'file' ? item.file.path : `sep-${i}`)}
-					{#if item.type === 'separator'}
-						<div
-							id="scan-item-{i}"
-							class="h-4 cursor-default {selectedIndex === i ? 'bg-accent/10' : ''}"
-							role="option"
-							tabindex="-1"
-							aria-selected={selectedIndex === i}
-							onclick={() => handleSelect(i)}
-							onkeydown={() => {}}
-						></div>
-					{:else}
-						{@const { name, dir } = splitPath(item.file.path)}
-						<div
-							id="scan-item-{i}"
-						class="grid cursor-pointer gap-3 px-4 py-2 text-sm transition-colors {selectedIndex ===
-						i
-							? 'bg-accent/15'
-							: 'hover:bg-accent/10'}"
-							style="grid-template-columns: {gridCols()};"
-							role="option"
-							tabindex="-1"
-							aria-selected={selectedIndex === i}
-							onclick={() => handleSelect(i)}
-							onkeydown={() => {}}
-						>
-							{#each colDefs as col (col.key)}
-								{#if col.key === 'checkbox'}
-									<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-									<div class="flex items-center justify-center" onclick={(e) => e.stopPropagation()}>
-										<Checkbox
-											checked={checkedFiles.has(item.file.path)}
-											onchange={() => {
-												toggleCheck(item.file.path);
-												handleSelect(i);
-											}}
-										/>
-									</div>
-							{:else if col.key === 'size'}
-								<div class="truncate text-text">
-									{formatBytes(item.size)}
-								</div>
-							{:else if col.key === 'dimensions'}
-								<div class="truncate text-text">
-									{item.file.dimensions ?? ''}
-								</div>
-							{:else if col.key === 'similarity'}
-								<div class="truncate text-text">
-									{item.file.similarity ?? ''}
-								</div>
-								{:else if col.key === 'filename'}
-									<Tooltip class="flex min-w-0" content={name}>
-										<div class="flex min-w-0 items-center">
-											<span class="truncate text-text">{name}</span>
+			<div class="relative min-w-full" style="height: {layout.totalHeight}px;">
+				{#each visibleItems as renderItem (renderItem.item.type === 'file' ? renderItem.item.file.path : `sep-${renderItem.index}`)}
+					{@const item = renderItem.item}
+					{@const i = renderItem.index}
+					<div style="position: absolute; top: {renderItem.top}px; left: 0; right: 0; height: {renderItem.height}px;">
+						{#if item.type === 'separator'}
+							<div
+								id="scan-item-{i}"
+								class="h-full cursor-default {selectedIndex === i ? 'bg-accent/10' : ''}"
+								role="option"
+								tabindex="-1"
+								aria-selected={selectedIndex === i}
+								onclick={() => handleSelect(i)}
+								onkeydown={() => {}}
+							></div>
+						{:else}
+							{@const { name, dir } = splitPath(item.file.path)}
+							<div
+								id="scan-item-{i}"
+								class="grid h-full cursor-pointer gap-3 px-4 py-2 text-sm transition-colors {selectedIndex === i
+									? 'bg-accent/15'
+									: 'hover:bg-accent/10'}"
+								style="grid-template-columns: {gridCols()};"
+								role="option"
+								tabindex="-1"
+								aria-selected={selectedIndex === i}
+								onclick={() => handleSelect(i)}
+								onkeydown={() => {}}
+							>
+								{#each colDefs as col (col.key)}
+									{#if col.key === 'checkbox'}
+										<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+										<div class="flex items-center justify-center" onclick={(e) => e.stopPropagation()}>
+											<Checkbox
+												checked={checkedFiles.has(item.file.path)}
+												onchange={() => {
+													toggleCheck(item.file.path);
+													handleSelect(i);
+												}}
+											/>
 										</div>
-									</Tooltip>
-								{:else if col.key === 'path'}
-									<Tooltip class="flex min-w-0" content={dir}>
-										<div class="flex min-w-0 items-center font-mono text-xs text-text-muted">
-											<span class="truncate">{dir}</span>
+									{:else if col.key === 'size'}
+										<div class="truncate text-text">
+											{formatBytes(item.size)}
 										</div>
-									</Tooltip>
-							{:else if col.key === 'modified'}
-								<div class="truncate text-xs text-text-muted">
-									{formatDate(item.file.modified_date)}
-								</div>
-								{/if}
-							{/each}
-						</div>
-					{/if}
+									{:else if col.key === 'dimensions'}
+										<div class="truncate text-text">
+											{item.file.dimensions ?? ''}
+										</div>
+									{:else if col.key === 'similarity'}
+										<div class="truncate text-text">
+											{item.file.similarity ?? ''}
+										</div>
+									{:else if col.key === 'filename'}
+										<Tooltip class="flex min-w-0" content={name}>
+											<div class="flex min-w-0 items-center">
+												<span class="truncate text-text">{name}</span>
+											</div>
+										</Tooltip>
+									{:else if col.key === 'path'}
+										<Tooltip class="flex min-w-0" content={dir}>
+											<div class="flex min-w-0 items-center font-mono text-xs text-text-muted">
+												<span class="truncate">{dir}</span>
+											</div>
+										</Tooltip>
+									{:else if col.key === 'modified'}
+										<div class="truncate text-xs text-text-muted">
+											{formatDate(item.file.modified_date)}
+										</div>
+									{/if}
+								{/each}
+							</div>
+						{/if}
+					</div>
 				{/each}
 			</div>
 		{/if}
