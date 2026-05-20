@@ -51,8 +51,9 @@ COPY --from=frontend-builder /app/frontend/build /app/frontend/build
 ENV HOME=/data
 ENV DEFAULT_SCAN_PATH=/mnt/files
 ENV RUST_LOG=warn,backend=info
+ENV PORT=6198
 VOLUME ["/data"]
-EXPOSE 3000
+EXPOSE 6198
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/app/backend/backend"]
