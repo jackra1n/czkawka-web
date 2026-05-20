@@ -31,6 +31,7 @@ FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    curl \
     gosu \
     libssl3 \
     libchromaprint1 \
@@ -54,6 +55,9 @@ ENV RUST_LOG=warn,backend=info
 ENV PORT=6198
 VOLUME ["/data"]
 EXPOSE 6198
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/app/backend/backend"]
