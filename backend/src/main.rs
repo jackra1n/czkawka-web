@@ -38,7 +38,12 @@ async fn main() {
         log::warn!("Failed to save cleaned state on startup: {e}");
     }
 
-    log::info!("Backend starting on 0.0.0.0:3000");
+    let port = std::env::var("PORT")
+        .ok()
+        .and_then(|p| p.parse::<u16>().ok())
+        .unwrap_or(6198);
+
+    log::info!("Backend starting on 0.0.0.0:{port}");
 
     let app_state = Arc::new(models::AppState {
         scans: Arc::new(Mutex::new(HashMap::new())),
@@ -84,6 +89,6 @@ async fn main() {
         .layer(CorsLayer::permissive())
         .with_state(app_state);
 
-    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
