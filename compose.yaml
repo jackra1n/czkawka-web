@@ -3,7 +3,7 @@ services:
     image: ghcr.io/jackra1n/czkawka-web
     container_name: czkawka-web
     ports:
-      - "3000:3000"
+      - "6198:6198"
     volumes:
       - ./data:/data
       # Mount directories you want to scan.

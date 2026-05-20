@@ -34,7 +34,7 @@ docker pull ghcr.io/jackra1n/czkawka-web
 ```bash
 docker run -d \
   --name czkawka-web \
-  -p 3000:3000 \
+  -p 6198:6198 \
   -v czkawka-web-data:/data \
   -v /path/to/your/files:/mnt/files \
   ghcr.io/jackra1n/czkawka-web
@@ -48,7 +48,7 @@ services:
     image: ghcr.io/jackra1n/czkawka-web
     container_name: czkawka-web
     ports:
-      - "3000:3000"
+      - "6198:6198"
     volumes:
       - ./data:/data
       # Mount directories you want to scan:
