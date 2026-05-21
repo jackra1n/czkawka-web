@@ -30,7 +30,7 @@
 		activeTool: string;
 		toolConfig: ToolConfig;
 		defaultExcludedDirs?: string[];
-		scanState: 'idle' | 'running' | 'completed' | 'error';
+		scanState: 'idle' | 'running' | 'cancelling' | 'completed' | 'error';
 		scanResults: ScanResults | null;
 		checkedFiles: SvelteSet<string>;
 		onStartScan: () => void;
@@ -172,12 +172,15 @@
 		<div class="flex items-center gap-2">
 			<button
 				onclick={onStartScan}
-				disabled={scanState === 'running'}
+				disabled={scanState === 'running' || scanState === 'cancelling'}
 				class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{#if scanState === 'running'}
 					<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
 					Scanning…
+				{:else if scanState === 'cancelling'}
+					<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+					Cancelling…
 				{:else}
 					<Search class="h-4 w-4" />
 					Search

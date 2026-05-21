@@ -53,11 +53,13 @@ pub async fn start_scan(
     spawn_blocking(move || {
         log::info!("Starting scan {scan_id_clone} for tool {tool_id}");
         let result = run_scan(request, shared_progress, stop_flag_clone.clone());
-        let mut scans = state_clone.scans.lock().unwrap();
 
         if stop_flag_clone.load(std::sync::atomic::Ordering::Relaxed) {
             log::info!("Scan {scan_id_clone} was cancelled");
-            scans.insert(scan_id_clone.clone(), ScanState::Cancelled);
+            {
+                let mut scans = state_clone.scans.lock().unwrap();
+                scans.insert(scan_id_clone.clone(), ScanState::Cancelled);
+            }
 
             let mut persistent = state_clone.persistent.lock().unwrap();
             let tool = persistent.tools.entry(tool_id).or_default();
@@ -79,7 +81,10 @@ pub async fn start_scan(
                     "Scan {scan_id_clone} completed with {} groups",
                     results.total_groups
                 );
-                scans.insert(scan_id_clone.clone(), ScanState::Completed(results.clone()));
+                {
+                    let mut scans = state_clone.scans.lock().unwrap();
+                    scans.insert(scan_id_clone.clone(), ScanState::Completed(results.clone()));
+                }
 
                 let mut persistent = state_clone.persistent.lock().unwrap();
                 let tool = persistent.tools.entry(tool_id.clone()).or_default();
@@ -95,7 +100,10 @@ pub async fn start_scan(
             }
             Err(e) => {
                 log::info!("Scan {scan_id_clone} error: {e}");
-                scans.insert(scan_id_clone.clone(), ScanState::Error(e.clone()));
+                {
+                    let mut scans = state_clone.scans.lock().unwrap();
+                    scans.insert(scan_id_clone.clone(), ScanState::Error(e.clone()));
+                }
 
                 let mut persistent = state_clone.persistent.lock().unwrap();
                 let tool = persistent.tools.entry(tool_id).or_default();
