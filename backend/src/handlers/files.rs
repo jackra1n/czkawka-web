@@ -114,6 +114,9 @@ pub async fn link_files(
 
     let checked_set: std::collections::HashSet<&String> = request.files.iter().collect();
 
+    let mut originals = std::collections::HashSet::new();
+    let mut grouped_checked_files = std::collections::HashSet::new();
+
     // 1. Lock the state briefly to find duplicate groups and plan the linking
     let link_plans = {
         let persistent = state.persistent.lock().unwrap();
@@ -158,6 +161,9 @@ pub async fn link_files(
             if checked_in_group.is_empty() {
                 continue;
             }
+            for file in &checked_in_group {
+                grouped_checked_files.insert(file.path.clone());
+            }
             let unchecked_in_group: Vec<&crate::models::ScannedFile> = group
                 .files
                 .iter()
@@ -171,6 +177,7 @@ pub async fn link_files(
                 None
             };
             if let Some(orig) = original_path {
+                originals.insert(orig.clone());
                 for file in checked_in_group {
                     if file.path != orig {
                         plans.push((orig.clone(), file.path.clone()));
@@ -231,56 +238,19 @@ pub async fn link_files(
     let linked_set: std::collections::HashSet<&String> = linked.iter().collect();
 
     // 3. Mark files that were checked but had no other file in the group to link to as failed
+    let failed_set: std::collections::HashSet<String> =
+        failed.iter().map(|f| f.path.clone()).collect();
     for file in &request.files {
-        // Check if this file was actually part of any group with an original
-        // If not in linked or failed, and it wasn't the chosen original in any group, it failed
-        // We can check if it's not in linked and not in failed
-        if !linked_set.contains(file) && !failed.iter().any(|f| &f.path == file) {
-            // It could be the original file of some group. If so, it shouldn't be marked as failed
-            // Let's verify if it's the original.
-            let mut is_original = false;
-            let mut has_group = false;
-            {
-                let persistent = state.persistent.lock().unwrap();
-                if let Some(results) = persistent
-                    .tools
-                    .get(&request.tool_id)
-                    .and_then(|t| t.results.as_ref())
-                {
-                    for group in &results.groups {
-                        if group.files.iter().any(|f| &f.path == file) {
-                            has_group = true;
-                            let checked_in_group: Vec<&crate::models::ScannedFile> = group
-                                .files
-                                .iter()
-                                .filter(|f| checked_set.contains(&f.path))
-                                .collect();
-                            let unchecked_in_group: Vec<&crate::models::ScannedFile> = group
-                                .files
-                                .iter()
-                                .filter(|f| !checked_set.contains(&f.path))
-                                .collect();
-                            let original_path = if !unchecked_in_group.is_empty() {
-                                Some(unchecked_in_group[0].path.clone())
-                            } else if checked_in_group.len() > 1 {
-                                Some(checked_in_group[0].path.clone())
-                            } else {
-                                None
-                            };
-                            if original_path.as_ref() == Some(file) {
-                                is_original = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if !is_original && has_group {
-                failed.push(FailedLink {
-                    path: file.clone(),
-                    error: "No other file in the group to link to".to_string(),
-                });
-            }
+        // If not in linked and not in failed, and it wasn't the chosen original, but it belongs to a group
+        if !linked_set.contains(file)
+            && !failed_set.contains(file)
+            && grouped_checked_files.contains(file)
+            && !originals.contains(file)
+        {
+            failed.push(FailedLink {
+                path: file.clone(),
+                error: "No other file in the group to link to".to_string(),
+            });
         }
     }
 
