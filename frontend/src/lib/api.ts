@@ -190,8 +190,8 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
-			...options?.headers
-		}
+			...options?.headers,
+		},
 	});
 	if (!res.ok) {
 		const text = await res.text().catch(() => 'Unknown error');
@@ -205,8 +205,8 @@ async function fetchVoid(url: string, options?: RequestInit): Promise<void> {
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
-			...options?.headers
-		}
+			...options?.headers,
+		},
 	});
 	if (!res.ok) {
 		const text = await res.text().catch(() => 'Unknown error');
@@ -236,7 +236,7 @@ export const api = {
 	startScan(request: ScanRequest): Promise<ScanResponse> {
 		return fetchJson('/api/scan', {
 			method: 'POST',
-			body: JSON.stringify(request)
+			body: JSON.stringify(request),
 		});
 	},
 
@@ -251,7 +251,7 @@ export const api = {
 	updateDirectories(included: string[], excluded: string[], excluded_items: string): Promise<void> {
 		return fetchVoid('/api/state/directories', {
 			method: 'POST',
-			body: JSON.stringify({ included, excluded, excluded_items })
+			body: JSON.stringify({ included, excluded, excluded_items }),
 		});
 	},
 
@@ -266,21 +266,21 @@ export const api = {
 	updateToolState(toolId: string, checkedFiles: string[]): Promise<void> {
 		return fetchVoid(`/api/state/tools/${toolId}`, {
 			method: 'POST',
-			body: JSON.stringify({ checked_files: checkedFiles })
+			body: JSON.stringify({ checked_files: checkedFiles }),
 		});
 	},
 
 	deleteFiles(toolId: string, files: string[]): Promise<DeleteResponse> {
 		return fetchJson('/api/delete', {
 			method: 'POST',
-			body: JSON.stringify({ tool_id: toolId, files })
+			body: JSON.stringify({ tool_id: toolId, files }),
 		});
 	},
 
 	fixFiles(request: FixRequest): Promise<FixResponse> {
 		return fetchJson('/api/fix', {
 			method: 'POST',
-			body: JSON.stringify(request)
+			body: JSON.stringify(request),
 		});
-	}
+	},
 };

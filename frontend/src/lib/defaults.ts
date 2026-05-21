@@ -9,7 +9,7 @@ export const DEFAULT_TOOL_CONFIGS: Record<string, ToolConfig> = {
 		hash_alg: 'Gradient',
 		hash_size: 16,
 		resize_filter: 'Lanczos3',
-		similarity: 5
+		similarity: 5,
 	},
 	'similar-videos': { tolerance: 5, vid_hash_duration: 10, crop_detect: 'Letterbox' },
 	'same-music': { music_check_type: 'tags' },
@@ -24,7 +24,7 @@ export const DEFAULT_TOOL_CONFIGS: Record<string, ToolConfig> = {
 		bad_name_non_ascii: true,
 		bad_name_restricted_charset: false,
 		bad_name_allowed_chars: '_- .',
-		bad_name_dedupe_non_alnum: false
+		bad_name_dedupe_non_alnum: false,
 	},
-	temporary: {}
+	temporary: {},
 };

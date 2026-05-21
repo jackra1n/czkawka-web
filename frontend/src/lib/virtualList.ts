@@ -7,7 +7,7 @@ export type VirtualListItem<T> = {
 
 export function computeVirtualLayout<T>(
 	listItems: T[],
-	getHeight: (item: T) => number
+	getHeight: (item: T) => number,
 ): { items: VirtualListItem<T>[]; totalHeight: number } {
 	let currentTop = 0;
 	const items: VirtualListItem<T>[] = [];
@@ -18,20 +18,20 @@ export function computeVirtualLayout<T>(
 			item,
 			index: i,
 			top: currentTop,
-			height
+			height,
 		});
 		currentTop += height;
 	}
 	return {
 		items,
-		totalHeight: currentTop
+		totalHeight: currentTop,
 	};
 }
 
 export function findVisibleRange<T>(
 	items: VirtualListItem<T>[],
 	viewTop: number,
-	viewBottom: number
+	viewBottom: number,
 ): { start: number; end: number } {
 	if (items.length === 0) return { start: 0, end: 0 };
 

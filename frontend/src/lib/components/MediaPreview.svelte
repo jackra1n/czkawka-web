@@ -10,7 +10,7 @@
 		textLoading,
 		textError,
 		onMediaError,
-		onDefaultVolume
+		onDefaultVolume,
 	}: {
 		previewType: 'video' | 'audio' | 'text' | 'unknown';
 		fileUrl: string;
@@ -46,13 +46,7 @@
 			<div class="flex h-32 w-32 items-center justify-center rounded-lg border border-border">
 				<File class="h-12 w-12 text-text-muted opacity-40" />
 			</div>
-			<audio
-				src={fileUrl}
-				controls
-				class="w-full"
-				onerror={onMediaError}
-				onloadedmetadata={onDefaultVolume}
-			></audio>
+			<audio src={fileUrl} controls class="w-full" onerror={onMediaError} onloadedmetadata={onDefaultVolume}></audio>
 		</div>
 	{/if}
 {:else if previewType === 'text'}

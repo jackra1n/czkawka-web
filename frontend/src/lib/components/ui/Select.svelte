@@ -7,7 +7,7 @@
 		options,
 		value,
 		onchange,
-		disabled = false
+		disabled = false,
 	}: {
 		id?: string;
 		options: { value: string; label: string }[];
@@ -48,12 +48,18 @@
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
-			if (!open) { toggle(); return; }
+			if (!open) {
+				toggle();
+				return;
+			}
 			activeIdx = Math.min(activeIdx + 1, options.length - 1);
 		}
 		if (e.key === 'ArrowUp') {
 			e.preventDefault();
-			if (!open) { toggle(); return; }
+			if (!open) {
+				toggle();
+				return;
+			}
 			activeIdx = Math.max(activeIdx - 1, 0);
 		}
 		if (e.key === 'Enter' && open && activeIdx >= 0) {
@@ -105,13 +111,13 @@
 		bind:this={triggerEl}
 		onclick={toggle}
 		onkeydown={handleKeydown}
-		class="flex w-full items-center justify-between rounded-md border border-border bg-bg px-3 py-2 text-left text-sm text-text transition-colors focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {open ? 'border-accent ring-1 ring-accent' : ''}"
+		class="flex w-full items-center justify-between rounded-md border border-border bg-bg px-3 py-2 text-left text-sm text-text transition-colors focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {open
+			? 'border-accent ring-1 ring-accent'
+			: ''}"
 	>
 		<span class={selected ? '' : 'text-text-muted'}>{selected?.label ?? ''}</span>
 		<ChevronDown
-			class="h-4 w-4 shrink-0 text-text-muted transition-transform duration-200 {open
-				? 'rotate-180'
-				: ''}"
+			class="h-4 w-4 shrink-0 text-text-muted transition-transform duration-200 {open ? 'rotate-180' : ''}"
 		/>
 	</button>
 
@@ -134,7 +140,7 @@
 					tabindex="-1"
 					data-value={opt.value}
 					onmouseenter={() => (activeIdx = i)}
-					class="cursor-pointer select-none px-3 py-2 text-sm transition-colors {String(opt.value) === String(value)
+					class="cursor-pointer px-3 py-2 text-sm transition-colors select-none {String(opt.value) === String(value)
 						? 'bg-accent/15 text-accent'
 						: 'text-text hover:bg-surface-raised'} {i === activeIdx && String(opt.value) !== String(value)
 						? 'bg-surface-raised'

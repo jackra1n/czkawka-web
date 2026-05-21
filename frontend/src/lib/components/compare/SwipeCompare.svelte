@@ -12,7 +12,7 @@
 		compareTarget,
 		compareFileDims,
 		swipePercent,
-		onSwipeDrag
+		onSwipeDrag,
 	}: {
 		fileUrl: string;
 		selectedFile: string;

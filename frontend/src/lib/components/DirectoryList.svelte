@@ -6,7 +6,7 @@
 		label,
 		dirs = $bindable<string[]>(),
 		onAdd,
-		defaultDirs = []
+		defaultDirs = [],
 	}: {
 		label: string;
 		dirs: string[];
@@ -16,9 +16,7 @@
 
 	let showDefaults = $state(false);
 
-	let visibleCount = $derived(
-		showDefaults ? dirs.length : dirs.filter((d) => !defaultDirs.includes(d)).length
-	);
+	let visibleCount = $derived(showDefaults ? dirs.length : dirs.filter((d) => !defaultDirs.includes(d)).length);
 
 	function remove(value: string) {
 		dirs = dirs.filter((d) => d !== value);
@@ -78,9 +76,7 @@
 			</button>
 		</div>
 	</div>
-	<div
-		class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5"
-	>
+	<div class="flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-md border border-border bg-bg p-1 pr-0.5">
 		{#if visibleCount === 0}
 			<div class="flex items-center justify-center py-2 text-sm text-text-muted">
 				{dirs.length === 0 ? 'No directories added' : 'Default directories hidden'}
@@ -98,8 +94,8 @@
 								onclick={() => remove(dir)}
 								class="flex shrink-0 items-center justify-center rounded p-0.5 text-text-muted transition-colors hover:text-danger"
 							>
-							<X class="h-3.5 w-3.5" />
-						</button>
+								<X class="h-3.5 w-3.5" />
+							</button>
 						</Tooltip>
 					</div>
 				{/if}

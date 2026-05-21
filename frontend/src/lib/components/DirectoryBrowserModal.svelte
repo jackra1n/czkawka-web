@@ -34,7 +34,7 @@
 		fetch('/api/state/last-browser-directory', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ path })
+			body: JSON.stringify({ path }),
 		}).catch(() => {});
 	}
 
@@ -42,9 +42,7 @@
 		loading = true;
 		error = null;
 		try {
-			const res = await fetch(
-				`/api/directories?path=${encodeURIComponent(path)}&hidden=${includeHidden}`
-			);
+			const res = await fetch(`/api/directories?path=${encodeURIComponent(path)}&hidden=${includeHidden}`);
 			if (res.ok) {
 				const data = await res.json();
 				directories = data.directories;
@@ -126,9 +124,7 @@
 				</button>
 			</div>
 
-			<div
-				class="flex items-center gap-1 border-b border-border px-5 py-2.5 text-xs text-text-muted"
-			>
+			<div class="flex items-center gap-1 border-b border-border px-5 py-2.5 text-xs text-text-muted">
 				{#each breadcrumbs as crumb, i (crumb.path)}
 					<button
 						class="transition-colors hover:text-accent"
@@ -182,23 +178,23 @@
 
 			<div class="flex items-center justify-between gap-3 border-t border-border px-5 py-4">
 				<Tooltip content={showHidden ? 'Hide hidden folders' : 'Show hidden folders'}>
-				<button
-					onclick={() => (showHidden = !showHidden)}
-					class="flex items-center gap-1.5 rounded border border-border px-3 py-2 text-xs font-medium transition-colors {showHidden
-						? 'bg-surface-raised text-accent'
-						: 'text-text-muted hover:bg-surface-raised hover:text-text'}"
-				>
-					{#if showHidden}
-						<Eye class="h-3.5 w-3.5" />
-					{:else}
-						<EyeOff class="h-3.5 w-3.5" />
-					{/if}
-					<span>Hidden</span>
-				</button>
-			</Tooltip>
-			<div class="flex items-center gap-3">
-				<button
-					onclick={onClose}
+					<button
+						onclick={() => (showHidden = !showHidden)}
+						class="flex items-center gap-1.5 rounded border border-border px-3 py-2 text-xs font-medium transition-colors {showHidden
+							? 'bg-surface-raised text-accent'
+							: 'text-text-muted hover:bg-surface-raised hover:text-text'}"
+					>
+						{#if showHidden}
+							<Eye class="h-3.5 w-3.5" />
+						{:else}
+							<EyeOff class="h-3.5 w-3.5" />
+						{/if}
+						<span>Hidden</span>
+					</button>
+				</Tooltip>
+				<div class="flex items-center gap-3">
+					<button
+						onclick={onClose}
 						class="rounded-md border border-border px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
 					>
 						Cancel

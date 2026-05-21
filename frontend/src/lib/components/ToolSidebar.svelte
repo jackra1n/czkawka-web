@@ -14,7 +14,7 @@
 		Camera,
 		Type,
 		PanelLeft,
-		PanelLeftClose
+		PanelLeftClose,
 	} from 'lucide-svelte';
 
 	const tools = [
@@ -30,14 +30,14 @@
 		{ id: 'broken-files', label: 'Broken Files', icon: TriangleAlert },
 		{ id: 'bad-extensions', label: 'Bad Extensions', icon: FileCode },
 		{ id: 'bad-names', label: 'Bad Names', icon: Type },
-		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera }
+		{ id: 'exif-remover', label: 'Exif Remover', icon: Camera },
 	];
 
 	let {
 		activeTool,
 		collapsed,
 		onChangeTool,
-		onToggleCollapse
+		onToggleCollapse,
 	}: {
 		activeTool: string;
 		collapsed: boolean;
@@ -46,12 +46,19 @@
 	} = $props();
 </script>
 
-<aside class="flex shrink-0 flex-col overflow-y-auto border-r border-border bg-surface" class:w-max={!collapsed} class:w-14={collapsed}>
+<aside
+	class="flex shrink-0 flex-col overflow-y-auto border-r border-border bg-surface"
+	class:w-max={!collapsed}
+	class:w-14={collapsed}
+>
 	<div class="flex flex-col gap-px p-2">
 		{#each tools as tool (tool.id)}
 			<button
 				type="button"
-				class="flex h-9 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm transition-colors whitespace-nowrap hover:bg-surface-raised hover:text-text {tool.id === activeTool ? 'bg-accent/15 text-accent font-medium' : 'text-text-muted'}"
+				class="flex h-9 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm whitespace-nowrap transition-colors hover:bg-surface-raised hover:text-text {tool.id ===
+				activeTool
+					? 'bg-accent/15 font-medium text-accent'
+					: 'text-text-muted'}"
 				onclick={() => {
 					if (tool.id !== activeTool) onChangeTool(tool.id);
 				}}

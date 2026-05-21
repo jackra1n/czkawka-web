@@ -7,7 +7,7 @@
 
 	let {
 		activeTool,
-		toolConfig = $bindable<ToolConfig>({})
+		toolConfig = $bindable<ToolConfig>({}),
 	}: {
 		activeTool: string;
 		toolConfig: ToolConfig;
@@ -20,7 +20,7 @@
 
 	const SEARCH_MODE_OPTS = [
 		{ value: 'biggest', label: 'Biggest' },
-		{ value: 'smallest', label: 'Smallest' }
+		{ value: 'smallest', label: 'Smallest' },
 	];
 	const HASH_ALG_OPTS = HASH_ALGS.map((a) => ({ value: a, label: a }));
 	const HASH_SIZE_OPTS = HASH_SIZES.map((s) => ({ value: String(s), label: String(s) }));
@@ -28,7 +28,7 @@
 	const CROP_DETECT_OPTS = CROP_DETECTS.map((c) => ({ value: c, label: c }));
 	const MUSIC_OPTS = [
 		{ value: 'tags', label: 'Tags (metadata)' },
-		{ value: 'content', label: 'Content (audio fingerprint)' }
+		{ value: 'content', label: 'Content (audio fingerprint)' },
 	];
 
 	const BROKEN_TYPES = [
@@ -36,7 +36,7 @@
 		{ key: 'audio', label: 'Audio' },
 		{ key: 'image', label: 'Image' },
 		{ key: 'archive', label: 'Archive' },
-		{ key: 'video', label: 'Video' }
+		{ key: 'video', label: 'Video' },
 	];
 	const BAD_NAME_OPTS: { key: keyof BadNamesConfig; label: string }[] = [
 		{ key: 'bad_name_uppercase_extension', label: 'Uppercase extension' },
@@ -44,7 +44,7 @@
 		{ key: 'bad_name_spaces', label: 'Spaces at ends' },
 		{ key: 'bad_name_non_ascii', label: 'Non-ASCII' },
 		{ key: 'bad_name_restricted_charset', label: 'Restricted charset' },
-		{ key: 'bad_name_dedupe_non_alnum', label: 'Duplicate symbols' }
+		{ key: 'bad_name_dedupe_non_alnum', label: 'Duplicate symbols' },
 	];
 
 	function u(cfg: Partial<ToolConfig>) {
@@ -52,9 +52,7 @@
 	}
 
 	function brokenTypes(): string[] {
-		return (toolConfig.broken_file_types ?? 'pdf,audio,image,archive,video')
-			.split(',')
-			.filter(Boolean);
+		return (toolConfig.broken_file_types ?? 'pdf,audio,image,archive,video').split(',').filter(Boolean);
 	}
 
 	function toggleBroken(key: string, checked: boolean) {
@@ -67,9 +65,7 @@
 	}
 
 	function badNameDefault(key: keyof BadNamesConfig) {
-		return key === 'bad_name_restricted_charset' || key === 'bad_name_dedupe_non_alnum'
-			? false
-			: true;
+		return key === 'bad_name_restricted_charset' || key === 'bad_name_dedupe_non_alnum' ? false : true;
 	}
 </script>
 
@@ -86,9 +82,7 @@
 				/>
 			</div>
 			<div class="flex flex-1 flex-col gap-1.5">
-				<label for="number-of-files" class="text-xs font-medium text-text-muted"
-					>Number of Files</label
-				>
+				<label for="number-of-files" class="text-xs font-medium text-text-muted">Number of Files</label>
 				<NumberInput
 					id="number-of-files"
 					min={1}
@@ -102,7 +96,7 @@
 {:else if activeTool === 'similar-videos'}
 	<div class="flex flex-col gap-4">
 		<div class="flex flex-wrap gap-4">
-			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
+			<div class="flex min-w-30 flex-1 flex-col gap-1.5">
 				<label for="crop-detect" class="text-xs font-medium text-text-muted">Crop Detect</label>
 				<Select
 					id="crop-detect"
@@ -111,10 +105,8 @@
 					options={CROP_DETECT_OPTS}
 				/>
 			</div>
-			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
-				<label for="vid-hash-duration" class="text-xs font-medium text-text-muted"
-					>Hash Duration (s)</label
-				>
+			<div class="flex min-w-30 flex-1 flex-col gap-1.5">
+				<label for="vid-hash-duration" class="text-xs font-medium text-text-muted">Hash Duration (s)</label>
 				<NumberInput
 					id="vid-hash-duration"
 					min={2}
@@ -123,7 +115,7 @@
 					onchange={(v) => u({ vid_hash_duration: v })}
 				/>
 			</div>
-			<div class="flex flex-2 flex-col gap-1.5 min-w-60">
+			<div class="flex min-w-60 flex-2 flex-col gap-1.5">
 				<label for="tolerance" class="text-xs font-medium text-text-muted">Tolerance</label>
 				<div class="flex items-center gap-3 py-2">
 					<span class="shrink-0 text-xs text-text-muted">Strict</span>
@@ -135,9 +127,7 @@
 						value={toolConfig.tolerance ?? 5}
 						onchange={(v) => u({ tolerance: v })}
 					/>
-					<span class="shrink-0 text-xs font-medium text-text"
-						>{toolConfig.tolerance ?? 5}</span
-					>
+					<span class="shrink-0 text-xs font-medium text-text">{toolConfig.tolerance ?? 5}</span>
 					<span class="shrink-0 text-xs text-text-muted">Loose</span>
 				</div>
 			</div>
@@ -146,7 +136,7 @@
 {:else if activeTool === 'similar-images'}
 	<div class="flex flex-col gap-4">
 		<div class="flex flex-wrap gap-4">
-			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
+			<div class="flex min-w-30 flex-1 flex-col gap-1.5">
 				<label for="hash-alg" class="text-xs font-medium text-text-muted">Hash Algorithm</label>
 				<Select
 					id="hash-alg"
@@ -155,7 +145,7 @@
 					options={HASH_ALG_OPTS}
 				/>
 			</div>
-			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
+			<div class="flex min-w-30 flex-1 flex-col gap-1.5">
 				<label for="hash-size" class="text-xs font-medium text-text-muted">Hash Size</label>
 				<Select
 					id="hash-size"
@@ -164,9 +154,8 @@
 					options={HASH_SIZE_OPTS}
 				/>
 			</div>
-			<div class="flex flex-1 flex-col gap-1.5 min-w-30">
-				<label for="resize-filter" class="text-xs font-medium text-text-muted">Resize Algorithm</label
-				>
+			<div class="flex min-w-30 flex-1 flex-col gap-1.5">
+				<label for="resize-filter" class="text-xs font-medium text-text-muted">Resize Algorithm</label>
 				<Select
 					id="resize-filter"
 					value={toolConfig.resize_filter ?? 'Lanczos3'}
@@ -174,7 +163,7 @@
 					options={RESIZE_FILTER_OPTS}
 				/>
 			</div>
-			<div class="flex flex-2 flex-col gap-1.5 min-w-60">
+			<div class="flex min-w-60 flex-2 flex-col gap-1.5">
 				<label for="similarity" class="text-xs font-medium text-text-muted">Similarity</label>
 				<div class="flex items-center gap-3 py-2">
 					<span class="shrink-0 text-xs text-text-muted">High</span>
@@ -186,9 +175,7 @@
 						value={toolConfig.similarity ?? 5}
 						onchange={(v) => u({ similarity: v })}
 					/>
-					<span class="shrink-0 text-xs font-medium text-text"
-						>{toolConfig.similarity ?? 5}</span
-					>
+					<span class="shrink-0 text-xs font-medium text-text">{toolConfig.similarity ?? 5}</span>
 					<span class="shrink-0 text-xs text-text-muted">Minimal</span>
 				</div>
 			</div>
@@ -197,9 +184,7 @@
 {:else if activeTool === 'same-music'}
 	<div class="flex flex-col gap-4">
 		<div class="flex flex-col gap-1.5">
-			<label for="music-check-type" class="text-xs font-medium text-text-muted"
-				>Comparison Method</label
-			>
+			<label for="music-check-type" class="text-xs font-medium text-text-muted">Comparison Method</label>
 			<Select
 				id="music-check-type"
 				value={toolConfig.music_check_type ?? 'tags'}
@@ -213,10 +198,7 @@
 		<span class="text-xs font-medium text-text-muted">File types to check</span>
 		<div class="flex flex-wrap gap-4">
 			{#each BROKEN_TYPES as opt (opt.key)}
-				<Checkbox
-					checked={isBroken(opt.key)}
-					onchange={(checked) => toggleBroken(opt.key, checked)}
-				>
+				<Checkbox checked={isBroken(opt.key)} onchange={(checked) => toggleBroken(opt.key, checked)}>
 					{opt.label}
 				</Checkbox>
 			{/each}
@@ -246,19 +228,15 @@
 		</div>
 		{#if toolConfig.bad_name_restricted_charset}
 			<div class="flex flex-col gap-1.5">
-				<label for="bad-name-allowed-chars" class="text-xs font-medium text-text-muted"
-					>Allowed characters</label
-				>
+				<label for="bad-name-allowed-chars" class="text-xs font-medium text-text-muted">Allowed characters</label>
 				<input
 					id="bad-name-allowed-chars"
 					type="text"
 					value={toolConfig.bad_name_allowed_chars ?? '_- .'}
 					oninput={(e) => u({ bad_name_allowed_chars: e.currentTarget.value })}
-					class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
 				/>
-				<span class="text-xs text-text-muted"
-					>Characters allowed in filenames besides alphanumeric.</span
-				>
+				<span class="text-xs text-text-muted">Characters allowed in filenames besides alphanumeric.</span>
 			</div>
 		{/if}
 	</div>

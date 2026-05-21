@@ -5,7 +5,7 @@
 		type ScanResults as ScanResultsType,
 		type AppState,
 		type ToolConfig,
-		type ScanProgress
+		type ScanProgress,
 	} from '$lib/api';
 	import DirectoryBrowserModal from '$lib/components/DirectoryBrowserModal.svelte';
 	import ToolSidebar from '$lib/components/ToolSidebar.svelte';
@@ -47,7 +47,7 @@
 	let selectedFileGroup = $derived(
 		selectedFile && scanResults
 			? (scanResults.groups.find((g) => g.files.some((f) => f.path === selectedFile)) ?? null)
-			: null
+			: null,
 	);
 
 	let intervalId: ReturnType<typeof setInterval>;
@@ -63,7 +63,7 @@
 		'broken-files',
 		'bad-extensions',
 		'exif-remover',
-		'bad-names'
+		'bad-names',
 	]);
 
 	// ---- Effects ----
@@ -121,10 +121,7 @@
 		scanResults.groups = scanResults.groups.filter((g) => g.files.length >= minSize);
 		scanResults.total_groups = scanResults.groups.length;
 		scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
-		scanResults.wasted_bytes = scanResults.groups.reduce(
-			(sum, g) => sum + g.size * (g.files.length - 1),
-			0
-		);
+		scanResults.wasted_bytes = scanResults.groups.reduce((sum, g) => sum + g.size * (g.files.length - 1), 0);
 	}
 
 	function buildPayload(): Parameters<typeof api.startScan>[0] {
@@ -137,7 +134,7 @@
 					: undefined,
 			excluded_items: excludedItems.trim() || undefined,
 			min_file_size: 8192,
-			tool_id: activeTool
+			tool_id: activeTool,
 		};
 
 		switch (activeTool) {
@@ -148,7 +145,7 @@
 					...base,
 					tolerance: cfg?.tolerance,
 					vid_hash_duration: cfg?.vid_hash_duration,
-					crop_detect: cfg?.crop_detect
+					crop_detect: cfg?.crop_detect,
 				};
 			case 'similar-images':
 				return {
@@ -156,7 +153,7 @@
 					hash_alg: cfg?.hash_alg,
 					hash_size: cfg?.hash_size,
 					resize_filter: cfg?.resize_filter,
-					similarity: cfg?.similarity
+					similarity: cfg?.similarity,
 				};
 			case 'same-music':
 				return { ...base, music_check_type: cfg?.music_check_type };
@@ -173,7 +170,7 @@
 					bad_name_non_ascii: cfg?.bad_name_non_ascii,
 					bad_name_restricted_charset: cfg?.bad_name_restricted_charset,
 					bad_name_allowed_chars: cfg?.bad_name_allowed_chars,
-					bad_name_dedupe_non_alnum: cfg?.bad_name_dedupe_non_alnum
+					bad_name_dedupe_non_alnum: cfg?.bad_name_dedupe_non_alnum,
 				};
 			default:
 				return base;
@@ -281,7 +278,7 @@
 			results: scanResults ?? undefined,
 			error: scanError || undefined,
 			scan_id: scanId || undefined,
-			checked_files: Array.from(checkedFiles)
+			checked_files: Array.from(checkedFiles),
 		};
 	}
 
@@ -357,7 +354,7 @@
 				bad_name_non_ascii: cfg?.bad_name_non_ascii,
 				bad_name_restricted_charset: cfg?.bad_name_restricted_charset,
 				bad_name_allowed_chars: cfg?.bad_name_allowed_chars,
-				bad_name_dedupe_non_alnum: cfg?.bad_name_dedupe_non_alnum
+				bad_name_dedupe_non_alnum: cfg?.bad_name_dedupe_non_alnum,
 			});
 			scanError = '';
 			for (const path of res.fixed) checkedFiles.delete(path);
@@ -448,8 +445,4 @@
 	</div>
 </div>
 
-<DirectoryBrowserModal
-	open={modalOpen}
-	onClose={() => (modalOpen = false)}
-	onSelect={handleModalSelect}
-/>
+<DirectoryBrowserModal open={modalOpen} onClose={() => (modalOpen = false)} onSelect={handleModalSelect} />
