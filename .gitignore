@@ -1,5 +1,6 @@
 # Local environment
 .env
+.env.deploy
 data/
 
 # Build artifacts
