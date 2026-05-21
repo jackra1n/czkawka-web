@@ -21,7 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 COPY backend/ ./backend/
-COPY --from=frontend-builder /app/frontend/build ./frontend/build
 
 WORKDIR /app/backend
 RUN cargo build --release
