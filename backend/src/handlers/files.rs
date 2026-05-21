@@ -181,7 +181,7 @@ pub async fn link_files(
 
     // 2. Perform the link operations in spawn_blocking
     let link_type = request.link_type.clone();
-    let link_results = tokio::task::spawn_blocking(move || {
+    let link_results = match tokio::task::spawn_blocking(move || {
         let mut linked_paths = Vec::new();
         let mut failed_links = Vec::new();
         for (orig, derived) in link_plans {
@@ -209,7 +209,22 @@ pub async fn link_files(
         (linked_paths, failed_links)
     })
     .await
-    .unwrap();
+    {
+        Ok(res) => res,
+        Err(e) => {
+            log::error!("Spawn blocking task failed: {:?}", e);
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(LinkResponse {
+                    linked: vec![],
+                    failed: vec![FailedLink {
+                        path: String::new(),
+                        error: format!("Internal task error: {e}"),
+                    }],
+                }),
+            );
+        }
+    };
 
     let (successful_linked, mut failed_links) = link_results;
     linked.extend(successful_linked);
