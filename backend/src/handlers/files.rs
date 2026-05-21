@@ -12,7 +12,7 @@ use tower_http::services::ServeFile;
 
 use crate::models::{
     AppState, DeleteRequest, DeleteResponse, FailedDeletion, FailedLink, FileQuery, LinkRequest,
-    LinkResponse,
+    LinkResponse, LinkType,
 };
 use crate::state;
 use czkawka_core::common::{make_file_symlink, make_hard_link};
@@ -180,18 +180,14 @@ pub async fn link_files(
     };
 
     // 2. Perform the link operations in spawn_blocking
-    let link_type = request.link_type.clone();
+    let link_type = request.link_type;
     let link_results = match tokio::task::spawn_blocking(move || {
         let mut linked_paths = Vec::new();
         let mut failed_links = Vec::new();
         for (orig, derived) in link_plans {
-            let res = match link_type.as_str() {
-                "hard" => make_hard_link(&orig, &derived),
-                "soft" => make_file_symlink(&orig, &derived),
-                _ => Err(std::io::Error::new(
-                    std::io::ErrorKind::InvalidInput,
-                    "Unsupported link type",
-                )),
+            let res = match link_type {
+                LinkType::Hard => make_hard_link(&orig, &derived),
+                LinkType::Soft => make_file_symlink(&orig, &derived),
             };
             match res {
                 Ok(()) => {

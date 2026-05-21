@@ -222,10 +222,17 @@ pub struct DeleteResponse {
     pub failed: Vec<FailedDeletion>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LinkType {
+    Hard,
+    Soft,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct LinkRequest {
     pub tool_id: String,
-    pub link_type: String, // "hard" or "soft"
+    pub link_type: LinkType,
     pub files: Vec<String>,
 }
 
