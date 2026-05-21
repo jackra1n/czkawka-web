@@ -260,7 +260,7 @@
 			type="button"
 			onclick={() => (selectOpen = !selectOpen)}
 			disabled={!hasResults}
-			class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+			class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			Select
 			<ChevronDown class="h-4 w-4 text-text-muted" />
@@ -289,7 +289,7 @@
 			type="button"
 			onclick={() => (showFixConfirm = true)}
 			disabled={!hasChecked}
-			class="inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+			class="inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			<FixIcon class="h-4 w-4" />
 			{fixLabel}
@@ -300,7 +300,7 @@
 		type="button"
 		onclick={() => (showDeleteConfirm = true)}
 		disabled={!hasChecked}
-		class="inline-flex items-center gap-1.5 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-50"
+		class="inline-flex items-center gap-1.5 rounded-md border border-danger/30 bg-danger/10 px-3 py-1.5 text-sm font-medium text-danger transition-colors hover:bg-danger/20 disabled:cursor-not-allowed disabled:opacity-50"
 	>
 		<Trash2 class="h-4 w-4" />
 		Delete
