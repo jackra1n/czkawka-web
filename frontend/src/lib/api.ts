@@ -244,6 +244,12 @@ export const api = {
 		return fetchJson(`/api/scan/${id}`);
 	},
 
+	cancelScan(id: string): Promise<void> {
+		return fetchVoid(`/api/scan/${id}/cancel`, {
+			method: 'POST',
+		});
+	},
+
 	getState(): Promise<AppState> {
 		return fetchJson('/api/state');
 	},

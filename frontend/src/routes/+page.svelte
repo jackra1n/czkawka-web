@@ -300,6 +300,12 @@
 				scanError = res.error ?? 'Unknown error';
 				updateBackendTool();
 				clearInterval(intervalId);
+			} else if (res.status === 'cancelled') {
+				scanState = 'idle';
+				scanProgress = null;
+				scanResults = null;
+				updateBackendTool();
+				clearInterval(intervalId);
 			} else if (res.status === 'not_found') {
 				scanState = 'error';
 				scanProgress = null;
@@ -397,6 +403,20 @@
 		}
 	}
 
+	async function cancelScan() {
+		if (!scanId) return;
+		try {
+			await api.cancelScan(scanId);
+			scanState = 'idle';
+			scanProgress = null;
+			scanResults = null;
+			updateBackendTool();
+			clearInterval(intervalId);
+		} catch (err) {
+			console.error('Failed to cancel scan:', err);
+		}
+	}
+
 	function toggleSidebar() {
 		sidebarCollapsed = !sidebarCollapsed;
 	}
@@ -417,6 +437,7 @@
 			{scanResults}
 			{checkedFiles}
 			onStartScan={startScan}
+			onCancelScan={cancelScan}
 			onAddDir={openModal}
 			onDelete={handleDelete}
 			onFix={handleFix}
