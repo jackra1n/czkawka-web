@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ChevronDown, Trash2, Pencil, Sparkles } from 'lucide-svelte';
+	import { ChevronDown, Trash2, Pencil, Sparkles, Link, Link2 } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import type { ScanResults, ScannedFile } from '$lib/api';
 	import ConfirmModal from './ConfirmModal.svelte';
@@ -10,23 +10,32 @@
 		activeTool,
 		onDelete,
 		onFix,
+		onLink,
 	}: {
 		scanResults: ScanResults | null;
 		checkedFiles: SvelteSet<string>;
 		activeTool: string;
 		onDelete: () => void;
 		onFix: () => void;
+		onLink: (type: 'hard' | 'soft') => void;
 	} = $props();
 
 	let selectOpen = $state(false);
 	let showDeleteConfirm = $state(false);
 	let showFixConfirm = $state(false);
+	let showLinkConfirm = $state<'hard' | 'soft' | null>(null);
 
 	const hasResults = $derived(!!scanResults && scanResults.groups.length > 0);
 	const hasChecked = $derived(checkedFiles.size > 0);
 
 	const showFixButton = $derived(
 		activeTool === 'exif-remover' || activeTool === 'bad-names' || activeTool === 'bad-extensions',
+	);
+	const showLinkButtons = $derived(
+		activeTool === 'duplicates' ||
+			activeTool === 'same-music' ||
+			activeTool === 'similar-images' ||
+			activeTool === 'similar-videos',
 	);
 	const fixLabel = $derived(activeTool === 'exif-remover' ? 'Clean' : 'Rename');
 	const FixIcon = $derived(activeTool === 'exif-remover' ? Sparkles : Pencil);
@@ -296,6 +305,27 @@
 		</button>
 	{/if}
 
+	{#if showLinkButtons}
+		<button
+			type="button"
+			onclick={() => (showLinkConfirm = 'hard')}
+			disabled={!hasChecked}
+			class="inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+		>
+			<Link2 class="h-4 w-4" />
+			Hardlink
+		</button>
+		<button
+			type="button"
+			onclick={() => (showLinkConfirm = 'soft')}
+			disabled={!hasChecked}
+			class="inline-flex items-center gap-1.5 rounded-md border border-accent/30 bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+		>
+			<Link class="h-4 w-4" />
+			Softlink
+		</button>
+	{/if}
+
 	<button
 		type="button"
 		onclick={() => (showDeleteConfirm = true)}
@@ -331,4 +361,20 @@
 		onFix();
 	}}
 	onCancel={() => (showFixConfirm = false)}
+/>
+
+<ConfirmModal
+	open={showLinkConfirm !== null}
+	title={showLinkConfirm === 'hard' ? 'Create Hardlinks' : 'Create Softlinks'}
+	message={showLinkConfirm === 'hard'
+		? `Are you sure you want to replace the selected ${checkedFiles.size} checked file${checkedFiles.size === 1 ? '' : 's'} with hardlinks?`
+		: `Are you sure you want to replace the selected ${checkedFiles.size} checked file${checkedFiles.size === 1 ? '' : 's'} with softlinks (symlinks)?`}
+	confirmText={showLinkConfirm === 'hard' ? 'Hardlink' : 'Softlink'}
+	cancelText="Cancel"
+	onConfirm={() => {
+		const type = showLinkConfirm;
+		showLinkConfirm = null;
+		if (type) onLink(type);
+	}}
+	onCancel={() => (showLinkConfirm = null)}
 />

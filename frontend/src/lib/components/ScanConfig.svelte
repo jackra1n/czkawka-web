@@ -23,6 +23,7 @@
 		onAddDir,
 		onDelete,
 		onFix,
+		onLink,
 	}: {
 		includedDirs: string[];
 		excludedDirs: string[];
@@ -38,6 +39,7 @@
 		onAddDir: (target: 'include' | 'exclude') => void;
 		onDelete: () => void;
 		onFix: () => void;
+		onLink: (type: 'hard' | 'soft') => void;
 	} = $props();
 
 	let activeTab = $state<'directories' | 'items' | 'settings'>('directories');
@@ -198,6 +200,6 @@
 			{/if}
 		</div>
 
-		<ScanActions {scanResults} {checkedFiles} {activeTool} {onDelete} {onFix} />
+		<ScanActions {scanResults} {checkedFiles} {activeTool} {onDelete} {onFix} {onLink} />
 	</div>
 </div>

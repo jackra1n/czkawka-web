@@ -379,6 +379,36 @@
 		}
 	}
 
+	async function handleLink(type: 'hard' | 'soft') {
+		const files = Array.from(checkedFiles);
+		if (files.length === 0) return;
+		try {
+			const res = await api.linkFiles({
+				tool_id: activeTool,
+				link_type: type,
+				files,
+			});
+			scanError = '';
+			const failedPaths = new Set(res.failed.map((f) => f.path));
+			for (const path of files) {
+				if (!failedPaths.has(path)) {
+					checkedFiles.delete(path);
+				}
+			}
+			selectedFile = null;
+			selectedFileSize = 0;
+			toolSelections[activeTool] = { path: null, size: 0 };
+			removeFromResults(res.linked);
+			updateBackendTool();
+			if (res.failed.length > 0) {
+				scanError = `Failed to link ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
+			}
+		} catch (err) {
+			scanError = err instanceof Error ? err.message : 'Failed to link files';
+			updateBackendTool();
+		}
+	}
+
 	async function startScan() {
 		const payload = buildPayload();
 		if (payload.directories.length === 0) {
@@ -443,6 +473,7 @@
 			onAddDir={openModal}
 			onDelete={handleDelete}
 			onFix={handleFix}
+			onLink={handleLink}
 		/>
 
 		<div class="flex min-h-0 flex-1 overflow-hidden">
