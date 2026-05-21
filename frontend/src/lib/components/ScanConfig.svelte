@@ -19,6 +19,7 @@
 		scanResults,
 		checkedFiles,
 		onStartScan,
+		onCancelScan,
 		onAddDir,
 		onDelete,
 		onFix,
@@ -29,10 +30,11 @@
 		activeTool: string;
 		toolConfig: ToolConfig;
 		defaultExcludedDirs?: string[];
-		scanState: 'idle' | 'running' | 'completed' | 'error';
+		scanState: 'idle' | 'running' | 'cancelling' | 'completed' | 'error';
 		scanResults: ScanResults | null;
 		checkedFiles: SvelteSet<string>;
 		onStartScan: () => void;
+		onCancelScan: () => void;
 		onAddDir: (target: 'include' | 'exclude') => void;
 		onDelete: () => void;
 		onFix: () => void;
@@ -167,19 +169,34 @@
 	</div>
 
 	<div class="mt-4 flex items-center justify-between">
-		<button
-			onclick={onStartScan}
-			disabled={scanState === 'running'}
-			class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-		>
+		<div class="flex items-center gap-2">
+			<button
+				onclick={onStartScan}
+				disabled={scanState === 'running' || scanState === 'cancelling'}
+				class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+			>
+				{#if scanState === 'running'}
+					<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+					Scanning…
+				{:else if scanState === 'cancelling'}
+					<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+					Cancelling…
+				{:else}
+					<Search class="h-4 w-4" />
+					Search
+				{/if}
+			</button>
+
 			{#if scanState === 'running'}
-				<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-				Scanning…
-			{:else}
-				<Search class="h-4 w-4" />
-				Search
+				<button
+					type="button"
+					onclick={onCancelScan}
+					class="inline-flex items-center gap-2 rounded-md border border-danger/30 bg-danger/10 px-5 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger/20 focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-surface focus:outline-none"
+				>
+					Cancel
+				</button>
 			{/if}
-		</button>
+		</div>
 
 		<ScanActions {scanResults} {checkedFiles} {activeTool} {onDelete} {onFix} />
 	</div>

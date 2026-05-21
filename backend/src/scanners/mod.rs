@@ -1,6 +1,4 @@
 use std::path::PathBuf;
-use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
 
 use czkawka_core::common::progress_data::{CurrentStage, ProgressData};
 use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
@@ -48,10 +46,6 @@ pub fn configure_common_data<T: CommonData>(tool: &mut T, request: &ScanRequest)
     tool.set_delete_method(DeleteMethod::None);
     tool.set_dry_run(true);
     tool.set_hide_hard_links(true);
-}
-
-pub fn make_stop_flag() -> Arc<AtomicBool> {
-    Arc::new(AtomicBool::new(false))
 }
 
 pub fn stage_label(stage: CurrentStage) -> String {

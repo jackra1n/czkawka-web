@@ -16,7 +16,7 @@
 		checkedFiles,
 		activeTool,
 	}: {
-		scanState: 'idle' | 'running' | 'completed' | 'error';
+		scanState: 'idle' | 'running' | 'cancelling' | 'completed' | 'error';
 		scanError: string;
 		scanResults: ScanResults | null;
 		scanProgress: ScanProgress | null;
@@ -323,7 +323,7 @@
 	let visibleItems = $derived(layout.items.slice(visibleRange.start, visibleRange.end + 1));
 
 	$effect(() => {
-		if (scanState === 'running') {
+		if (scanState === 'running' || scanState === 'cancelling') {
 			selectedIndex = -1;
 			selectedPath = null;
 			checkedFiles.clear();
@@ -479,7 +479,7 @@
 		'bad-names': { scanning: 'Scanning for bad names…', empty: 'No bad names found.' },
 		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' },
 	};
-	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');
+	let scanningText = $derived(scanState === 'cancelling' ? 'Cancelling scan…' : (SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…'));
 	let emptyText = $derived(SCAN_TEXTS[activeTool]?.empty ?? 'Nothing found.');
 
 	function progressPercent(p: ScanProgress): number {
@@ -517,7 +517,7 @@
 			<Search class="h-10 w-10 opacity-30" />
 			<p class="text-sm">Enter directories and click Search to begin</p>
 		</div>
-	{:else if scanState === 'running'}
+	{:else if scanState === 'running' || scanState === 'cancelling'}
 		<div class="flex flex-1 flex-col items-center justify-center gap-4 px-8">
 			{#if scanProgress}
 				<div class="w-full max-w-md space-y-3">

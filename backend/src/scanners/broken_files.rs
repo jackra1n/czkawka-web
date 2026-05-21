@@ -4,11 +4,12 @@ use czkawka_core::common::traits::Search;
 use czkawka_core::tools::broken_files::{BrokenFiles, BrokenFilesParameters, CheckedTypes};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
-use crate::scanners::{configure_common_data, make_stop_flag};
+use crate::scanners::configure_common_data;
 
 pub fn run(
     request: ScanRequest,
     progress_sender: &Sender<ProgressData>,
+    stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> Result<ScanResults, String> {
     let mut checked_types = CheckedTypes::NONE;
 
@@ -38,7 +39,6 @@ pub fn run(
     let mut finder = BrokenFiles::new(params);
     configure_common_data(&mut finder, &request);
 
-    let stop_flag = make_stop_flag();
     finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();

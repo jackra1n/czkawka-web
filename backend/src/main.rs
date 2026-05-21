@@ -57,6 +57,7 @@ async fn main() {
         .route("/api/health", get(handlers::health::health))
         .route("/api/scan", post(handlers::scan::start_scan))
         .route("/api/scan/{id}", get(handlers::scan::get_scan_status))
+        .route("/api/scan/{id}/cancel", post(handlers::scan::cancel_scan))
         .route("/api/state", get(handlers::state::get_state))
         .route(
             "/api/state/directories",

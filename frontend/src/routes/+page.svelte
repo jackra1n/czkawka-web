@@ -30,7 +30,7 @@
 	let selectedFile = $state<string | null>(uiState.selectedFile);
 	let sidebarCollapsed = $state(uiState.sidebarCollapsed);
 
-	let scanState = $state<'idle' | 'running' | 'completed' | 'error'>('idle');
+	let scanState = $state<'idle' | 'running' | 'cancelling' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
 	let scanResults = $state<ScanResultsType | null>(null);
 	let scanProgress = $state<ScanProgress | null>(null);
@@ -300,6 +300,13 @@
 				scanError = res.error ?? 'Unknown error';
 				updateBackendTool();
 				clearInterval(intervalId);
+			} else if (res.status === 'cancelled') {
+				scanState = 'idle';
+				scanProgress = null;
+				scanResults = null;
+				scanId = '';
+				updateBackendTool();
+				clearInterval(intervalId);
 			} else if (res.status === 'not_found') {
 				scanState = 'error';
 				scanProgress = null;
@@ -397,6 +404,21 @@
 		}
 	}
 
+	async function cancelScan() {
+		if (!scanId) return;
+		try {
+			scanState = 'cancelling';
+			updateBackendTool();
+			await api.cancelScan(scanId);
+		} catch (err) {
+			console.error('Failed to cancel scan:', err);
+			scanState = 'error';
+			scanError = err instanceof Error ? err.message : 'Failed to cancel scan';
+			updateBackendTool();
+			clearInterval(intervalId);
+		}
+	}
+
 	function toggleSidebar() {
 		sidebarCollapsed = !sidebarCollapsed;
 	}
@@ -417,6 +439,7 @@
 			{scanResults}
 			{checkedFiles}
 			onStartScan={startScan}
+			onCancelScan={cancelScan}
 			onAddDir={openModal}
 			onDelete={handleDelete}
 			onFix={handleFix}

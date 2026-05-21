@@ -15,8 +15,12 @@ pub struct AppState {
 pub type SharedProgress = Arc<Mutex<Option<ScanProgress>>>;
 
 pub enum ScanState {
-    Running { progress: SharedProgress },
+    Running {
+        progress: SharedProgress,
+        stop_flag: Arc<std::sync::atomic::AtomicBool>,
+    },
     Completed(ScanResults),
+    Cancelled,
     Error(String),
 }
 
