@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use axum::{
@@ -6,7 +8,6 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
-use std::path::PathBuf;
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
 
@@ -112,10 +113,10 @@ pub async fn link_files(
     let mut linked = Vec::new();
     let mut failed = Vec::new();
 
-    let checked_set: std::collections::HashSet<&String> = request.files.iter().collect();
+    let checked_set: HashSet<&String> = request.files.iter().collect();
 
-    let mut originals = std::collections::HashSet::new();
-    let mut grouped_checked_files = std::collections::HashSet::new();
+    let mut originals = HashSet::new();
+    let mut grouped_checked_files = HashSet::new();
 
     // 1. Lock the state briefly to find duplicate groups and plan the linking
     let link_plans = {
@@ -235,11 +236,10 @@ pub async fn link_files(
     linked.extend(successful_linked);
     failed.append(&mut failed_links);
 
-    let linked_set: std::collections::HashSet<&String> = linked.iter().collect();
+    let linked_set: HashSet<&String> = linked.iter().collect();
 
     // 3. Mark files that were checked but had no other file in the group to link to as failed
-    let failed_set: std::collections::HashSet<String> =
-        failed.iter().map(|f| f.path.clone()).collect();
+    let failed_set: HashSet<String> = failed.iter().map(|f| f.path.clone()).collect();
     for file in &request.files {
         // If not in linked and not in failed, and it wasn't the chosen original, but it belongs to a group
         if !linked_set.contains(file)
@@ -258,8 +258,7 @@ pub async fn link_files(
     {
         let mut persistent = state.persistent.lock().unwrap();
         if let Some(tool) = persistent.tools.get_mut(&request.tool_id) {
-            let failed_paths: std::collections::HashSet<&String> =
-                failed.iter().map(|f| &f.path).collect();
+            let failed_paths: HashSet<&String> = failed.iter().map(|f| &f.path).collect();
             let mut changed = false;
             let old_len = tool.checked_files.len();
             tool.checked_files.retain(|p| {
