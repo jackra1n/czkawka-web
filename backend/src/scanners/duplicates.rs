@@ -5,11 +5,12 @@ use czkawka_core::common::traits::Search;
 use czkawka_core::tools::duplicate::{DuplicateFinder, DuplicateFinderParameters};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
-use crate::scanners::{configure_common_data, make_stop_flag};
+use crate::scanners::configure_common_data;
 
 pub fn run(
     request: ScanRequest,
     progress_sender: &Sender<ProgressData>,
+    stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> Result<ScanResults, String> {
     let params = DuplicateFinderParameters::new(
         CheckingMethod::Hash,
@@ -23,7 +24,6 @@ pub fn run(
     let mut finder = DuplicateFinder::new(params);
     configure_common_data(&mut finder, &request);
 
-    let stop_flag = make_stop_flag();
     finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();

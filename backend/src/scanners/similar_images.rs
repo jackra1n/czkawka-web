@@ -6,7 +6,7 @@ use czkawka_core::tools::similar_images::core::get_string_from_similarity;
 use czkawka_core::tools::similar_images::{SimilarImages, SimilarImagesParameters};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
-use crate::scanners::{configure_common_data, make_stop_flag};
+use crate::scanners::configure_common_data;
 
 fn parse_hash_alg(s: &str) -> Result<HashAlg, String> {
     match s.to_lowercase().as_str() {
@@ -34,6 +34,7 @@ fn parse_filter_type(s: &str) -> Result<FilterType, String> {
 pub fn run(
     request: ScanRequest,
     progress_sender: &Sender<ProgressData>,
+    stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> Result<ScanResults, String> {
     let hash_alg = request
         .hash_alg
@@ -70,7 +71,6 @@ pub fn run(
     let mut finder = SimilarImages::new(params);
     configure_common_data(&mut finder, &request);
 
-    let stop_flag = make_stop_flag();
     finder.search(&stop_flag, Some(progress_sender));
 
     let info = finder.get_information();

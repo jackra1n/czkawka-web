@@ -21,6 +21,7 @@ pub async fn start_scan(
     let tool_id = request.tool_id.clone();
 
     let shared_progress = Arc::new(Mutex::new(None));
+    let stop_flag = Arc::new(std::sync::atomic::AtomicBool::new(false));
 
     {
         let mut scans = state.scans.lock().unwrap();
@@ -28,6 +29,7 @@ pub async fn start_scan(
             scan_id.clone(),
             ScanState::Running {
                 progress: Arc::clone(&shared_progress),
+                stop_flag: Arc::clone(&stop_flag),
             },
         );
     }
@@ -46,11 +48,31 @@ pub async fn start_scan(
 
     let state_clone = Arc::clone(&state);
     let scan_id_clone = scan_id.clone();
+    let stop_flag_clone = Arc::clone(&stop_flag);
 
     spawn_blocking(move || {
         log::info!("Starting scan {scan_id_clone} for tool {tool_id}");
-        let result = run_scan(request, shared_progress);
+        let result = run_scan(request, shared_progress, stop_flag_clone.clone());
         let mut scans = state_clone.scans.lock().unwrap();
+
+        if stop_flag_clone.load(std::sync::atomic::Ordering::Relaxed) {
+            log::info!("Scan {scan_id_clone} was cancelled");
+            scans.insert(scan_id_clone.clone(), ScanState::Cancelled);
+
+            let mut persistent = state_clone.persistent.lock().unwrap();
+            let tool = persistent.tools.entry(tool_id).or_default();
+            if tool.scan_id.as_ref() == Some(&scan_id_clone) {
+                tool.status = "idle".to_string();
+                tool.scan_id = None;
+                tool.results = None;
+                tool.error = None;
+                if let Err(e) = state::save_state(&state_clone.state_path, &persistent) {
+                    log::error!("Failed to save state at scan cancellation: {e}");
+                }
+            }
+            return;
+        }
+
         match result {
             Ok(results) => {
                 log::info!(
@@ -61,12 +83,14 @@ pub async fn start_scan(
 
                 let mut persistent = state_clone.persistent.lock().unwrap();
                 let tool = persistent.tools.entry(tool_id.clone()).or_default();
-                tool.status = "completed".to_string();
-                tool.results = Some(results);
-                tool.scan_id = None;
-                tool.error = None;
-                if let Err(e) = state::save_state(&state_clone.state_path, &persistent) {
-                    log::error!("Failed to save state at scan completion: {e}");
+                if tool.scan_id.as_ref() == Some(&scan_id_clone) {
+                    tool.status = "completed".to_string();
+                    tool.results = Some(results);
+                    tool.scan_id = None;
+                    tool.error = None;
+                    if let Err(e) = state::save_state(&state_clone.state_path, &persistent) {
+                        log::error!("Failed to save state at scan completion: {e}");
+                    }
                 }
             }
             Err(e) => {
@@ -75,12 +99,14 @@ pub async fn start_scan(
 
                 let mut persistent = state_clone.persistent.lock().unwrap();
                 let tool = persistent.tools.entry(tool_id).or_default();
-                tool.status = "error".to_string();
-                tool.error = Some(e);
-                tool.scan_id = None;
-                tool.results = None;
-                if let Err(e) = state::save_state(&state_clone.state_path, &persistent) {
-                    log::error!("Failed to save state at scan error: {e}");
+                if tool.scan_id.as_ref() == Some(&scan_id_clone) {
+                    tool.status = "error".to_string();
+                    tool.error = Some(e);
+                    tool.scan_id = None;
+                    tool.results = None;
+                    if let Err(e) = state::save_state(&state_clone.state_path, &persistent) {
+                        log::error!("Failed to save state at scan error: {e}");
+                    }
                 }
             }
         }
@@ -102,7 +128,7 @@ pub async fn get_scan_status(
     let scans = state.scans.lock().unwrap();
 
     match scans.get(&scan_id) {
-        Some(ScanState::Running { progress }) => {
+        Some(ScanState::Running { progress, .. }) => {
             let progress_data = progress.lock().unwrap().clone();
             (
                 StatusCode::OK,
@@ -122,6 +148,16 @@ pub async fn get_scan_status(
                 status: "completed".to_string(),
                 progress: None,
                 results: Some(results.clone()),
+                error: None,
+            }),
+        ),
+        Some(ScanState::Cancelled) => (
+            StatusCode::OK,
+            Json(ScanStatusResponse {
+                id: scan_id,
+                status: "cancelled".to_string(),
+                progress: None,
+                results: None,
                 error: None,
             }),
         ),
@@ -145,5 +181,18 @@ pub async fn get_scan_status(
                 error: None,
             }),
         ),
+    }
+}
+
+pub async fn cancel_scan(
+    State(state): State<Arc<AppState>>,
+    Path(scan_id): Path<String>,
+) -> StatusCode {
+    let scans = state.scans.lock().unwrap();
+    if let Some(ScanState::Running { stop_flag, .. }) = scans.get(&scan_id) {
+        stop_flag.store(true, std::sync::atomic::Ordering::Relaxed);
+        StatusCode::OK
+    } else {
+        StatusCode::NOT_FOUND
     }
 }
