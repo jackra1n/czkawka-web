@@ -19,10 +19,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libchromaprint-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
-COPY backend/ ./backend/
-
 WORKDIR /app/backend
+
+# Copy dependency configs first to cache dependency compilation
+COPY backend/Cargo.toml backend/Cargo.lock ./
+
+# Create dummy source files to compile dependencies
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN cargo build --release
+
+# Clean up dummy build files of our package (but keep dependencies in target/release/deps)
+RUN rm -rf src/ target/release/deps/backend* target/release/backend*
+
+# Now copy the real source code
+COPY backend/src ./src
+
+# Build the actual backend application
 RUN cargo build --release
 
 # Stage 3: Runtime
