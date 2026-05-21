@@ -241,16 +241,19 @@ pub async fn link_files(
     // 3. Mark files that were checked but had no other file in the group to link to as failed
     let failed_set: HashSet<String> = failed.iter().map(|f| f.path.clone()).collect();
     for file in &request.files {
-        // If not in linked and not in failed, and it wasn't the chosen original, but it belongs to a group
-        if !linked_set.contains(file)
-            && !failed_set.contains(file)
-            && grouped_checked_files.contains(file)
-            && !originals.contains(file)
-        {
-            failed.push(FailedLink {
-                path: file.clone(),
-                error: "No other file in the group to link to".to_string(),
-            });
+        // If not in linked and not in failed
+        if !linked_set.contains(file) && !failed_set.contains(file) {
+            if !grouped_checked_files.contains(file) {
+                failed.push(FailedLink {
+                    path: file.clone(),
+                    error: "Not part of any duplicate group".to_string(),
+                });
+            } else if !originals.contains(file) {
+                failed.push(FailedLink {
+                    path: file.clone(),
+                    error: "No other file in the group to link to".to_string(),
+                });
+            }
         }
     }
 
