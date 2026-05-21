@@ -72,6 +72,7 @@ async fn main() {
             post(handlers::state::update_last_browser_directory),
         )
         .route("/api/delete", post(handlers::files::delete_files))
+        .route("/api/link", post(handlers::files::link_files))
         .route("/api/fix", post(handlers::fix::fix_files))
         .route("/api/defaults", get(handlers::state::get_defaults))
         .route(

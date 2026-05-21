@@ -223,6 +223,25 @@ pub struct DeleteResponse {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct LinkRequest {
+    pub tool_id: String,
+    pub link_type: String, // "hard" or "soft"
+    pub files: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FailedLink {
+    pub path: String,
+    pub error: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LinkResponse {
+    pub linked: Vec<String>,
+    pub failed: Vec<FailedLink>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct UpdateDirectoriesRequest {
     #[serde(default)]
     pub included: Vec<String>,

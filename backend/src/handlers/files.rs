@@ -10,8 +10,12 @@ use std::path::PathBuf;
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
 
-use crate::models::{AppState, DeleteRequest, DeleteResponse, FailedDeletion, FileQuery};
+use crate::models::{
+    AppState, DeleteRequest, DeleteResponse, FailedDeletion, FailedLink, FileQuery, LinkRequest,
+    LinkResponse,
+};
 use crate::state;
+use czkawka_core::common::{make_file_symlink, make_hard_link};
 
 pub async fn delete_files(
     State(state): State<Arc<AppState>>,
@@ -99,4 +103,199 @@ pub async fn serve_file(
             ))
         }
     }
+}
+
+pub async fn link_files(
+    State(state): State<Arc<AppState>>,
+    Json(request): Json<LinkRequest>,
+) -> (StatusCode, Json<LinkResponse>) {
+    let mut linked = Vec::new();
+    let mut failed = Vec::new();
+
+    // 1. Lock the state briefly to find duplicate groups and plan the linking
+    let link_plans = {
+        let persistent = state.persistent.lock().unwrap();
+        let tool = match persistent.tools.get(&request.tool_id) {
+            Some(t) => t,
+            None => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(LinkResponse {
+                        linked,
+                        failed: vec![FailedLink {
+                            path: String::new(),
+                            error: "Tool state not found".to_string(),
+                        }],
+                    }),
+                );
+            }
+        };
+        let results = match &tool.results {
+            Some(r) => r,
+            None => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(LinkResponse {
+                        linked,
+                        failed: vec![FailedLink {
+                            path: String::new(),
+                            error: "No scan results found".to_string(),
+                        }],
+                    }),
+                );
+            }
+        };
+
+        let mut plans = Vec::new();
+        for group in &results.groups {
+            let checked_in_group: Vec<&crate::models::ScannedFile> = group
+                .files
+                .iter()
+                .filter(|f| request.files.contains(&f.path))
+                .collect();
+            if checked_in_group.is_empty() {
+                continue;
+            }
+            let unchecked_in_group: Vec<&crate::models::ScannedFile> = group
+                .files
+                .iter()
+                .filter(|f| !request.files.contains(&f.path))
+                .collect();
+            let original_path = if !unchecked_in_group.is_empty() {
+                Some(unchecked_in_group[0].path.clone())
+            } else if checked_in_group.len() > 1 {
+                Some(checked_in_group[0].path.clone())
+            } else {
+                None
+            };
+            if let Some(orig) = original_path {
+                for file in checked_in_group {
+                    if file.path != orig {
+                        plans.push((orig.clone(), file.path.clone()));
+                    }
+                }
+            }
+        }
+        plans
+    };
+
+    // 2. Perform the link operations in spawn_blocking
+    let link_type = request.link_type.clone();
+    let link_results = tokio::task::spawn_blocking(move || {
+        let mut linked_paths = Vec::new();
+        let mut failed_links = Vec::new();
+        for (orig, derived) in link_plans {
+            let res = match link_type.as_str() {
+                "hard" => make_hard_link(&orig, &derived),
+                "soft" => make_file_symlink(&orig, &derived),
+                _ => Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "Unsupported link type",
+                )),
+            };
+            match res {
+                Ok(()) => {
+                    linked_paths.push(derived);
+                }
+                Err(e) => {
+                    log::warn!("Failed to link {} to original {}: {}", derived, orig, e);
+                    failed_links.push(FailedLink {
+                        path: derived,
+                        error: e.to_string(),
+                    });
+                }
+            }
+        }
+        (linked_paths, failed_links)
+    })
+    .await
+    .unwrap();
+
+    let (successful_linked, mut failed_links) = link_results;
+    linked.extend(successful_linked);
+    failed.append(&mut failed_links);
+
+    // 3. Mark files that were checked but had no other file in the group to link to as failed
+    for file in &request.files {
+        // Check if this file was actually part of any group with an original
+        // If not in linked or failed, and it wasn't the chosen original in any group, it failed
+        // We can check if it's not in linked and not in failed
+        if !linked.contains(file) && !failed.iter().any(|f| &f.path == file) {
+            // It could be the original file of some group. If so, it shouldn't be marked as failed
+            // Let's verify if it's the original.
+            let mut is_original = false;
+            let mut has_group = false;
+            {
+                let persistent = state.persistent.lock().unwrap();
+                if let Some(results) = persistent
+                    .tools
+                    .get(&request.tool_id)
+                    .and_then(|t| t.results.as_ref())
+                {
+                    for group in &results.groups {
+                        if group.files.iter().any(|f| &f.path == file) {
+                            has_group = true;
+                            let checked_in_group: Vec<&crate::models::ScannedFile> = group
+                                .files
+                                .iter()
+                                .filter(|f| request.files.contains(&f.path))
+                                .collect();
+                            let unchecked_in_group: Vec<&crate::models::ScannedFile> = group
+                                .files
+                                .iter()
+                                .filter(|f| !request.files.contains(&f.path))
+                                .collect();
+                            let original_path = if !unchecked_in_group.is_empty() {
+                                Some(unchecked_in_group[0].path.clone())
+                            } else if checked_in_group.len() > 1 {
+                                Some(checked_in_group[0].path.clone())
+                            } else {
+                                None
+                            };
+                            if original_path.as_ref() == Some(file) {
+                                is_original = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if !is_original && has_group {
+                failed.push(FailedLink {
+                    path: file.clone(),
+                    error: "No other file in the group to link to".to_string(),
+                });
+            }
+        }
+    }
+
+    // 4. Update the backend state
+    if !linked.is_empty() {
+        let mut persistent = state.persistent.lock().unwrap();
+        if let Some(tool) = persistent.tools.get_mut(&request.tool_id) {
+            tool.checked_files.retain(|p| !linked.contains(p));
+
+            if let Some(ref mut results) = tool.results {
+                for group in results.groups.iter_mut() {
+                    group.files.retain(|f| !linked.contains(&f.path));
+                }
+
+                let min_group_size = 2;
+                results.groups.retain(|g| g.files.len() >= min_group_size);
+                results.total_groups = results.groups.len();
+                results.total_items = results.groups.iter().map(|g| g.files.len()).sum();
+                results.wasted_bytes = results
+                    .groups
+                    .iter()
+                    .map(|g| g.size * (g.files.len() as u64 - 1))
+                    .sum();
+            }
+
+            if let Err(e) = crate::state::save_state(&state.state_path, &persistent) {
+                log::error!("Failed to save state after linking: {e}");
+            }
+        }
+    }
+
+    (StatusCode::OK, Json(LinkResponse { linked, failed }))
 }
