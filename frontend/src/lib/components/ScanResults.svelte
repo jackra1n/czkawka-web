@@ -309,9 +309,12 @@
 		}
 	});
 
+	const BUFFER_VIEWPORT_MULTIPLIER = 1.5;
+
 	let visibleRange = $derived.by(() => {
-		const viewTop = Math.max(0, scrollTop - 1000);
-		const viewBottom = scrollTop + clientHeight + 1000;
+		const buffer = Math.max(1000, clientHeight * BUFFER_VIEWPORT_MULTIPLIER);
+		const viewTop = Math.max(0, scrollTop - buffer);
+		const viewBottom = scrollTop + clientHeight + buffer;
 		return findVisibleRange(layout.items, viewTop, viewBottom);
 	});
 
