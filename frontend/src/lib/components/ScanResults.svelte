@@ -556,7 +556,7 @@
 	{:else if scanResults}
 		<div class="sticky top-0 z-10 bg-surface">
 			<!-- Stats bar -->
-			<div class="flex items-center gap-6 border-b border-border px-4 py-2 text-xs text-text-muted">
+			<div class="flex items-center gap-6 border-b border-border px-3 py-1.5 text-xs text-text-muted">
 				<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
 				<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
 				{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names'}
@@ -568,7 +568,7 @@
 			{#if scanResults.groups.length > 0}
 				<!-- Table header -->
 				<div
-					class="grid gap-3 border-b border-border px-4 py-2 text-xs font-medium tracking-wider text-text-muted uppercase"
+					class="grid gap-3 border-b border-border px-3 py-1.5 text-xs font-medium tracking-wider text-text-muted uppercase"
 					style="grid-template-columns: {gridCols()};"
 				>
 					{#each colDefs as col, ci (col.key)}
@@ -639,7 +639,8 @@
 							{@const { name, dir } = splitPath(item.file.path)}
 							<div
 								id="scan-item-{i}"
-								class="grid h-full cursor-pointer gap-3 px-4 py-2 text-sm transition-colors {selectedIndex === i
+								class="grid h-full cursor-pointer items-center gap-3 px-2 py-1 text-sm transition-colors {selectedIndex ===
+								i
 									? 'bg-accent/15'
 									: 'hover:bg-accent/10'}"
 								style="grid-template-columns: {gridCols()};"
