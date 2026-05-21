@@ -112,6 +112,8 @@ pub async fn link_files(
     let mut linked = Vec::new();
     let mut failed = Vec::new();
 
+    let checked_set: std::collections::HashSet<&String> = request.files.iter().collect();
+
     // 1. Lock the state briefly to find duplicate groups and plan the linking
     let link_plans = {
         let persistent = state.persistent.lock().unwrap();
@@ -151,7 +153,7 @@ pub async fn link_files(
             let checked_in_group: Vec<&crate::models::ScannedFile> = group
                 .files
                 .iter()
-                .filter(|f| request.files.contains(&f.path))
+                .filter(|f| checked_set.contains(&f.path))
                 .collect();
             if checked_in_group.is_empty() {
                 continue;
@@ -159,7 +161,7 @@ pub async fn link_files(
             let unchecked_in_group: Vec<&crate::models::ScannedFile> = group
                 .files
                 .iter()
-                .filter(|f| !request.files.contains(&f.path))
+                .filter(|f| !checked_set.contains(&f.path))
                 .collect();
             let original_path = if !unchecked_in_group.is_empty() {
                 Some(unchecked_in_group[0].path.clone())
@@ -226,12 +228,14 @@ pub async fn link_files(
     linked.extend(successful_linked);
     failed.append(&mut failed_links);
 
+    let linked_set: std::collections::HashSet<&String> = linked.iter().collect();
+
     // 3. Mark files that were checked but had no other file in the group to link to as failed
     for file in &request.files {
         // Check if this file was actually part of any group with an original
         // If not in linked or failed, and it wasn't the chosen original in any group, it failed
         // We can check if it's not in linked and not in failed
-        if !linked.contains(file) && !failed.iter().any(|f| &f.path == file) {
+        if !linked_set.contains(file) && !failed.iter().any(|f| &f.path == file) {
             // It could be the original file of some group. If so, it shouldn't be marked as failed
             // Let's verify if it's the original.
             let mut is_original = false;
@@ -249,12 +253,12 @@ pub async fn link_files(
                             let checked_in_group: Vec<&crate::models::ScannedFile> = group
                                 .files
                                 .iter()
-                                .filter(|f| request.files.contains(&f.path))
+                                .filter(|f| checked_set.contains(&f.path))
                                 .collect();
                             let unchecked_in_group: Vec<&crate::models::ScannedFile> = group
                                 .files
                                 .iter()
-                                .filter(|f| !request.files.contains(&f.path))
+                                .filter(|f| !checked_set.contains(&f.path))
                                 .collect();
                             let original_path = if !unchecked_in_group.is_empty() {
                                 Some(unchecked_in_group[0].path.clone())
@@ -289,7 +293,7 @@ pub async fn link_files(
             let mut changed = false;
             let old_len = tool.checked_files.len();
             tool.checked_files.retain(|p| {
-                if request.files.contains(p) {
+                if checked_set.contains(p) {
                     failed_paths.contains(p)
                 } else {
                     true
@@ -302,7 +306,7 @@ pub async fn link_files(
             if !linked.is_empty() {
                 if let Some(ref mut results) = tool.results {
                     for group in results.groups.iter_mut() {
-                        group.files.retain(|f| !linked.contains(&f.path));
+                        group.files.retain(|f| !linked_set.contains(&f.path));
                     }
 
                     let min_group_size = 2;
