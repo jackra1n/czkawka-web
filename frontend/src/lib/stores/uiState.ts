@@ -17,7 +17,7 @@ export function loadUiState(): UiState {
 			return {
 				activeTool: parsed.activeTool ?? 'duplicates',
 				selectedFile: parsed.selectedFile ?? null,
-				sidebarCollapsed: parsed.sidebarCollapsed ?? false
+				sidebarCollapsed: parsed.sidebarCollapsed ?? false,
 			};
 		}
 	} catch {

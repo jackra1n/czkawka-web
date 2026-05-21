@@ -17,7 +17,7 @@
 		selectedFile,
 		selectedFileSize,
 		groupFiles,
-		onClose
+		onClose,
 	}: {
 		selectedFile: string;
 		selectedFileSize: number;
@@ -47,11 +47,9 @@
 
 	let compareUrl = $derived(compareTarget ? getFileUrl(compareTarget) : '');
 
-	let selectedFileDims = $derived(
-		groupFiles.find((f) => f.path === selectedFile)?.dimensions ?? ''
-	);
+	let selectedFileDims = $derived(groupFiles.find((f) => f.path === selectedFile)?.dimensions ?? '');
 	let compareFileDims = $derived(
-		compareTarget ? (groupFiles.find((f) => f.path === compareTarget)?.dimensions ?? '') : ''
+		compareTarget ? (groupFiles.find((f) => f.path === compareTarget)?.dimensions ?? '') : '',
 	);
 
 	$effect(() => {
@@ -227,7 +225,9 @@
 			aria-label="Resize preview panel"
 			aria-orientation="vertical"
 		>
-			<div class="flex h-8 w-5 items-center justify-center rounded-full bg-black/50 transition-colors group-hover:bg-black/70">
+			<div
+				class="flex h-8 w-5 items-center justify-center rounded-full bg-black/50 transition-colors group-hover:bg-black/70"
+			>
 				<GripVertical class="h-4 w-4 text-text-muted opacity-75 transition-opacity group-hover:opacity-100" />
 			</div>
 		</div>
@@ -241,12 +241,12 @@
 					onclick={toggleMaximize}
 					class="rounded p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
 				>
-				{#if isMaximized}
-					<Minimize2 class="h-4 w-4" />
-				{:else}
-					<Maximize2 class="h-4 w-4" />
-				{/if}
-			</button>
+					{#if isMaximized}
+						<Minimize2 class="h-4 w-4" />
+					{:else}
+						<Maximize2 class="h-4 w-4" />
+					{/if}
+				</button>
 			</Tooltip>
 			<button
 				onclick={onClose}
@@ -271,7 +271,7 @@
 						{colorCodingEnabled}
 						{setCompareMode}
 						{setCompareTarget}
-						toggleColorCoding={toggleColorCoding}
+						{toggleColorCoding}
 					/>
 				{/if}
 

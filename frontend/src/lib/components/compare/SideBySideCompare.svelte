@@ -11,7 +11,7 @@
 		compareTarget,
 		compareFileDims,
 		colorCodingEnabled,
-		onMediaError
+		onMediaError,
 	}: {
 		fileUrl: string;
 		selectedFile: string;
@@ -33,7 +33,9 @@
 			</div>
 		</Tooltip>
 		<Tooltip class="flex min-w-0 flex-1" content={compareTarget}>
-			<div class="min-w-0 flex-1 truncate text-right text-xs {colorCodingEnabled ? 'text-amber-400' : 'text-text-muted'}">
+			<div
+				class="min-w-0 flex-1 truncate text-right text-xs {colorCodingEnabled ? 'text-amber-400' : 'text-text-muted'}"
+			>
 				Comparing: {compareTarget}
 			</div>
 		</Tooltip>

@@ -14,7 +14,7 @@
 		scanProgress,
 		onSelectFile,
 		checkedFiles,
-		activeTool
+		activeTool,
 	}: {
 		scanState: 'idle' | 'running' | 'completed' | 'error';
 		scanError: string;
@@ -39,33 +39,33 @@
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'empty-files': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'filename', label: 'Filename', width: 300, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 400, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'empty-folders': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'filename', label: 'Folder', width: 300, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 400, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'big-files': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		temporary: [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 240, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 360, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'similar-images': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -74,7 +74,7 @@
 			{ key: 'similarity', label: 'Similarity', width: 100, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'similar-videos': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -83,7 +83,7 @@
 			{ key: 'similarity', label: 'Duration', width: 100, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'same-music': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -91,7 +91,7 @@
 			{ key: 'similarity', label: 'Track', width: 180, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'invalid-symlinks': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -99,7 +99,7 @@
 			{ key: 'similarity', label: 'Destination', width: 240, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'broken-files': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -107,7 +107,7 @@
 			{ key: 'similarity', label: 'Error', width: 240, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'bad-extensions': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -115,7 +115,7 @@
 			{ key: 'similarity', label: 'Extension', width: 200, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'exif-remover': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -123,7 +123,7 @@
 			{ key: 'similarity', label: 'EXIF Tags', width: 120, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 220, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'bad-names': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
@@ -131,8 +131,8 @@
 			{ key: 'similarity', label: 'New Name', width: 220, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 200, minWidth: 50 },
 			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
-			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 }
-		]
+			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
+		],
 	};
 
 	let colDefs = $derived(TOOL_COLS[activeTool] ?? TOOL_COLS.duplicates);
@@ -165,8 +165,10 @@
 		if (a == null) return 1;
 		if (b == null) return -1;
 
-		const aNum = typeof a === 'number' ? a : (typeof a === 'string' && a.trim() !== '' ? Number(a.replace(/%$/, '')) : NaN);
-		const bNum = typeof b === 'number' ? b : (typeof b === 'string' && b.trim() !== '' ? Number(b.replace(/%$/, '')) : NaN);
+		const aNum =
+			typeof a === 'number' ? a : typeof a === 'string' && a.trim() !== '' ? Number(a.replace(/%$/, '')) : NaN;
+		const bNum =
+			typeof b === 'number' ? b : typeof b === 'string' && b.trim() !== '' ? Number(b.replace(/%$/, '')) : NaN;
 
 		if (!isNaN(aNum) && !isNaN(bNum)) {
 			return aNum - bNum;
@@ -207,7 +209,7 @@
 			});
 			return {
 				...group,
-				files
+				files,
 			};
 		});
 
@@ -227,7 +229,7 @@
 
 		return {
 			...results,
-			groups: sortedGroups
+			groups: sortedGroups,
 		};
 	}
 
@@ -404,12 +406,12 @@
 		if (itemTop < viewportTop) {
 			containerEl.scrollTo({
 				top: item.top,
-				behavior: 'smooth'
+				behavior: 'smooth',
 			});
 		} else if (itemBottom > viewportBottom) {
 			containerEl.scrollTo({
 				top: item.top + item.height + headerHeight - clientHeight,
-				behavior: 'smooth'
+				behavior: 'smooth',
 			});
 		}
 	}
@@ -457,25 +459,25 @@
 		'big-files': { scanning: 'Scanning for big files…', empty: 'No big files found.' },
 		'similar-images': {
 			scanning: 'Scanning for similar images…',
-			empty: 'No similar images found.'
+			empty: 'No similar images found.',
 		},
 		'similar-videos': {
 			scanning: 'Scanning for similar videos…',
-			empty: 'No similar videos found.'
+			empty: 'No similar videos found.',
 		},
 		'same-music': { scanning: 'Scanning for same music…', empty: 'No same music found.' },
 		'invalid-symlinks': {
 			scanning: 'Scanning for invalid symlinks…',
-			empty: 'No invalid symlinks found.'
+			empty: 'No invalid symlinks found.',
 		},
 		'broken-files': { scanning: 'Scanning for broken files…', empty: 'No broken files found.' },
 		'bad-extensions': {
 			scanning: 'Scanning for bad extensions…',
-			empty: 'No bad extensions found.'
+			empty: 'No bad extensions found.',
 		},
 		'exif-remover': { scanning: 'Scanning for EXIF data…', empty: 'No files with EXIF found.' },
 		'bad-names': { scanning: 'Scanning for bad names…', empty: 'No bad names found.' },
-		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' }
+		temporary: { scanning: 'Scanning for temporary files…', empty: 'No temporary files found.' },
 	};
 	let scanningText = $derived(SCAN_TEXTS[activeTool]?.scanning ?? 'Scanning…');
 	let emptyText = $derived(SCAN_TEXTS[activeTool]?.empty ?? 'Nothing found.');
@@ -558,14 +560,9 @@
 				<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
 				<span>Items: <strong class="text-text">{scanResults.total_items}</strong></span>
 				{#if activeTool !== 'empty-folders' && activeTool !== 'big-files' && activeTool !== 'empty-files' && activeTool !== 'temporary' && activeTool !== 'invalid-symlinks' && activeTool !== 'broken-files' && activeTool !== 'bad-extensions' && activeTool !== 'exif-remover' && activeTool !== 'bad-names'}
-					<span
-						>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span
-					>
+					<span>Wasted: <strong class="text-text">{formatBytes(scanResults.wasted_bytes)}</strong></span>
 				{/if}
-				<span
-					>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong
-					></span
-				>
+				<span>Duration: <strong class="text-text">{formatDuration(scanResults.scanning_time_ms)}</strong></span>
 			</div>
 
 			{#if scanResults.groups.length > 0}
@@ -577,7 +574,9 @@
 					{#each colDefs as col, ci (col.key)}
 						<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 						<div
-							class="relative flex min-w-0 items-center select-none {col.key !== 'checkbox' ? 'cursor-pointer hover:text-text' : ''}"
+							class="relative flex min-w-0 items-center select-none {col.key !== 'checkbox'
+								? 'cursor-pointer hover:text-text'
+								: ''}"
 							onclick={() => {
 								if (col.key !== 'checkbox') {
 									toggleSort(col.key);
@@ -623,7 +622,9 @@
 				{#each visibleItems as renderItem (renderItem.item.type === 'file' ? renderItem.item.file.path : `sep-${renderItem.index}`)}
 					{@const item = renderItem.item}
 					{@const i = renderItem.index}
-					<div style="position: absolute; top: {renderItem.top}px; left: 0; right: 0; height: {renderItem.height}px; overflow: hidden;">
+					<div
+						style="position: absolute; top: {renderItem.top}px; left: 0; right: 0; height: {renderItem.height}px; overflow: hidden;"
+					>
 						{#if item.type === 'separator'}
 							<div
 								id="scan-item-{i}"

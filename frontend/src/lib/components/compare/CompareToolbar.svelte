@@ -15,7 +15,7 @@
 		colorCodingEnabled,
 		setCompareMode,
 		setCompareTarget,
-		toggleColorCoding
+		toggleColorCoding,
 	}: {
 		selectedFile: string;
 		imageSiblings: ScannedFile[];
@@ -130,12 +130,7 @@
 									: 'border-primary ring-primary ring-1'
 								: 'border-border'}"
 					>
-						<img
-							src={getFileUrl(sibling.path)}
-							alt=""
-							class="h-8 w-8 object-cover"
-							draggable="false"
-						/>
+						<img src={getFileUrl(sibling.path)} alt="" class="h-8 w-8 object-cover" draggable="false" />
 					</button>
 				</Tooltip>
 			{/each}

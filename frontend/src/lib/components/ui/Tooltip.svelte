@@ -5,7 +5,7 @@
 		content,
 		position = 'top',
 		class: className = 'inline-flex',
-		children
+		children,
 	}: {
 		content: string;
 		position?: 'top' | 'bottom' | 'left' | 'right';
@@ -94,7 +94,7 @@
 		top: 'bottom-0 -translate-x-1/2 translate-y-full border-x-[5px] border-t-[5px] border-x-transparent border-t-text',
 		bottom: 'top-0 -translate-x-1/2 -translate-y-full border-x-[5px] border-b-[5px] border-x-transparent border-b-text',
 		left: 'right-0 -translate-y-1/2 translate-x-full border-y-[5px] border-l-[5px] border-y-transparent border-l-text',
-		right: 'left-0 -translate-y-1/2 -translate-x-full border-y-[5px] border-r-[5px] border-y-transparent border-r-text'
+		right: 'left-0 -translate-y-1/2 -translate-x-full border-y-[5px] border-r-[5px] border-y-transparent border-r-text',
 	};
 </script>
 

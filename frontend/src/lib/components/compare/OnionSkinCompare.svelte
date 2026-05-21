@@ -11,7 +11,7 @@
 		compareTarget,
 		compareFileDims,
 		onionOpacity,
-		colorCodingEnabled
+		colorCodingEnabled,
 	}: {
 		fileUrl: string;
 		selectedFile: string;

@@ -5,7 +5,7 @@
 		max = 999999,
 		value = 0,
 		onchange,
-		disabled = false
+		disabled = false,
 	}: {
 		id?: string;
 		min?: number;
@@ -40,7 +40,7 @@
 		type="button"
 		onclick={decrement}
 		disabled={disabled || atMin}
-		class="flex w-9 shrink-0 items-center justify-center rounded-l-md border border-r-0 border-border bg-surface text-text-muted text-sm transition-colors hover:bg-surface-raised hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
+		class="flex w-9 shrink-0 items-center justify-center rounded-l-md border border-r-0 border-border bg-surface text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
 		aria-label="Decrease"
 	>
 		&minus;
@@ -50,16 +50,16 @@
 		type="number"
 		{min}
 		{max}
-		value={value}
+		{value}
 		oninput={handleInput}
 		{disabled}
-		class="w-full min-w-0 border-y border-border bg-bg px-2 py-2 text-center text-sm text-text focus:border-accent focus:ring-1 focus:ring-inset focus:ring-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+		class="w-full min-w-0 [appearance:textfield] border-y border-border bg-bg px-2 py-2 text-center text-sm text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none focus:ring-inset disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 	/>
 	<button
 		type="button"
 		onclick={increment}
 		disabled={disabled || atMax}
-		class="flex w-9 shrink-0 items-center justify-center rounded-r-md border border-l-0 border-border bg-surface text-text-muted text-sm transition-colors hover:bg-surface-raised hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
+		class="flex w-9 shrink-0 items-center justify-center rounded-r-md border border-l-0 border-border bg-surface text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
 		aria-label="Increase"
 	>
 		+

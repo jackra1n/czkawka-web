@@ -21,7 +21,7 @@
 		onStartScan,
 		onAddDir,
 		onDelete,
-		onFix
+		onFix,
 	}: {
 		includedDirs: string[];
 		excludedDirs: string[];
@@ -48,7 +48,7 @@
 		'same-music',
 		'broken-files',
 		'bad-extensions',
-		'bad-names'
+		'bad-names',
 	]);
 
 	$effect(() => {
@@ -140,17 +140,13 @@
 
 			{#if activeTab === 'directories'}
 				<div class="flex gap-4">
+					<DirectoryList label="Included directories" bind:dirs={includedDirs} onAdd={() => onAddDir('include')} />
 					<DirectoryList
-						label="Included directories"
-						bind:dirs={includedDirs}
-						onAdd={() => onAddDir('include')}
+						label="Excluded directories"
+						bind:dirs={excludedDirs}
+						onAdd={() => onAddDir('exclude')}
+						defaultDirs={defaultExcludedDirs}
 					/>
-				<DirectoryList
-					label="Excluded directories"
-					bind:dirs={excludedDirs}
-					onAdd={() => onAddDir('exclude')}
-					defaultDirs={defaultExcludedDirs}
-				/>
 				</div>
 			{:else if activeTab === 'items'}
 				<div class="flex flex-col gap-1.5">
@@ -162,9 +158,7 @@
 						placeholder="*/.git/*,*/node_modules/*"
 						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
 					/>
-					<span class="text-xs text-text-muted"
-						>Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span
-					>
+					<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
 				</div>
 			{:else if activeTab === 'settings'}
 				<ToolSettings {activeTool} bind:toolConfig />
@@ -179,9 +173,7 @@
 			class="inline-flex items-center gap-2 rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if scanState === 'running'}
-				<span
-					class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-				></span>
+				<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
 				Scanning…
 			{:else}
 				<Search class="h-4 w-4" />

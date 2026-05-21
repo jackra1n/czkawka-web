@@ -3,7 +3,7 @@
 
 	let {
 		label,
-		isDanger = false
+		isDanger = false,
 	}: {
 		label: string;
 		isDanger?: boolean;

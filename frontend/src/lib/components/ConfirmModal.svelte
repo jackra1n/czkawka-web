@@ -16,7 +16,7 @@
 		confirmText = 'Confirm',
 		cancelText = 'Cancel',
 		onConfirm,
-		onCancel
+		onCancel,
 	}: Props = $props();
 </script>
 

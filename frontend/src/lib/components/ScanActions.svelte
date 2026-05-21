@@ -9,7 +9,7 @@
 		checkedFiles,
 		activeTool,
 		onDelete,
-		onFix
+		onFix,
 	}: {
 		scanResults: ScanResults | null;
 		checkedFiles: SvelteSet<string>;
@@ -26,17 +26,15 @@
 	const hasChecked = $derived(checkedFiles.size > 0);
 
 	const showFixButton = $derived(
-		activeTool === 'exif-remover' || activeTool === 'bad-names' || activeTool === 'bad-extensions'
+		activeTool === 'exif-remover' || activeTool === 'bad-names' || activeTool === 'bad-extensions',
 	);
 	const fixLabel = $derived(activeTool === 'exif-remover' ? 'Clean' : 'Rename');
 	const FixIcon = $derived(activeTool === 'exif-remover' ? Sparkles : Pencil);
-	const fixConfirmTitle = $derived(
-		activeTool === 'exif-remover' ? 'Clean EXIF Data' : 'Rename Files'
-	);
+	const fixConfirmTitle = $derived(activeTool === 'exif-remover' ? 'Clean EXIF Data' : 'Rename Files');
 	const fixConfirmMessage = $derived(
 		activeTool === 'exif-remover'
 			? `Are you sure you want to remove EXIF data from ${checkedFiles.size} selected file${checkedFiles.size === 1 ? '' : 's'}?`
-			: `Are you sure you want to rename ${checkedFiles.size} selected file${checkedFiles.size === 1 ? '' : 's'}?`
+			: `Are you sure you want to rename ${checkedFiles.size} selected file${checkedFiles.size === 1 ? '' : 's'}?`,
 	);
 
 	function closeDropdown() {
@@ -252,7 +250,7 @@
 		{ type: 'item', label: 'Select all except smallest', action: selectAllExceptSmallest },
 		{ type: 'separator' },
 		{ type: 'item', label: 'Select all except shortest path', action: selectAllExceptShortestPath },
-		{ type: 'item', label: 'Select all except longest path', action: selectAllExceptLongestPath }
+		{ type: 'item', label: 'Select all except longest path', action: selectAllExceptLongestPath },
 	];
 </script>
 
@@ -268,9 +266,7 @@
 			<ChevronDown class="h-4 w-4 text-text-muted" />
 		</button>
 		{#if selectOpen}
-			<div
-				class="absolute right-0 z-20 mt-1 w-60 overflow-hidden rounded-md border border-border bg-surface shadow-lg"
-			>
+			<div class="absolute right-0 z-20 mt-1 w-60 overflow-hidden rounded-md border border-border bg-surface shadow-lg">
 				{#each selectOptions as option, i (option.type === 'separator' ? `sep-${i}` : option.label)}
 					{#if option.type === 'separator'}
 						<div class="my-1 h-px bg-border"></div>
