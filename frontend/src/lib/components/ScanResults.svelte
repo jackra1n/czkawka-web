@@ -277,10 +277,17 @@
 
 	let scrollTop = $state(0);
 	let clientHeight = $state(0);
+	let ticking = false;
 
 	function handleScroll() {
-		if (containerEl) {
-			scrollTop = containerEl.scrollTop;
+		if (!ticking) {
+			requestAnimationFrame(() => {
+				if (containerEl) {
+					scrollTop = containerEl.scrollTop;
+				}
+				ticking = false;
+			});
+			ticking = true;
 		}
 	}
 
