@@ -285,29 +285,48 @@ pub async fn link_files(
     }
 
     // 4. Update the backend state
-    if !linked.is_empty() {
+    {
         let mut persistent = state.persistent.lock().unwrap();
         if let Some(tool) = persistent.tools.get_mut(&request.tool_id) {
-            tool.checked_files.retain(|p| !linked.contains(p));
-
-            if let Some(ref mut results) = tool.results {
-                for group in results.groups.iter_mut() {
-                    group.files.retain(|f| !linked.contains(&f.path));
+            let failed_paths: std::collections::HashSet<&String> =
+                failed.iter().map(|f| &f.path).collect();
+            let mut changed = false;
+            let old_len = tool.checked_files.len();
+            tool.checked_files.retain(|p| {
+                if request.files.contains(p) {
+                    failed_paths.contains(p)
+                } else {
+                    true
                 }
-
-                let min_group_size = 2;
-                results.groups.retain(|g| g.files.len() >= min_group_size);
-                results.total_groups = results.groups.len();
-                results.total_items = results.groups.iter().map(|g| g.files.len()).sum();
-                results.wasted_bytes = results
-                    .groups
-                    .iter()
-                    .map(|g| g.size * (g.files.len() as u64 - 1))
-                    .sum();
+            });
+            if tool.checked_files.len() != old_len {
+                changed = true;
             }
 
-            if let Err(e) = crate::state::save_state(&state.state_path, &persistent) {
-                log::error!("Failed to save state after linking: {e}");
+            if !linked.is_empty() {
+                if let Some(ref mut results) = tool.results {
+                    for group in results.groups.iter_mut() {
+                        group.files.retain(|f| !linked.contains(&f.path));
+                    }
+
+                    let min_group_size = 2;
+                    results.groups.retain(|g| g.files.len() >= min_group_size);
+                    results.total_groups = results.groups.len();
+                    results.total_items = results.groups.iter().map(|g| g.files.len()).sum();
+                    results.wasted_bytes = results
+                        .groups
+                        .iter()
+                        .map(|g| g.size * (g.files.len() as u64 - 1))
+                        .sum();
+                }
+                changed = true;
+            }
+
+            if changed {
+                let save_res = crate::state::save_state(&state.state_path, &persistent);
+                if let Err(e) = save_res {
+                    log::error!("Failed to save state after linking: {e}");
+                }
             }
         }
     }
