@@ -609,11 +609,11 @@
 			</div>
 		{:else}
 			<!-- Table rows -->
-			<div class="relative min-w-full" style="height: {layout.totalHeight}px;">
+			<div class="relative min-w-full shrink-0" style="height: {layout.totalHeight}px;">
 				{#each visibleItems as renderItem (renderItem.item.type === 'file' ? renderItem.item.file.path : `sep-${renderItem.index}`)}
 					{@const item = renderItem.item}
 					{@const i = renderItem.index}
-					<div style="position: absolute; top: {renderItem.top}px; left: 0; right: 0; height: {renderItem.height}px;">
+					<div style="position: absolute; top: {renderItem.top}px; left: 0; right: 0; height: {renderItem.height}px; overflow: hidden;">
 						{#if item.type === 'separator'}
 							<div
 								id="scan-item-{i}"
