@@ -113,13 +113,14 @@ pub async fn link_files(
     let mut linked = Vec::new();
     let mut failed = Vec::new();
 
+    // source of truth lookup map for requested files
     let checked_set: HashSet<&String> = request.files.iter().collect();
 
-    let mut originals = HashSet::new();
     let mut grouped_checked_files = HashSet::new();
+    let mut link_plans = Vec::new();
 
-    // 1. Lock the state briefly to find duplicate groups and plan the linking
-    let link_plans = {
+    // 1. lock the state briefly, plan links, and immediately capture immediate failures
+    {
         let persistent = state.persistent.lock().unwrap();
         let tool = match persistent.tools.get(&request.tool_id) {
             Some(t) => t,
@@ -152,130 +153,135 @@ pub async fn link_files(
             }
         };
 
-        let mut plans = Vec::new();
         for group in &results.groups {
-            let checked_in_group: Vec<&crate::models::ScannedFile> = group
-                .files
-                .iter()
-                .filter(|f| checked_set.contains(&f.path))
-                .collect();
+            let mut checked_in_group = Vec::new();
+            let mut unchecked_in_group = Vec::new();
+
+            for file in &group.files {
+                if let Some(&req_file_ref) = checked_set.get(&file.path) {
+                    checked_in_group.push(req_file_ref);
+                    grouped_checked_files.insert(req_file_ref);
+                } else {
+                    unchecked_in_group.push(&file.path);
+                }
+            }
+
             if checked_in_group.is_empty() {
                 continue;
             }
-            for file in &checked_in_group {
-                grouped_checked_files.insert(file.path.clone());
-            }
-            let unchecked_in_group: Vec<&crate::models::ScannedFile> = group
-                .files
-                .iter()
-                .filter(|f| !checked_set.contains(&f.path))
-                .collect();
+
+            // determin the "source of truth" original file for this group
             let original_path = if !unchecked_in_group.is_empty() {
-                Some(unchecked_in_group[0].path.clone())
+                Some(unchecked_in_group[0])
             } else if checked_in_group.len() > 1 {
-                Some(checked_in_group[0].path.clone())
+                Some(checked_in_group[0])
             } else {
                 None
             };
+
             if let Some(orig) = original_path {
-                originals.insert(orig.clone());
-                for file in checked_in_group {
-                    if file.path != orig {
-                        plans.push((orig.clone(), file.path.clone()));
+                for &file_path in &checked_in_group {
+                    if file_path != orig {
+                        link_plans.push((orig.clone(), file_path.clone()));
+                    } else {
+                        continue;
                     }
                 }
-            }
-        }
-        plans
-    };
-
-    // 2. Perform the link operations in spawn_blocking
-    let link_type = request.link_type;
-    let link_results = match tokio::task::spawn_blocking(move || {
-        let mut linked_paths = Vec::new();
-        let mut failed_links = Vec::new();
-        for (orig, derived) in link_plans {
-            let res = match link_type {
-                LinkType::Hard => make_hard_link(&orig, &derived),
-                LinkType::Soft => make_file_symlink(&orig, &derived),
-            };
-            match res {
-                Ok(()) => {
-                    linked_paths.push(derived);
-                }
-                Err(e) => {
-                    log::warn!("Failed to link {} to original {}: {}", derived, orig, e);
-                    failed_links.push(FailedLink {
-                        path: derived,
-                        error: e.to_string(),
-                    });
-                }
-            }
-        }
-        (linked_paths, failed_links)
-    })
-    .await
-    {
-        Ok(res) => res,
-        Err(e) => {
-            log::error!("Spawn blocking task failed: {:?}", e);
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(LinkResponse {
-                    linked: vec![],
-                    failed: vec![FailedLink {
-                        path: String::new(),
-                        error: format!("Internal task error: {e}"),
-                    }],
-                }),
-            );
-        }
-    };
-
-    let (successful_linked, mut failed_links) = link_results;
-    linked.extend(successful_linked);
-    failed.append(&mut failed_links);
-
-    let linked_set: HashSet<&String> = linked.iter().collect();
-
-    // 3. Mark files that were checked but had no other file in the group to link to as failed
-    let failed_set: HashSet<String> = failed.iter().map(|f| f.path.clone()).collect();
-    for file in &request.files {
-        // If not in linked and not in failed
-        if !linked_set.contains(file) && !failed_set.contains(file) {
-            if !grouped_checked_files.contains(file) {
+            } else if let Some(&sole_file) = checked_in_group.first() {
+                // only 1 item in group and no unchecked items to link it against
                 failed.push(FailedLink {
-                    path: file.clone(),
-                    error: "Not part of any duplicate group".to_string(),
-                });
-            } else if !originals.contains(file) {
-                failed.push(FailedLink {
-                    path: file.clone(),
+                    path: sole_file.clone(),
                     error: "No other file in the group to link to".to_string(),
                 });
             }
         }
+    };
+
+    // 2. identify requested files that weren't even in the scan results
+    for file in &request.files {
+        if !grouped_checked_files.contains(file) {
+            failed.push(FailedLink {
+                path: file.clone(),
+                error: "File not found in scan results".to_string(),
+            });
+        }
     }
 
-    // 4. Update the backend state
-    {
+    // 3. perform the blocking linking operations
+    if !link_plans.is_empty() {
+        let link_type = request.link_type;
+        let link_results = match tokio::task::spawn_blocking(move || {
+            let mut linked_paths = Vec::new();
+            let mut failed_links = Vec::new();
+
+            for (orig, derived) in link_plans {
+                let res = match link_type {
+                    LinkType::Hard => make_hard_link(&orig, &derived),
+                    LinkType::Soft => make_file_symlink(&orig, &derived),
+                };
+                match res {
+                    Ok(()) => linked_paths.push(derived),
+                    Err(e) => {
+                        log::warn!("Failed to link {} to original {}: {}", derived, orig, e);
+                        failed_links.push(FailedLink {
+                            path: derived,
+                            error: e.to_string(),
+                        });
+                    }
+                }
+            }
+            (linked_paths, failed_links)
+        })
+        .await
+        {
+            Ok(res) => res,
+            Err(e) => {
+                log::error!("Spawn blocking task failed: {:?}", e);
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(LinkResponse {
+                        linked: vec![],
+                        failed: vec![FailedLink {
+                            path: String::new(),
+                            error: format!("Internal task error: {e}"),
+                        }],
+                    }),
+                );
+            }
+        };
+
+        let (successful_linked, mut failed_links) = link_results;
+        linked.extend(successful_linked);
+        failed.append(&mut failed_links);
+    }
+
+    // 4. update the backend state
+    let mut state_to_save = None;
+
+    if !linked.is_empty() || !failed.is_empty() {
         let mut persistent = state.persistent.lock().unwrap();
         if let Some(tool) = persistent.tools.get_mut(&request.tool_id) {
-            let failed_paths: HashSet<&String> = failed.iter().map(|f| &f.path).collect();
             let mut changed = false;
-            let old_len = tool.checked_files.len();
-            tool.checked_files.retain(|p| {
-                if checked_set.contains(p) {
-                    failed_paths.contains(p)
-                } else {
-                    true
-                }
-            });
-            if tool.checked_files.len() != old_len {
-                changed = true;
-            }
+
+            // stack allocated reference set for quick lookups
+            let linked_set: HashSet<&String> = linked.iter().collect();
 
             if !linked.is_empty() {
+                let old_len = tool.checked_files.len();
+                let failed_paths: HashSet<&String> = failed.iter().map(|f| &f.path).collect();
+
+                tool.checked_files.retain(|p| {
+                    if checked_set.contains(p) {
+                        failed_paths.contains(p)
+                    } else {
+                        true
+                    }
+                });
+
+                if tool.checked_files.len() != old_len {
+                    changed = true;
+                }
+
                 if let Some(ref mut results) = tool.results {
                     for group in results.groups.iter_mut() {
                         group.files.retain(|f| !linked_set.contains(&f.path));
@@ -290,17 +296,25 @@ pub async fn link_files(
                         .iter()
                         .map(|g| g.size * (g.files.len() as u64 - 1))
                         .sum();
+
+                    changed = true;
                 }
-                changed = true;
             }
 
             if changed {
-                let save_res = crate::state::save_state(&state.state_path, &persistent);
-                if let Err(e) = save_res {
-                    log::error!("Failed to save state after linking: {e}");
-                }
+                state_to_save = Some(persistent.clone());
             }
         }
+    }
+
+    // 5. perform disk writing completely detached from mutex window
+    if let Some(persistent_state) = state_to_save {
+        let path = state.state_path.clone();
+        tokio::task::spawn_blocking(move || {
+            if let Err(e) = crate::state::save_state(&path, &persistent_state) {
+                log::error!("Failed to save state to disk after linking files: {}", e);
+            }
+        });
     }
 
     (StatusCode::OK, Json(LinkResponse { linked, failed }))
