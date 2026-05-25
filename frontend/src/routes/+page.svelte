@@ -24,6 +24,7 @@
 	let includedDirs = $state<string[]>([]);
 	let excludedDirs = $state<string[]>([]);
 	let defaultExcludedDirs = $state<string[]>([]);
+	let defaultExcludedItems = $state<string>('');
 	let excludedItems = $state<string>('');
 
 	let uiState = $state<UiState>(loadUiState());
@@ -193,6 +194,7 @@
 			try {
 				const defaults = await api.getDefaults();
 				defaultExcludedDirs = defaults.excluded_directories;
+				defaultExcludedItems = defaults.excluded_items;
 				if (excludedDirs.length === 0 && excludedItems === '') {
 					excludedDirs = defaults.excluded_directories;
 					excludedItems = defaults.excluded_items;
@@ -464,7 +466,7 @@
 
 	<div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-bg">
 		{#if showSettings}
-			<Settings bind:excludedItems bind:hideHardLinks onClose={toggleSettings} />
+			<Settings bind:excludedItems bind:hideHardLinks {defaultExcludedItems} onClose={toggleSettings} />
 		{:else}
 		<ScanConfig
 			bind:includedDirs
