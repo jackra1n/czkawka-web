@@ -29,6 +29,8 @@
 	let activeTool = $state(uiState.activeTool);
 	let selectedFile = $state<string | null>(uiState.selectedFile);
 	let sidebarCollapsed = $state(uiState.sidebarCollapsed);
+	let showSettings = $state(uiState.showSettings ?? false);
+	let hideHardLinks = $state(uiState.hideHardLinks ?? true);
 
 	let scanState = $state<'idle' | 'running' | 'cancelling' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
@@ -71,7 +73,7 @@
 		loadState();
 	});
 	$effect(() => {
-		saveUiState({ activeTool, selectedFile, sidebarCollapsed });
+		saveUiState({ activeTool, selectedFile, sidebarCollapsed, hideHardLinks, showSettings });
 	});
 	$effect(() => {
 		if (!stateLoaded) return;
@@ -133,6 +135,7 @@
 					? excludedDirs.map((s) => s.trim()).filter(Boolean)
 					: undefined,
 			excluded_items: excludedItems.trim() || undefined,
+			hide_hard_links: hideHardLinks,
 			min_file_size: 8192,
 			tool_id: activeTool,
 		};
