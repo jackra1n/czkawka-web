@@ -45,7 +45,7 @@ pub fn configure_common_data<T: CommonData>(tool: &mut T, request: &ScanRequest)
     tool.set_recursive_search(true);
     tool.set_delete_method(DeleteMethod::None);
     tool.set_dry_run(true);
-    tool.set_hide_hard_links(true);
+    tool.set_hide_hard_links(request.hide_hard_links);
 }
 
 pub fn stage_label(stage: CurrentStage) -> String {

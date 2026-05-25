@@ -42,6 +42,8 @@ pub struct ScanRequest {
     pub exclude_directories: Vec<String>,
     #[serde(default)]
     pub excluded_items: String,
+    #[serde(default = "default_true")]
+    pub hide_hard_links: bool,
     #[serde(default = "default_min_file_size")]
     pub min_file_size: u64,
     #[serde(default = "default_tool_id")]
@@ -124,6 +126,10 @@ pub struct FailedFix {
 pub struct FixResponse {
     pub fixed: Vec<String>,
     pub failed: Vec<FailedFix>,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 fn default_min_file_size() -> u64 {
