@@ -155,44 +155,24 @@ pub async fn link_files(
 
         for group in &results.groups {
             let mut checked_in_group = Vec::new();
-            let mut unchecked_in_group = Vec::new();
 
             for file in &group.files {
                 if let Some(&req_file_ref) = checked_set.get(&file.path) {
                     checked_in_group.push(req_file_ref);
                     grouped_checked_files.insert(req_file_ref);
-                } else {
-                    unchecked_in_group.push(&file.path);
                 }
             }
 
-            if checked_in_group.is_empty() {
+            // need at least 2 checked files in the group to link
+            if checked_in_group.len() < 2 {
                 continue;
             }
 
-            // determin the "source of truth" original file for this group
-            let original_path = if !unchecked_in_group.is_empty() {
-                Some(unchecked_in_group[0])
-            } else if checked_in_group.len() > 1 {
-                Some(checked_in_group[0])
-            } else {
-                None
-            };
+            // first checked file is the original, rest get linked to it
+            let original = checked_in_group[0];
 
-            if let Some(orig) = original_path {
-                for &file_path in &checked_in_group {
-                    if file_path != orig {
-                        link_plans.push((orig.clone(), file_path.clone()));
-                    } else {
-                        continue;
-                    }
-                }
-            } else if let Some(&sole_file) = checked_in_group.first() {
-                // only 1 item in group and no unchecked items to link it against
-                failed.push(FailedLink {
-                    path: sole_file.clone(),
-                    error: "No other file in the group to link to".to_string(),
-                });
+            for &file_path in &checked_in_group[1..] {
+                link_plans.push((original.clone(), file_path.clone()));
             }
         }
     };
@@ -261,44 +241,30 @@ pub async fn link_files(
     if !linked.is_empty() || !failed.is_empty() {
         let mut persistent = state.persistent.lock().unwrap();
         if let Some(tool) = persistent.tools.get_mut(&request.tool_id) {
-            let mut changed = false;
+            let old_checked_len = tool.checked_files.len();
+            tool.checked_files.retain(|p| !checked_set.contains(p));
+            let mut changed = tool.checked_files.len() != old_checked_len;
 
-            // stack allocated reference set for quick lookups
-            let linked_set: HashSet<&String> = linked.iter().collect();
+            if !linked.is_empty()
+                && let Some(ref mut results) = tool.results
+            {
+                let linked_set: HashSet<&String> = linked.iter().collect();
 
-            if !linked.is_empty() {
-                let old_len = tool.checked_files.len();
-                let failed_paths: HashSet<&String> = failed.iter().map(|f| &f.path).collect();
-
-                tool.checked_files.retain(|p| {
-                    if checked_set.contains(p) {
-                        failed_paths.contains(p)
-                    } else {
-                        true
-                    }
-                });
-
-                if tool.checked_files.len() != old_len {
-                    changed = true;
+                for group in results.groups.iter_mut() {
+                    group.files.retain(|f| !linked_set.contains(&f.path));
                 }
 
-                if let Some(ref mut results) = tool.results {
-                    for group in results.groups.iter_mut() {
-                        group.files.retain(|f| !linked_set.contains(&f.path));
-                    }
+                let min_group_size = 2;
+                results.groups.retain(|g| g.files.len() >= min_group_size);
+                results.total_groups = results.groups.len();
+                results.total_items = results.groups.iter().map(|g| g.files.len()).sum();
+                results.wasted_bytes = results
+                    .groups
+                    .iter()
+                    .map(|g| g.size * (g.files.len() as u64 - 1))
+                    .sum();
 
-                    let min_group_size = 2;
-                    results.groups.retain(|g| g.files.len() >= min_group_size);
-                    results.total_groups = results.groups.len();
-                    results.total_items = results.groups.iter().map(|g| g.files.len()).sum();
-                    results.wasted_bytes = results
-                        .groups
-                        .iter()
-                        .map(|g| g.size * (g.files.len() as u64 - 1))
-                        .sum();
-
-                    changed = true;
-                }
+                changed = true;
             }
 
             if changed {

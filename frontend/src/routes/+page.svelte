@@ -389,11 +389,8 @@
 				files,
 			});
 			scanError = '';
-			const failedPaths = new Set(res.failed.map((f) => f.path));
 			for (const path of files) {
-				if (!failedPaths.has(path)) {
-					checkedFiles.delete(path);
-				}
+				checkedFiles.delete(path);
 			}
 			selectedFile = null;
 			selectedFileSize = 0;
