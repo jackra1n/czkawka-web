@@ -15,6 +15,7 @@
 		Type,
 		PanelLeft,
 		PanelLeftClose,
+		Settings,
 	} from 'lucide-svelte';
 
 	const tools = [
@@ -36,12 +37,16 @@
 	let {
 		activeTool,
 		collapsed,
+		showSettings,
 		onChangeTool,
+		onToggleSettings,
 		onToggleCollapse,
 	}: {
 		activeTool: string;
 		collapsed: boolean;
+		showSettings: boolean;
 		onChangeTool: (toolId: string) => void;
+		onToggleSettings: () => void;
 		onToggleCollapse: () => void;
 	} = $props();
 </script>
@@ -56,10 +61,11 @@
 			<button
 				type="button"
 				class="flex h-9 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm whitespace-nowrap transition-colors hover:bg-surface-raised hover:text-text {tool.id ===
-				activeTool
+				activeTool && !showSettings
 					? 'bg-accent/15 font-medium text-accent'
 					: 'text-text-muted'}"
 				onclick={() => {
+					if (showSettings) onToggleSettings();
 					if (tool.id !== activeTool) onChangeTool(tool.id);
 				}}
 			>
@@ -70,7 +76,21 @@
 			</button>
 		{/each}
 	</div>
-	<div class="mt-auto p-2">
+	<div class="mt-auto flex flex-col gap-px p-2">
+		<button
+			type="button"
+			onclick={onToggleSettings}
+			title="Settings"
+			class="flex h-9 w-full items-center gap-2.5 rounded-md px-3 text-left text-sm whitespace-nowrap transition-colors hover:bg-surface-raised hover:text-text {showSettings
+				? 'bg-accent/15 font-medium text-accent'
+				: 'text-text-muted'}"
+		>
+			<Settings class="h-4 w-4 shrink-0" />
+			{#if !collapsed}
+				<span class="truncate leading-none">Settings</span>
+			{/if}
+		</button>
+
 		<button
 			type="button"
 			onclick={onToggleCollapse}

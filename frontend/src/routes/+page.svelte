@@ -12,6 +12,7 @@
 	import ScanConfig from '$lib/components/ScanConfig.svelte';
 	import ScanResults from '$lib/components/ScanResults.svelte';
 	import FilePreview from '$lib/components/FilePreview.svelte';
+	import Settings from '$lib/components/Settings.svelte';
 	import { loadUiState, saveUiState, type UiState } from '$lib/stores/uiState';
 	import { onDestroy } from 'svelte';
 	import { DEFAULT_TOOL_CONFIGS } from '$lib/defaults';
@@ -452,16 +453,22 @@
 	function toggleSidebar() {
 		sidebarCollapsed = !sidebarCollapsed;
 	}
+
+	function toggleSettings() {
+		showSettings = !showSettings;
+	}
 </script>
 
 <div class="flex h-full w-full">
-	<ToolSidebar {activeTool} collapsed={sidebarCollapsed} onChangeTool={switchTool} onToggleCollapse={toggleSidebar} />
+	<ToolSidebar {activeTool} collapsed={sidebarCollapsed} {showSettings} onChangeTool={switchTool} onToggleSettings={toggleSettings} onToggleCollapse={toggleSidebar} />
 
 	<div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-bg">
+		{#if showSettings}
+			<Settings bind:excludedItems bind:hideHardLinks onClose={toggleSettings} />
+		{:else}
 		<ScanConfig
 			bind:includedDirs
 			bind:excludedDirs
-			bind:excludedItems
 			bind:activeTool
 			bind:toolConfig={toolConfigs[activeTool]}
 			{defaultExcludedDirs}
@@ -496,6 +503,7 @@
 				/>
 			{/if}
 		</div>
+		{/if}
 	</div>
 </div>
 
