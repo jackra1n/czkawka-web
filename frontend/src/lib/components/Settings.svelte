@@ -13,18 +13,18 @@
 </script>
 
 <div class="flex h-full flex-col overflow-y-auto bg-bg p-6">
-	<div class="mb-4 flex items-center justify-between">
-		<h2 class="text-lg font-semibold text-text">Settings</h2>
-		<button
-			type="button"
-			onclick={onClose}
-			class="rounded-md px-3 py-1.5 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-		>
-			Back to tools
-		</button>
-	</div>
+	<div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+		<div class="flex items-center justify-between">
+			<h2 class="text-lg font-semibold text-text">Settings</h2>
+			<button
+				type="button"
+				onclick={onClose}
+				class="rounded-md px-3 py-1.5 text-sm text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+			>
+				Back to tools
+			</button>
+		</div>
 
-	<div class="flex max-w-2xl flex-col gap-6">
 		<section class="flex flex-col gap-3 rounded-lg border border-border p-4">
 			<h3 class="text-sm font-semibold text-text">Scan defaults</h3>
 
