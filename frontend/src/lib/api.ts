@@ -135,6 +135,22 @@ export interface DeleteResponse {
 	failed: FailedDeletion[];
 }
 
+export interface LinkRequest {
+	tool_id: string;
+	link_type: 'hard' | 'soft';
+	files: string[];
+}
+
+export interface FailedLink {
+	path: string;
+	error: string;
+}
+
+export interface LinkResponse {
+	linked: string[];
+	failed: FailedLink[];
+}
+
 export interface BigFilesConfig {
 	number_of_files: number;
 	search_mode: string;
@@ -285,6 +301,13 @@ export const api = {
 
 	fixFiles(request: FixRequest): Promise<FixResponse> {
 		return fetchJson('/api/fix', {
+			method: 'POST',
+			body: JSON.stringify(request),
+		});
+	},
+
+	linkFiles(request: LinkRequest): Promise<LinkResponse> {
+		return fetchJson('/api/link', {
 			method: 'POST',
 			body: JSON.stringify(request),
 		});

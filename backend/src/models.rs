@@ -222,6 +222,32 @@ pub struct DeleteResponse {
     pub failed: Vec<FailedDeletion>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LinkType {
+    Hard,
+    Soft,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LinkRequest {
+    pub tool_id: String,
+    pub link_type: LinkType,
+    pub files: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct FailedLink {
+    pub path: String,
+    pub error: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LinkResponse {
+    pub linked: Vec<String>,
+    pub failed: Vec<FailedLink>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct UpdateDirectoriesRequest {
     #[serde(default)]
