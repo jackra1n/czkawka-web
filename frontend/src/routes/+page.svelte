@@ -12,6 +12,7 @@
 	import ScanConfig from '$lib/components/ScanConfig.svelte';
 	import ScanResults from '$lib/components/ScanResults.svelte';
 	import FilePreview from '$lib/components/FilePreview.svelte';
+	import Settings from '$lib/components/Settings.svelte';
 	import { loadUiState, saveUiState, type UiState } from '$lib/stores/uiState';
 	import { onDestroy } from 'svelte';
 	import { DEFAULT_TOOL_CONFIGS } from '$lib/defaults';
@@ -23,12 +24,15 @@
 	let includedDirs = $state<string[]>([]);
 	let excludedDirs = $state<string[]>([]);
 	let defaultExcludedDirs = $state<string[]>([]);
+	let defaultExcludedItems = $state<string>('');
 	let excludedItems = $state<string>('');
 
 	let uiState = $state<UiState>(loadUiState());
 	let activeTool = $state(uiState.activeTool);
 	let selectedFile = $state<string | null>(uiState.selectedFile);
 	let sidebarCollapsed = $state(uiState.sidebarCollapsed);
+	let showSettings = $state(uiState.showSettings ?? false);
+	let hideHardLinks = $state(uiState.hideHardLinks ?? true);
 
 	let scanState = $state<'idle' | 'running' | 'cancelling' | 'completed' | 'error'>('idle');
 	let scanError = $state('');
@@ -71,7 +75,7 @@
 		loadState();
 	});
 	$effect(() => {
-		saveUiState({ activeTool, selectedFile, sidebarCollapsed });
+		saveUiState({ activeTool, selectedFile, sidebarCollapsed, hideHardLinks, showSettings });
 	});
 	$effect(() => {
 		if (!stateLoaded) return;
@@ -133,6 +137,7 @@
 					? excludedDirs.map((s) => s.trim()).filter(Boolean)
 					: undefined,
 			excluded_items: excludedItems.trim() || undefined,
+			hide_hard_links: hideHardLinks,
 			min_file_size: 8192,
 			tool_id: activeTool,
 		};
@@ -189,6 +194,7 @@
 			try {
 				const defaults = await api.getDefaults();
 				defaultExcludedDirs = defaults.excluded_directories;
+				defaultExcludedItems = defaults.excluded_items;
 				if (excludedDirs.length === 0 && excludedItems === '') {
 					excludedDirs = defaults.excluded_directories;
 					excludedItems = defaults.excluded_items;
@@ -449,16 +455,22 @@
 	function toggleSidebar() {
 		sidebarCollapsed = !sidebarCollapsed;
 	}
+
+	function toggleSettings() {
+		showSettings = !showSettings;
+	}
 </script>
 
 <div class="flex h-full w-full">
-	<ToolSidebar {activeTool} collapsed={sidebarCollapsed} onChangeTool={switchTool} onToggleCollapse={toggleSidebar} />
+	<ToolSidebar {activeTool} collapsed={sidebarCollapsed} {showSettings} onChangeTool={switchTool} onToggleSettings={toggleSettings} onToggleCollapse={toggleSidebar} />
 
 	<div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-bg">
+		{#if showSettings}
+			<Settings bind:excludedItems bind:hideHardLinks {defaultExcludedItems} onClose={toggleSettings} />
+		{:else}
 		<ScanConfig
 			bind:includedDirs
 			bind:excludedDirs
-			bind:excludedItems
 			bind:activeTool
 			bind:toolConfig={toolConfigs[activeTool]}
 			{defaultExcludedDirs}
@@ -493,6 +505,7 @@
 				/>
 			{/if}
 		</div>
+		{/if}
 	</div>
 </div>
 

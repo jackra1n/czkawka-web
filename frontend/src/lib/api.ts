@@ -4,6 +4,7 @@ export interface ScanRequest {
 	directories: string[];
 	exclude_directories?: string[];
 	excluded_items?: string;
+	hide_hard_links?: boolean;
 	min_file_size?: number;
 	tool_id?: string;
 	// Big files options

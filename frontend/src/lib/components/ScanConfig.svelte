@@ -11,7 +11,6 @@
 	let {
 		includedDirs = $bindable<string[]>(),
 		excludedDirs = $bindable<string[]>(),
-		excludedItems = $bindable<string>(),
 		activeTool = $bindable<string>(),
 		toolConfig = $bindable<ToolConfig>({}),
 		defaultExcludedDirs = [],
@@ -27,7 +26,6 @@
 	}: {
 		includedDirs: string[];
 		excludedDirs: string[];
-		excludedItems: string;
 		activeTool: string;
 		toolConfig: ToolConfig;
 		defaultExcludedDirs?: string[];
@@ -42,7 +40,7 @@
 		onLink: (type: 'hard' | 'soft') => void;
 	} = $props();
 
-	let activeTab = $state<'directories' | 'items' | 'settings'>('directories');
+	let activeTab = $state<'directories' | 'settings'>('directories');
 	let collapsed = $state(false);
 
 	const SETTINGS_TOOLS = new Set([
@@ -110,7 +108,7 @@
 		<div class="overflow-hidden">
 			<div class="mb-3 flex items-center justify-between border-b border-border pt-3">
 				<div class="flex">
-					{#each [{ k: 'directories', l: 'Directories' }, { k: 'items', l: 'Items' }, { k: 'settings', l: 'Settings' }] as t (t.k)}
+					{#each [{ k: 'directories', l: 'Directories' }, { k: 'settings', l: 'Settings' }] as t (t.k)}
 						{#if t.k !== 'settings' || SETTINGS_TOOLS.has(activeTool)}
 							<button
 								type="button"
@@ -151,18 +149,6 @@
 						onAdd={() => onAddDir('exclude')}
 						defaultDirs={defaultExcludedDirs}
 					/>
-				</div>
-			{:else if activeTab === 'items'}
-				<div class="flex flex-col gap-1.5">
-					<label for="excluded-items" class="text-xs font-medium text-text-muted">Excluded items</label>
-					<input
-						id="excluded-items"
-						type="text"
-						bind:value={excludedItems}
-						placeholder="*/.git/*,*/node_modules/*"
-						class="w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
-					/>
-					<span class="text-xs text-text-muted">Comma-separated wildcard patterns (e.g. <code>*/.git/*</code>).</span>
 				</div>
 			{:else if activeTab === 'settings'}
 				<ToolSettings {activeTool} bind:toolConfig />
