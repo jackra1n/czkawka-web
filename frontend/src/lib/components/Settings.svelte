@@ -15,7 +15,9 @@
 	} = $props();
 
 	function resetToDefaults() {
-		excludedItems = defaultExcludedItems;
+		if (defaultExcludedItems) {
+			excludedItems = defaultExcludedItems;
+		}
 		hideHardLinks = true;
 	}
 </script>
