@@ -11,7 +11,7 @@ export const DEFAULT_TOOL_CONFIGS: Record<string, ToolConfig> = {
 		resize_filter: 'Lanczos3',
 		similarity: 5,
 	},
-	'similar-videos': { tolerance: 5, vid_hash_duration: 10, crop_detect: 'Letterbox' },
+	'similar-videos': { tolerance: 5, vid_hash_duration: 10, crop_detect: true },
 	'same-music': { music_check_type: 'tags' },
 	'invalid-symlinks': {},
 	'broken-files': { broken_file_types: 'pdf,audio,image,archive,video' },
