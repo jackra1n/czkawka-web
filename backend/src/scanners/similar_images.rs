@@ -3,7 +3,9 @@ use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::re_exported::{FilterType, HashAlg};
 use czkawka_core::tools::similar_images::core::get_string_from_similarity;
-use czkawka_core::tools::similar_images::{SimilarImages, SimilarImagesParameters};
+use czkawka_core::tools::similar_images::{
+    GeometricInvariance, SimilarImages, SimilarImagesParameters,
+};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::configure_common_data;
@@ -66,6 +68,7 @@ pub fn run(
         image_filter,
         false,
         false,
+        GeometricInvariance::Off,
     );
 
     let mut finder = SimilarImages::new(params);

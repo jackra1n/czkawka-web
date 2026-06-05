@@ -11,7 +11,7 @@ tower-http = { version = "0.6.8", features = ["cors", "fs"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 uuid = { version = "1.23.1", features = ["v4"] }
-czkawka_core = { git = "https://github.com/qarmin/czkawka.git", rev = "b5b454af543f8f8ecb8e43c1db901766c200cbeb" }
+czkawka_core = { git = "https://github.com/qarmin/czkawka.git", rev = "500e210ede17da58641603aa9aa51ed09f6b1000" }
 dirs = "6.0.0"
 log = "0.4"
 env_logger = "0.11"

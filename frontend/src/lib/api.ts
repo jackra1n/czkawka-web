@@ -13,7 +13,7 @@ export interface ScanRequest {
 	// Similar videos options
 	tolerance?: number;
 	vid_hash_duration?: number;
-	crop_detect?: string;
+	crop_detect?: boolean;
 	// Similar images options
 	hash_alg?: string;
 	hash_size?: number;
@@ -160,7 +160,7 @@ export interface BigFilesConfig {
 export interface SimilarVideosConfig {
 	tolerance: number;
 	vid_hash_duration: number;
-	crop_detect: string;
+	crop_detect: boolean;
 }
 
 export interface SimilarImagesConfig {

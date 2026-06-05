@@ -1,7 +1,7 @@
 use crossbeam_channel::Sender;
 use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
-use czkawka_core::tools::empty_files::EmptyFiles;
+use czkawka_core::tools::empty_files::{EmptyFiles, EmptyFilesParameters};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::configure_common_data;
@@ -11,7 +11,7 @@ pub fn run(
     progress_sender: &Sender<ProgressData>,
     stop_flag: std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> Result<ScanResults, String> {
-    let mut finder = EmptyFiles::new();
+    let mut finder = EmptyFiles::new(EmptyFilesParameters::default());
     configure_common_data(&mut finder, &request);
 
     finder.search(&stop_flag, Some(progress_sender));

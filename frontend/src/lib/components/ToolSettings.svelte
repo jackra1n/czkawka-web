@@ -16,7 +16,6 @@
 	const HASH_ALGS = ['Mean', 'Gradient', 'Blockhash', 'VertGradient', 'DoubleGradient', 'Median'];
 	const HASH_SIZES = [8, 16, 32, 64];
 	const RESIZE_FILTERS = ['Lanczos3', 'Nearest', 'Triangle', 'Gaussian', 'CatmullRom'];
-	const CROP_DETECTS = ['None', 'Letterbox', 'Motion'];
 
 	const SEARCH_MODE_OPTS = [
 		{ value: 'biggest', label: 'Biggest' },
@@ -25,7 +24,6 @@
 	const HASH_ALG_OPTS = HASH_ALGS.map((a) => ({ value: a, label: a }));
 	const HASH_SIZE_OPTS = HASH_SIZES.map((s) => ({ value: String(s), label: String(s) }));
 	const RESIZE_FILTER_OPTS = RESIZE_FILTERS.map((f) => ({ value: f, label: f }));
-	const CROP_DETECT_OPTS = CROP_DETECTS.map((c) => ({ value: c, label: c }));
 	const MUSIC_OPTS = [
 		{ value: 'tags', label: 'Tags (metadata)' },
 		{ value: 'content', label: 'Content (audio fingerprint)' },
@@ -97,13 +95,12 @@
 	<div class="flex flex-col gap-4">
 		<div class="flex flex-wrap gap-4">
 			<div class="flex min-w-30 flex-1 flex-col gap-1.5">
-				<label for="crop-detect" class="text-xs font-medium text-text-muted">Crop Detect</label>
-				<Select
-					id="crop-detect"
-					value={toolConfig.crop_detect ?? 'Letterbox'}
-					onchange={(v) => u({ crop_detect: v })}
-					options={CROP_DETECT_OPTS}
-				/>
+				<Checkbox
+					checked={toolConfig.crop_detect ?? true}
+					onchange={(checked) => u({ crop_detect: checked })}
+				>
+					Detect cropped videos
+				</Checkbox>
 			</div>
 			<div class="flex min-w-30 flex-1 flex-col gap-1.5">
 				<label for="vid-hash-duration" class="text-xs font-medium text-text-muted">Hash Duration (s)</label>

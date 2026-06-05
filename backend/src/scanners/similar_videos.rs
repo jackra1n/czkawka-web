@@ -1,9 +1,7 @@
 use crossbeam_channel::Sender;
 use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
-use czkawka_core::tools::similar_videos::{
-    SimilarVideos, SimilarVideosParameters, crop_detect_from_str_opt,
-};
+use czkawka_core::tools::similar_videos::{SimilarVideos, SimilarVideosParameters};
 
 use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::configure_common_data;
@@ -17,8 +15,6 @@ pub fn run(
     let duration = request.vid_hash_duration.unwrap_or(10).clamp(2, 60);
     let crop_detect = request
         .crop_detect
-        .as_deref()
-        .and_then(crop_detect_from_str_opt)
         .unwrap_or(czkawka_core::tools::similar_videos::DEFAULT_CROP_DETECT);
 
     let params = SimilarVideosParameters::new(
@@ -28,10 +24,19 @@ pub fn run(
         czkawka_core::tools::similar_videos::DEFAULT_SKIP_FORWARD_AMOUNT,
         duration,
         crop_detect,
+        czkawka_core::tools::similar_videos::DEFAULT_WINDOW_COUNT,
+        czkawka_core::tools::similar_videos::DEFAULT_DURATION_TOLERANCE_PCT,
+        czkawka_core::tools::similar_videos::DEFAULT_MIN_MATCHING_WINDOWS,
+        czkawka_core::tools::similar_videos::DEFAULT_SUBCLIP_MIN_MATCH,
         false,
         czkawka_core::tools::similar_videos::DEFAULT_VIDEO_PERCENTAGE_FOR_THUMBNAIL,
         false,
-        2,
+        czkawka_core::tools::similar_videos::DEFAULT_THUMBNAIL_GRID_TILES_PER_SIDE,
+        false,
+        czkawka_core::tools::similar_videos::DEFAULT_AUDIO_SIMILARITY_PERCENT,
+        czkawka_core::tools::similar_videos::DEFAULT_AUDIO_MAXIMUM_DIFFERENCE,
+        czkawka_core::tools::similar_videos::DEFAULT_AUDIO_LENGTH_RATIO,
+        czkawka_core::tools::similar_videos::DEFAULT_AUDIO_MIN_DURATION_SECONDS,
     );
 
     let mut finder = SimilarVideos::new(params);

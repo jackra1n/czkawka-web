@@ -86,10 +86,16 @@ pub fn stage_label(stage: CurrentStage) -> String {
         CurrentStage::SimilarVideosHidingHardLinks => "Hiding hard links",
         CurrentStage::SimilarVideosCalculatingHashes => "Calculating video hashes",
         CurrentStage::SimilarVideosCreatingThumbnails => "Creating video thumbnails",
+        CurrentStage::SimilarVideosAudioCacheLoading => "Loading audio cache",
+        CurrentStage::SimilarVideosAudioCalculatingFingerprints => "Calculating audio fingerprints",
+        CurrentStage::SimilarVideosAudioCacheSaving => "Saving audio cache",
+        CurrentStage::SimilarVideosAudioComparingFingerprints => "Comparing audio fingerprints",
+        CurrentStage::SimilarVideosAudioCreatingThumbnails => "Creating audio thumbnails",
 
         CurrentStage::BrokenFilesChecking => "Checking files",
         CurrentStage::BadExtensionsChecking => "Checking extensions",
         CurrentStage::BadNamesChecking => "Checking names",
+        CurrentStage::EmptyFilesCheckingContent => "Checking file content",
 
         CurrentStage::ExifRemoverCacheLoading => "Loading EXIF cache",
         CurrentStage::ExifRemoverExtractingTags => "Extracting EXIF tags",
