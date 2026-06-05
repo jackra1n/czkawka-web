@@ -59,7 +59,7 @@ pub struct ScanRequest {
     #[serde(default)]
     pub vid_hash_duration: Option<u32>,
     #[serde(default)]
-    pub crop_detect: Option<String>,
+    pub crop_detect: Option<bool>,
     // Similar images configuration
     #[serde(default)]
     pub hash_alg: Option<String>,

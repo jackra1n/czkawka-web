@@ -15,8 +15,6 @@ pub fn run(
     let duration = request.vid_hash_duration.unwrap_or(10).clamp(2, 60);
     let crop_detect = request
         .crop_detect
-        .as_deref()
-        .map(|s| s != "None")
         .unwrap_or(czkawka_core::tools::similar_videos::DEFAULT_CROP_DETECT);
 
     let params = SimilarVideosParameters::new(
