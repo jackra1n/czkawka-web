@@ -175,6 +175,15 @@ pub struct ScannedFile {
     pub similarity: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub size: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exif_tags: Option<Vec<ExifTag>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExifTag {
+    pub name: String,
+    pub code: u16,
+    pub group: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
