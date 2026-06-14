@@ -10,6 +10,7 @@
 	import SideBySideCompare from './compare/SideBySideCompare.svelte';
 	import SwipeCompare from './compare/SwipeCompare.svelte';
 	import OnionSkinCompare from './compare/OnionSkinCompare.svelte';
+	import ExifTagList from './ExifTagList.svelte';
 
 	type CompareMode = 'single' | 'side-by-side' | 'swipe' | 'onion';
 
@@ -17,13 +18,24 @@
 		selectedFile,
 		selectedFileSize,
 		groupFiles,
+		activeTool,
 		onClose,
 	}: {
 		selectedFile: string;
 		selectedFileSize: number;
 		groupFiles: ScannedFile[];
+		activeTool: string;
 		onClose: () => void;
 	} = $props();
+
+	let selectedExifTags = $derived(groupFiles.find((f) => f.path === selectedFile)?.exif_tags ?? []);
+	let isExifTool = $derived(activeTool === 'exif-remover');
+	let detailView = $state<'exif' | 'preview'>('exif');
+
+	// Default to the EXIF breakdown when entering the EXIF tool, otherwise show the file preview.
+	$effect(() => {
+		detailView = isExifTool ? 'exif' : 'preview';
+	});
 
 	let textContent = $state('');
 	let textLoading = $state(false);
@@ -258,7 +270,32 @@
 	</div>
 
 	<div class="flex min-h-0 flex-1 flex-col">
-		{#if previewType === 'image'}
+		{#if isExifTool}
+			<div class="flex shrink-0 gap-1 border-b border-border p-2">
+				<button
+					onclick={() => (detailView = 'exif')}
+					class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors {detailView === 'exif'
+						? 'bg-accent/15 text-text'
+						: 'text-text-muted hover:bg-surface-raised hover:text-text'}"
+				>
+					EXIF Tags
+				</button>
+				<button
+					onclick={() => (detailView = 'preview')}
+					class="flex-1 rounded px-2 py-1 text-xs font-medium transition-colors {detailView === 'preview'
+						? 'bg-accent/15 text-text'
+						: 'text-text-muted hover:bg-surface-raised hover:text-text'}"
+				>
+					Preview
+				</button>
+			</div>
+		{/if}
+
+		{#if isExifTool && detailView === 'exif'}
+			<div class="min-h-0 flex-1 overflow-auto p-4">
+				<ExifTagList tags={selectedExifTags} />
+			</div>
+		{:else if previewType === 'image'}
 			{#if mediaError}
 				<ErrorIcon label="Failed to load image" />
 			{:else}
