@@ -62,12 +62,19 @@ export interface ScanResponse {
 	status: string;
 }
 
+export interface ExifTag {
+	name: string;
+	code: number;
+	group: string;
+}
+
 export interface ScannedFile {
 	path: string;
 	modified_date?: number;
 	dimensions?: string;
 	similarity?: string;
 	size?: number;
+	exif_tags?: ExifTag[];
 }
 
 export interface FileGroup {
