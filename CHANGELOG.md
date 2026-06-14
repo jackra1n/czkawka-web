@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.1.0](https://github.com/jackra1n/czkawka-web/compare/1.0.0...1.1.0) (2026-06-05)
+
+
+### Features
+
+* add curl dependency and healthcheck to Dockerfile ([#4](https://github.com/jackra1n/czkawka-web/issues/4)) ([920bda3](https://github.com/jackra1n/czkawka-web/commit/920bda34ad0a0c50a5bb3ee38572f0434db172cb))
+* add deploy script for testing ([#7](https://github.com/jackra1n/czkawka-web/issues/7)) ([81ef6bf](https://github.com/jackra1n/czkawka-web/commit/81ef6bf40ebedf38530bdd22b395f5aecc588cff))
+* add initial settings page with hardlink toggle ([#11](https://github.com/jackra1n/czkawka-web/issues/11)) ([e2eaa64](https://github.com/jackra1n/czkawka-web/commit/e2eaa643eb35ad6b1e6fed4033bcd676dbd2ba7f))
+* implement linking files ([#10](https://github.com/jackra1n/czkawka-web/issues/10)) ([6def5a2](https://github.com/jackra1n/czkawka-web/commit/6def5a21bc41955ddaa626196f7b76da95ffd6c1))
+* implement scan cancellation ([#8](https://github.com/jackra1n/czkawka-web/issues/8)) ([c90352f](https://github.com/jackra1n/czkawka-web/commit/c90352f49092d80bd40069522f5ec2040e3805c3))
+* implement virtual list rendering for improved performance ([#5](https://github.com/jackra1n/czkawka-web/issues/5)) ([2c381f1](https://github.com/jackra1n/czkawka-web/commit/2c381f1f4dba64d3a17f5fc4d96eea9b4fede55b))
+* make server port configurable via PORT environment variable ([#2](https://github.com/jackra1n/czkawka-web/issues/2)) ([08d4e68](https://github.com/jackra1n/czkawka-web/commit/08d4e683aab4ec072aba5436c6d92c92a563d4fb))
+
+
+### Performance
+
+* **docker:** optimize docker build process ([#9](https://github.com/jackra1n/czkawka-web/issues/9)) ([d2ec70d](https://github.com/jackra1n/czkawka-web/commit/d2ec70df83c8cccda34a00bbf3a210312fa22cb1))
+
+
+### Refactoring
+
+* adjust padding for scan results table and header components ([76926ca](https://github.com/jackra1n/czkawka-web/commit/76926ca5276fa6cfb54ee5e01dbb3074d534777b))
+* adjust padding of buttons in scan config ([1ad4846](https://github.com/jackra1n/czkawka-web/commit/1ad4846d2091fbfd304d3e27d560ba8ba9109d2a))
+
 ## 1.0.0 (2026-05-20)
 
 
