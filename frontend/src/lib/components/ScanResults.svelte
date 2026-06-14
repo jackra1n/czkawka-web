@@ -452,7 +452,11 @@
 	}
 
 	function gridCols(): string {
-		return colWidths.map((w) => w + 'px').join(' ');
+		// colWidths is populated by an effect; before it runs (or mid tool-switch) it can be
+		// empty or out of sync with colDefs, which would emit an invalid grid-template-columns
+		// and collapse every cell into the first column. Fall back to the column defaults.
+		const widths = colWidths.length === colDefs.length ? colWidths : colDefs.map((c) => c.width);
+		return widths.map((w) => w + 'px').join(' ');
 	}
 
 	const SCAN_TEXTS: Record<string, { scanning: string; empty: string }> = {
