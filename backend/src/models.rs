@@ -234,6 +234,8 @@ pub struct FailedDeletion {
 #[derive(Debug, Serialize)]
 pub struct DeleteResponse {
     pub deleted: Vec<String>,
+    /// Files that were already gone from disk (treated as success: cleared from results).
+    pub missing: Vec<String>,
     pub failed: Vec<FailedDeletion>,
 }
 

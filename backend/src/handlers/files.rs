@@ -23,6 +23,7 @@ pub async fn delete_files(
     Json(request): Json<DeleteRequest>,
 ) -> (StatusCode, Json<DeleteResponse>) {
     let mut deleted = Vec::new();
+    let mut missing = Vec::new();
     let mut failed = Vec::new();
 
     for path in &request.files {
@@ -36,6 +37,12 @@ pub async fn delete_files(
             Ok(()) => {
                 deleted.push(path.clone());
             }
+            // The file is already gone, which is the outcome we wanted anyway.
+            // Treat it as success so the stale entry gets cleared from results.
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                log::info!("Already gone, clearing from results: {path}");
+                missing.push(path.clone());
+            }
             Err(e) => {
                 log::warn!("Failed to delete {path}: {e}");
                 failed.push(FailedDeletion {
@@ -46,14 +53,17 @@ pub async fn delete_files(
         }
     }
 
-    if !deleted.is_empty() {
+    // Both genuinely deleted and already-missing files should be pruned from state.
+    let removed: Vec<String> = deleted.iter().chain(missing.iter()).cloned().collect();
+
+    if !removed.is_empty() {
         let mut persistent = state.persistent.lock().unwrap();
         if let Some(tool) = persistent.tools.get_mut(&request.tool_id) {
-            tool.checked_files.retain(|p| !deleted.contains(p));
+            tool.checked_files.retain(|p| !removed.contains(p));
 
             if let Some(ref mut results) = tool.results {
                 for group in results.groups.iter_mut() {
-                    group.files.retain(|f| !deleted.contains(&f.path));
+                    group.files.retain(|f| !removed.contains(&f.path));
                 }
                 let min_group_size = if request.tool_id == "empty-folders"
                     || request.tool_id == "big-files"
@@ -80,7 +90,14 @@ pub async fn delete_files(
         }
     }
 
-    (StatusCode::OK, Json(DeleteResponse { deleted, failed }))
+    (
+        StatusCode::OK,
+        Json(DeleteResponse {
+            deleted,
+            missing,
+            failed,
+        }),
+    )
 }
 
 pub async fn serve_file(
