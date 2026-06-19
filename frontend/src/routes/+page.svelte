@@ -6,6 +6,7 @@
 		type AppState,
 		type ToolConfig,
 		type ScanProgress,
+		type ActionNotice,
 	} from '$lib/api';
 	import DirectoryBrowserModal from '$lib/components/DirectoryBrowserModal.svelte';
 	import ToolSidebar from '$lib/components/ToolSidebar.svelte';
@@ -41,6 +42,8 @@
 	let scanId = $state('');
 	let checkedFiles = $state<SvelteSet<string>>(new SvelteSet());
 	let selectedFileSize = $state(0);
+	// Transient feedback for delete/fix/link actions, shown over the results view.
+	let actionNotice = $state<ActionNotice | null>(null);
 
 	let toolConfigs = $state<Record<string, ToolConfig>>(structuredClone(DEFAULT_TOOL_CONFIGS));
 
@@ -126,6 +129,34 @@
 		scanResults.total_groups = scanResults.groups.length;
 		scanResults.total_items = scanResults.groups.reduce((sum, g) => sum + g.files.length, 0);
 		scanResults.wasted_bytes = scanResults.groups.reduce((sum, g) => sum + g.size * (g.files.length - 1), 0);
+	}
+
+	function buildActionNotice(
+		verb: 'delete' | 'fix' | 'link',
+		failed: { path: string; error: string }[],
+		missing: string[] = [],
+	): ActionNotice | null {
+		const plural = (n: number) => (n === 1 ? '' : 's');
+		if (failed.length > 0) {
+			const details = failed.map((f) => `${f.path} — ${f.error}`);
+			if (missing.length > 0) {
+				details.push(`${missing.length} file${plural(missing.length)} were already gone and cleared from the list.`);
+			}
+			return {
+				kind: 'error',
+				message: `Failed to ${verb} ${failed.length} file${plural(failed.length)}.`,
+				details,
+			};
+		}
+		if (missing.length > 0) {
+			const was = missing.length === 1 ? 'was' : 'were';
+			const has = missing.length === 1 ? 'has' : 'have';
+			return {
+				kind: 'info',
+				message: `${missing.length} file${plural(missing.length)} ${was} already gone and ${has} been cleared from the list.`,
+			};
+		}
+		return null;
 	}
 
 	function buildPayload(): Parameters<typeof api.startScan>[0] {
@@ -239,6 +270,7 @@
 
 	function switchTool(toolId: string) {
 		toolSelections[activeTool] = { path: selectedFile, size: selectedFileSize };
+		actionNotice = null;
 		activeTool = toolId;
 		const saved = toolSelections[toolId];
 		selectedFile = saved?.path ?? null;
@@ -337,19 +369,20 @@
 		if (files.length === 0) return;
 		try {
 			const res = await api.deleteFiles(activeTool, files);
-			scanError = '';
-			for (const path of res.deleted) checkedFiles.delete(path);
+			// Files already gone from disk are cleared from the list just like deleted ones.
+			const cleared = [...res.deleted, ...res.missing];
+			for (const path of cleared) checkedFiles.delete(path);
 			selectedFile = null;
 			selectedFileSize = 0;
 			toolSelections[activeTool] = { path: null, size: 0 };
-			removeFromResults(res.deleted);
+			removeFromResults(cleared);
 			updateBackendTool();
-			if (res.failed.length > 0) {
-				scanError = `Failed to delete ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
-			}
+			actionNotice = buildActionNotice('delete', res.failed, res.missing);
 		} catch (err) {
-			scanError = err instanceof Error ? err.message : 'Failed to delete files';
-			updateBackendTool();
+			actionNotice = {
+				kind: 'error',
+				message: err instanceof Error ? err.message : 'Failed to delete files',
+			};
 		}
 	}
 
@@ -369,19 +402,18 @@
 				bad_name_allowed_chars: cfg?.bad_name_allowed_chars,
 				bad_name_dedupe_non_alnum: cfg?.bad_name_dedupe_non_alnum,
 			});
-			scanError = '';
 			for (const path of res.fixed) checkedFiles.delete(path);
 			selectedFile = null;
 			selectedFileSize = 0;
 			toolSelections[activeTool] = { path: null, size: 0 };
 			removeFromResults(res.fixed);
 			updateBackendTool();
-			if (res.failed.length > 0) {
-				scanError = `Failed to fix ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
-			}
+			actionNotice = buildActionNotice('fix', res.failed);
 		} catch (err) {
-			scanError = err instanceof Error ? err.message : 'Failed to fix files';
-			updateBackendTool();
+			actionNotice = {
+				kind: 'error',
+				message: err instanceof Error ? err.message : 'Failed to fix files',
+			};
 		}
 	}
 
@@ -394,7 +426,6 @@
 				link_type: type,
 				files,
 			});
-			scanError = '';
 			for (const path of files) {
 				checkedFiles.delete(path);
 			}
@@ -403,12 +434,12 @@
 			toolSelections[activeTool] = { path: null, size: 0 };
 			removeFromResults(res.linked);
 			updateBackendTool();
-			if (res.failed.length > 0) {
-				scanError = `Failed to link ${res.failed.length} file${res.failed.length === 1 ? '' : 's'}`;
-			}
+			actionNotice = buildActionNotice('link', res.failed);
 		} catch (err) {
-			scanError = err instanceof Error ? err.message : 'Failed to link files';
-			updateBackendTool();
+			actionNotice = {
+				kind: 'error',
+				message: err instanceof Error ? err.message : 'Failed to link files',
+			};
 		}
 	}
 
@@ -420,6 +451,7 @@
 		}
 		scanState = 'running';
 		scanError = '';
+		actionNotice = null;
 		scanResults = null;
 		scanProgress = null;
 		selectedFile = null;
@@ -491,6 +523,8 @@
 				{scanError}
 				{scanResults}
 				{scanProgress}
+				{actionNotice}
+				onDismissNotice={() => (actionNotice = null)}
 				onSelectFile={selectFile}
 				{checkedFiles}
 				{activeTool}

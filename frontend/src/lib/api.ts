@@ -140,7 +140,14 @@ export interface FailedDeletion {
 
 export interface DeleteResponse {
 	deleted: string[];
+	missing: string[];
 	failed: FailedDeletion[];
+}
+
+export interface ActionNotice {
+	kind: 'info' | 'error';
+	message: string;
+	details?: string[];
 }
 
 export interface LinkRequest {

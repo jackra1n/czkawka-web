@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Search, ArrowUp, ArrowDown } from 'lucide-svelte';
+	import { Search, ArrowUp, ArrowDown, X, TriangleAlert, Info } from 'lucide-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { ScanResults, ScannedFile, ScanProgress } from '$lib/api';
+	import type { ScanResults, ScannedFile, ScanProgress, ActionNotice } from '$lib/api';
 	import { formatBytes, formatDuration, formatDate } from '$lib/utils';
 	import { computeVirtualLayout, findVisibleRange } from '$lib/virtualList';
 	import Tooltip from './ui/Tooltip.svelte';
@@ -13,6 +13,8 @@
 		scanError,
 		scanResults,
 		scanProgress,
+		actionNotice = null,
+		onDismissNotice,
 		onSelectFile,
 		checkedFiles,
 		activeTool,
@@ -21,6 +23,8 @@
 		scanError: string;
 		scanResults: ScanResults | null;
 		scanProgress: ScanProgress | null;
+		actionNotice?: ActionNotice | null;
+		onDismissNotice?: () => void;
 		onSelectFile: (file: string | null, size: number) => void;
 		checkedFiles: SvelteSet<string>;
 		activeTool: string;
@@ -562,6 +566,40 @@
 		</div>
 	{:else if scanResults}
 		<div class="sticky top-0 z-10 bg-surface">
+			{#if actionNotice}
+				<div
+					class="flex items-start gap-2 border-b px-3 py-2 text-xs {actionNotice.kind === 'error'
+						? 'border-danger/30 bg-danger/10 text-danger'
+						: 'border-accent/30 bg-accent/10 text-text'}"
+				>
+					{#if actionNotice.kind === 'error'}
+						<TriangleAlert class="mt-0.5 h-3.5 w-3.5 shrink-0" />
+					{:else}
+						<Info class="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+					{/if}
+					<div class="min-w-0 flex-1">
+						<p class="font-medium">{actionNotice.message}</p>
+						{#if actionNotice.details && actionNotice.details.length > 0}
+							<ul class="mt-1 space-y-0.5 text-text-muted">
+								{#each actionNotice.details.slice(0, 5) as detail (detail)}
+									<li class="truncate font-mono">{detail}</li>
+								{/each}
+								{#if actionNotice.details.length > 5}
+									<li>…and {actionNotice.details.length - 5} more</li>
+								{/if}
+							</ul>
+						{/if}
+					</div>
+					<button
+						type="button"
+						onclick={() => onDismissNotice?.()}
+						class="shrink-0 text-text-muted transition-colors hover:text-text"
+						aria-label="Dismiss"
+					>
+						<X class="h-3.5 w-3.5" />
+					</button>
+				</div>
+			{/if}
 			<!-- Stats bar -->
 			<div class="flex items-center gap-6 border-b border-border px-3 py-1.5 text-xs text-text-muted">
 				<span>Groups: <strong class="text-text">{scanResults.total_groups}</strong></span>
