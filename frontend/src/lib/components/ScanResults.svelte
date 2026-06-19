@@ -6,6 +6,7 @@
 	import { computeVirtualLayout, findVisibleRange } from '$lib/virtualList';
 	import Tooltip from './ui/Tooltip.svelte';
 	import Checkbox from './ui/Checkbox.svelte';
+	import ExifTagsCell from './ExifTagsCell.svelte';
 
 	let {
 		scanState,
@@ -120,9 +121,9 @@
 		'exif-remover': [
 			{ key: 'checkbox', label: '', width: 40, minWidth: 20 },
 			{ key: 'size', label: 'Size', width: 110, minWidth: 50 },
-			{ key: 'similarity', label: 'EXIF Tags', width: 120, minWidth: 50 },
 			{ key: 'filename', label: 'Filename', width: 220, minWidth: 50 },
-			{ key: 'path', label: 'Path', width: 300, minWidth: 50 },
+			{ key: 'path', label: 'Path', width: 280, minWidth: 50 },
+			{ key: 'exif-tags', label: 'EXIF Tags', width: 260, minWidth: 80 },
 			{ key: 'modified', label: 'Modified', width: 150, minWidth: 50 },
 		],
 		'bad-names': [
@@ -191,6 +192,8 @@
 				return getPixelCount(file.dimensions);
 			case 'similarity':
 				return file.similarity ?? '';
+			case 'exif-tags':
+				return file.exif_tags?.length ?? 0;
 			default:
 				return '';
 		}
@@ -449,7 +452,11 @@
 	}
 
 	function gridCols(): string {
-		return colWidths.map((w) => w + 'px').join(' ');
+		// colWidths is populated by an effect; before it runs (or mid tool-switch) it can be
+		// empty or out of sync with colDefs, which would emit an invalid grid-template-columns
+		// and collapse every cell into the first column. Fall back to the column defaults.
+		const widths = colWidths.length === colDefs.length ? colWidths : colDefs.map((c) => c.width);
+		return widths.map((w) => w + 'px').join(' ');
 	}
 
 	const SCAN_TEXTS: Record<string, { scanning: string; empty: string }> = {
@@ -674,6 +681,8 @@
 										<div class="truncate text-text">
 											{item.file.similarity ?? ''}
 										</div>
+									{:else if col.key === 'exif-tags'}
+										<ExifTagsCell tags={item.file.exif_tags} fallback={item.file.similarity} />
 									{:else if col.key === 'filename'}
 										<Tooltip class="flex min-w-0" content={name}>
 											<div class="flex min-w-0 items-center">

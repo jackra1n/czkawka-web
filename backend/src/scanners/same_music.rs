@@ -75,6 +75,7 @@ pub fn run(
                 dimensions: None,
                 similarity,
                 size: Some(entry.size),
+                exif_tags: None,
             });
             if hash.is_empty() {
                 hash = format!(

@@ -43,6 +43,7 @@ pub fn run(
                 dimensions: None,
                 similarity,
                 size: Some(entry.size),
+                exif_tags: None,
             }],
         });
         total_files += 1;

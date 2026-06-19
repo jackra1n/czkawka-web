@@ -107,6 +107,7 @@ pub fn run(
                 dimensions,
                 similarity,
                 size,
+                exif_tags: None,
             });
         }
         total_files += files.len();

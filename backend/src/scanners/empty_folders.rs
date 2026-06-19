@@ -37,6 +37,7 @@ pub fn run(
                 dimensions: None,
                 similarity: None,
                 size: Some(0),
+                exif_tags: None,
             }],
         });
     }

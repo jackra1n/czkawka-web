@@ -501,6 +501,7 @@
 					{selectedFile}
 					{selectedFileSize}
 					groupFiles={selectedFileGroup?.files ?? []}
+					{activeTool}
 					onClose={closePreview}
 				/>
 			{/if}

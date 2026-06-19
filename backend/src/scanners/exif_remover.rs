@@ -3,7 +3,7 @@ use czkawka_core::common::progress_data::ProgressData;
 use czkawka_core::common::traits::Search;
 use czkawka_core::tools::exif_remover::ExifRemover;
 
-use crate::models::{FileGroup, ScanRequest, ScanResults, ScannedFile};
+use crate::models::{ExifTag, FileGroup, ScanRequest, ScanResults, ScannedFile};
 use crate::scanners::configure_common_data;
 
 pub fn run(
@@ -34,6 +34,17 @@ pub fn run(
             "{tag_count} tag{}",
             if tag_count == 1 { "" } else { "s" }
         ));
+        let exif_tags = Some(
+            entry
+                .exif_tags
+                .iter()
+                .map(|tag| ExifTag {
+                    name: tag.name.clone(),
+                    code: tag.code,
+                    group: tag.group.clone(),
+                })
+                .collect(),
+        );
         groups.push(FileGroup {
             size: entry.size,
             hash: String::new(),
@@ -43,6 +54,7 @@ pub fn run(
                 dimensions: None,
                 similarity,
                 size: Some(entry.size),
+                exif_tags,
             }],
         });
         total_files += 1;
