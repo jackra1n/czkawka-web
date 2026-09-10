@@ -1,6 +1,10 @@
 use std::path::PathBuf;
 
-use czkawka_core::common::progress_data::{CurrentStage, ProgressData};
+use czkawka_core::common::model::CheckingMethod;
+use czkawka_core::common::progress_data::{
+    CacheLoadPhase, DuplicateStage, ExifRemoverStage, ProgressData, SameMusicStage,
+    SimilarImagesStage, SimilarVideosStage, ToolStage, VideoOptimizerStage,
+};
 use czkawka_core::common::tool_data::{CommonData, DeleteMethod};
 
 use crate::models::{ScanProgress, ScanRequest, SharedProgress};
@@ -48,70 +52,119 @@ pub fn configure_common_data<T: CommonData>(tool: &mut T, request: &ScanRequest)
     tool.set_hide_hard_links(request.hide_hard_links);
 }
 
-pub fn stage_label(stage: CurrentStage) -> String {
+pub fn stage_label(stage: ToolStage) -> String {
     match stage {
-        CurrentStage::CollectingFiles => "Collecting files",
-        CurrentStage::DeletingFiles => "Deleting files",
-        CurrentStage::RenamingFiles => "Renaming files",
-        CurrentStage::MovingFiles => "Moving files",
-        CurrentStage::HardlinkingFiles => "Creating hard links",
-        CurrentStage::SymlinkingFiles => "Creating symlinks",
-        CurrentStage::OptimizingVideos => "Optimizing videos",
-        CurrentStage::CleaningExif => "Cleaning EXIF data",
+        ToolStage::CollectingFiles(CheckingMethod::Name) => "Scanning by name".to_string(),
+        ToolStage::CollectingFiles(CheckingMethod::SizeName) => {
+            "Scanning by size and name".to_string()
+        }
+        ToolStage::CollectingFiles(CheckingMethod::Size) => "Scanning by size".to_string(),
+        ToolStage::CollectingFiles(_) => "Collecting files".to_string(),
+        ToolStage::CollectingFolders => "Collecting folders".to_string(),
 
-        CurrentStage::DuplicateCacheSaving => "Saving cache",
-        CurrentStage::DuplicateCacheLoading => "Loading cache",
-        CurrentStage::DuplicatePreHashCacheSaving => "Saving pre-hash cache",
-        CurrentStage::DuplicatePreHashCacheLoading => "Loading pre-hash cache",
-        CurrentStage::DuplicateScanningName => "Scanning by name",
-        CurrentStage::DuplicateScanningSizeName => "Scanning by size and name",
-        CurrentStage::DuplicateScanningSize => "Scanning by size",
-        CurrentStage::DuplicateHidingHardLinks => "Hiding hard links",
-        CurrentStage::DuplicatePreHashing => "Pre-hashing files",
-        CurrentStage::DuplicateFullHashing => "Hashing files",
+        ToolStage::DeletingFiles => "Deleting files".to_string(),
+        ToolStage::RenamingFiles => "Renaming files".to_string(),
+        ToolStage::MovingFiles => "Moving files".to_string(),
+        ToolStage::HardlinkingFiles => "Creating hard links".to_string(),
+        ToolStage::SymlinkingFiles => "Creating symlinks".to_string(),
+        ToolStage::OptimizingVideos => "Optimizing videos".to_string(),
+        ToolStage::CleaningExif => "Cleaning EXIF data".to_string(),
 
-        CurrentStage::SameMusicCacheSavingTags => "Saving tag cache",
-        CurrentStage::SameMusicCacheLoadingTags => "Loading tag cache",
-        CurrentStage::SameMusicCacheSavingFingerprints => "Saving fingerprint cache",
-        CurrentStage::SameMusicCacheLoadingFingerprints => "Loading fingerprint cache",
-        CurrentStage::SameMusicReadingTags => "Reading music tags",
-        CurrentStage::SameMusicCalculatingFingerprints => "Calculating fingerprints",
-        CurrentStage::SameMusicComparingTags => "Comparing tags",
-        CurrentStage::SameMusicComparingFingerprints => "Comparing fingerprints",
+        ToolStage::Duplicate(stage) => match stage {
+            DuplicateStage::HidingHardLinks => "Hiding hard links".to_string(),
+            DuplicateStage::LoadingPreHashCache(CacheLoadPhase::Loading) => {
+                "Loading pre-hash cache".to_string()
+            }
+            DuplicateStage::LoadingPreHashCache(CacheLoadPhase::FilteringOutdated) => {
+                "Filtering outdated cache entries".to_string()
+            }
+            DuplicateStage::PreHashing => "Pre-hashing files".to_string(),
+            DuplicateStage::SavingPreHashCache => "Saving pre-hash cache".to_string(),
+            DuplicateStage::LoadingHashCache(CacheLoadPhase::Loading) => {
+                "Loading cache".to_string()
+            }
+            DuplicateStage::LoadingHashCache(CacheLoadPhase::FilteringOutdated) => {
+                "Filtering outdated cache entries".to_string()
+            }
+            DuplicateStage::FullHashing => "Hashing files".to_string(),
+            DuplicateStage::SavingHashCache => "Saving cache".to_string(),
+        },
 
-        CurrentStage::SimilarImagesHidingHardLinks => "Hiding hard links",
-        CurrentStage::SimilarImagesCalculatingHashes => "Calculating image hashes",
-        CurrentStage::SimilarImagesComparingHashes => "Comparing image hashes",
+        ToolStage::SameMusic(_, stage) => match stage {
+            SameMusicStage::LoadingTagsCache(CacheLoadPhase::Loading) => {
+                "Loading tag cache".to_string()
+            }
+            SameMusicStage::LoadingTagsCache(CacheLoadPhase::FilteringOutdated) => {
+                "Filtering outdated cache entries".to_string()
+            }
+            SameMusicStage::ReadingTags => "Reading music tags".to_string(),
+            SameMusicStage::SavingTagsCache => "Saving tag cache".to_string(),
+            SameMusicStage::ComparingTags => "Comparing tags".to_string(),
+            SameMusicStage::LoadingFingerprintCache(CacheLoadPhase::Loading) => {
+                "Loading fingerprint cache".to_string()
+            }
+            SameMusicStage::LoadingFingerprintCache(CacheLoadPhase::FilteringOutdated) => {
+                "Filtering outdated cache entries".to_string()
+            }
+            SameMusicStage::CalculatingFingerprints => "Calculating fingerprints".to_string(),
+            SameMusicStage::SavingFingerprintCache => "Saving fingerprint cache".to_string(),
+            SameMusicStage::ComparingFingerprints => "Comparing fingerprints".to_string(),
+        },
 
-        CurrentStage::SimilarVideosHidingHardLinks => "Hiding hard links",
-        CurrentStage::SimilarVideosCalculatingHashes => "Calculating video hashes",
-        CurrentStage::SimilarVideosCreatingThumbnails => "Creating video thumbnails",
-        CurrentStage::SimilarVideosAudioCacheLoading => "Loading audio cache",
-        CurrentStage::SimilarVideosAudioCalculatingFingerprints => "Calculating audio fingerprints",
-        CurrentStage::SimilarVideosAudioCacheSaving => "Saving audio cache",
-        CurrentStage::SimilarVideosAudioComparingFingerprints => "Comparing audio fingerprints",
-        CurrentStage::SimilarVideosAudioCreatingThumbnails => "Creating audio thumbnails",
+        ToolStage::SimilarImages(stage) => match stage {
+            SimilarImagesStage::HidingHardLinks => "Hiding hard links".to_string(),
+            SimilarImagesStage::CalculatingHashes => "Calculating image hashes".to_string(),
+            SimilarImagesStage::ComparingHashes => "Comparing image hashes".to_string(),
+        },
 
-        CurrentStage::BrokenFilesChecking => "Checking files",
-        CurrentStage::BadExtensionsChecking => "Checking extensions",
-        CurrentStage::BadNamesChecking => "Checking names",
-        CurrentStage::EmptyFilesCheckingContent => "Checking file content",
+        ToolStage::SimilarVideos(_, stage) => match stage {
+            SimilarVideosStage::HidingHardLinks => "Hiding hard links".to_string(),
+            SimilarVideosStage::CalculatingHashes => "Calculating video hashes".to_string(),
+            SimilarVideosStage::CreatingThumbnails => "Creating video thumbnails".to_string(),
+            SimilarVideosStage::LoadingAudioCache(CacheLoadPhase::Loading) => {
+                "Loading audio cache".to_string()
+            }
+            SimilarVideosStage::LoadingAudioCache(CacheLoadPhase::FilteringOutdated) => {
+                "Filtering outdated cache entries".to_string()
+            }
+            SimilarVideosStage::CalculatingAudioFingerprints => {
+                "Calculating audio fingerprints".to_string()
+            }
+            SimilarVideosStage::SavingAudioCache => "Saving audio cache".to_string(),
+            SimilarVideosStage::ComparingAudioFingerprints => {
+                "Comparing audio fingerprints".to_string()
+            }
+            SimilarVideosStage::CreatingAudioThumbnails => "Creating audio thumbnails".to_string(),
+        },
 
-        CurrentStage::ExifRemoverCacheLoading => "Loading EXIF cache",
-        CurrentStage::ExifRemoverExtractingTags => "Extracting EXIF tags",
-        CurrentStage::ExifRemoverCacheSaving => "Saving EXIF cache",
+        ToolStage::ExifRemover(stage) => match stage {
+            ExifRemoverStage::LoadingCache(CacheLoadPhase::Loading) => {
+                "Loading EXIF cache".to_string()
+            }
+            ExifRemoverStage::LoadingCache(CacheLoadPhase::FilteringOutdated) => {
+                "Filtering outdated cache entries".to_string()
+            }
+            ExifRemoverStage::ExtractingTags => "Extracting EXIF tags".to_string(),
+            ExifRemoverStage::SavingCache => "Saving EXIF cache".to_string(),
+        },
 
-        CurrentStage::VideoOptimizerCreatingThumbnails => "Creating thumbnails",
-        CurrentStage::VideoOptimizerProcessingVideos => "Processing videos",
+        ToolStage::VideoOptimizer(stage) => match stage {
+            VideoOptimizerStage::CreatingThumbnails => "Creating thumbnails".to_string(),
+            VideoOptimizerStage::ProcessingVideos => "Processing videos".to_string(),
+        },
+
+        ToolStage::BrokenFilesChecking => "Checking files".to_string(),
+        ToolStage::BadExtensionsChecking => "Checking extensions".to_string(),
+        ToolStage::BadNamesChecking => "Checking names".to_string(),
+        ToolStage::EmptyFilesCheckingContent => "Checking file content".to_string(),
     }
-    .to_string()
 }
 
 pub fn progress_to_scan_progress(data: &ProgressData) -> ScanProgress {
     ScanProgress {
-        stage_label: stage_label(data.sstage),
-        current_stage_idx: data.current_stage_idx,
-        max_stage_idx: data.max_stage_idx,
+        stage_label: stage_label(data.stage),
+        current_stage_idx: data.stage.current_stage_idx(),
+        max_stage_idx: data.stage.max_stage_idx(),
         entries_checked: data.entries_checked,
         entries_to_check: data.entries_to_check,
         bytes_checked: data.bytes_checked,
