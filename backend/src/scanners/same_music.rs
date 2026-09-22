@@ -23,16 +23,13 @@ pub fn run(
         .transpose()?
         .unwrap_or(CheckingMethod::AudioTags);
 
-    let music_similarity = if check_type == CheckingMethod::AudioTags {
-        MusicSimilarity::TRACK_TITLE
-            | MusicSimilarity::TRACK_ARTIST
-            | MusicSimilarity::YEAR
-            | MusicSimilarity::LENGTH
-            | MusicSimilarity::GENRE
-            | MusicSimilarity::BITRATE
-    } else {
-        MusicSimilarity::NONE
-    };
+    // The constructor requires nonempty tag criteria even in fingerprint mode.
+    let music_similarity = MusicSimilarity::TRACK_TITLE
+        | MusicSimilarity::TRACK_ARTIST
+        | MusicSimilarity::YEAR
+        | MusicSimilarity::LENGTH
+        | MusicSimilarity::GENRE
+        | MusicSimilarity::BITRATE;
 
     let params = SameMusicParameters::new(music_similarity, true, check_type, 5.0, 5.0, true);
 
