@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.2.0](https://github.com/jackra1n/czkawka-web/compare/1.1.0...1.2.0) (2026-09-22)
+
+
+### Features
+
+* better handle already deleted files ([#15](https://github.com/jackra1n/czkawka-web/issues/15)) ([531f172](https://github.com/jackra1n/czkawka-web/commit/531f172bdf0e9ec0ab97905608f41a712f444d36))
+* improve exif scanner results view ([#13](https://github.com/jackra1n/czkawka-web/issues/13)) ([271f320](https://github.com/jackra1n/czkawka-web/commit/271f3203ec0494a6375aafbedcf258fab043b89e))
+
+
+### Bug Fixes
+
+* prevent same-music content scans from panicking ([303a3c4](https://github.com/jackra1n/czkawka-web/commit/303a3c49f6d137c464a9d75cc2a7740e17553ce9))
+* report scan worker failures instead of leaving scans running indefinitely ([303a3c4](https://github.com/jackra1n/czkawka-web/commit/303a3c49f6d137c464a9d75cc2a7740e17553ce9))
+
+
+### Dependencies
+
+* update czkawka_core to 12.0.2 from crates.io ([303a3c4](https://github.com/jackra1n/czkawka-web/commit/303a3c49f6d137c464a9d75cc2a7740e17553ce9))
+
 ## [1.1.0](https://github.com/jackra1n/czkawka-web/compare/1.0.0...1.1.0) (2026-06-05)
 
 
